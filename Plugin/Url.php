@@ -21,7 +21,7 @@ class Url
     {
 
         if (!$this->helper->isEnabled()) {
-            return $this;
+            return $result;
         }
 
         if ($this->helper->replaceCheckout()) {
