@@ -435,14 +435,13 @@ class Items
     }
 
     /**
-     * @param Quote $quote
+     * @param $grandTotal
      *
      * @return $this
      * @throws CheckoutException
      */
-    public function validateTotals(Quote $quote)
+    public function validateTotals($grandTotal)
     {
-        $grandTotal = $quote->getGrandTotal();
         $calculatedTotal = 0;
         foreach ($this->_cart as $item) {
             /** @var $item OrderRow */
@@ -554,7 +553,7 @@ class Items
         $this->addDiscounts($quote->getCouponCode());
 
         try {
-            $this->validateTotals($quote);
+            $this->validateTotals($quote->getGrandTotal());
         } catch (\Exception $e) {
             throw $e;
         }
