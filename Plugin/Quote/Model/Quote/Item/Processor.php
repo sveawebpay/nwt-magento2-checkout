@@ -4,6 +4,7 @@ namespace Svea\Checkout\Plugin\Quote\Model\Quote\Item;
 
 use Magento\Catalog\Model\Product;
 use Magento\Framework\DataObject;
+use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Quote\Model\Quote\Item;
 use Magento\Quote\Model\Quote\Item\Processor as OriginalProcessor;
 
