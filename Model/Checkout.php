@@ -738,6 +738,10 @@ class Checkout extends Onepage
         if (($exception instanceof \Exception) && $this->getHelper()->isTestMode()) {
             $message = __($message . " Error: %1", $exception->getMessage());
         }
+        
+        if (!$exception) {
+            $message = __($message);
+        }
 
         throw new CheckoutException($message, 'checkout/cart');
     }
