@@ -62,4 +62,14 @@ class ViewModel
     {
         return $this->checkoutHelper->getCheckoutUrl('', ['_secure' => true]);
     }
+
+    /**
+     * @param \Svea\Checkout\Api\Data\CampaignInfoInterface $campaignA
+     * @param \Svea\Checkout\Api\Data\CampaignInfoInterface $campaignB
+     * @return bool
+     */
+    public function sortCampaignsByPriceAsc($campaignA, $campaignB)
+    {
+        return $campaignA->getUnformattedCampaignPrice() > $campaignB->getUnformattedCampaignPrice();
+    }
 }

@@ -4,11 +4,14 @@
     /** @var ProductCampaign  $block */
     $viewModel = $block->getViewModel();
     $campaigns = $viewModel->getProductCampaigns();
+
     if (empty($campaigns)) {
         return;
     }
+    
+    // Sorting the campaigns by price Ascending
+    usort($campaigns, array($viewModel, 'sortCampaignsByPriceAsc'));
 
-    // Campaigns should be sorted by ASC price
     $cheapestCampaign = reset($campaigns);
     $productCampaignPrice = $cheapestCampaign->getCampaignPrice();
 ?>

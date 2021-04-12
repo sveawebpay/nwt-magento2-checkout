@@ -67,9 +67,14 @@ interface CampaignInfoInterface
     public function getToAmount() : string;
 
     /**
-     * @return float
+     * @return string
      */
     public function getCampaignPrice();
+
+    /**
+     * @return float
+     */
+    public function getUnformattedCampaignPrice();
 
     /**
      * @param float $price

@@ -164,7 +164,7 @@ class CampaignInfo extends AbstractModel implements CampaignInfoInterface
 
     /**
      *
-     * @return float
+     * @return string
      */
     public function getCampaignPrice()
     {
@@ -172,6 +172,19 @@ class CampaignInfo extends AbstractModel implements CampaignInfoInterface
         $monthlyAnnuallyFactor = $this->getMonthlyAnnuityFactor();
         $finalPrice = round(($this->productPrice * $monthlyAnnuallyFactor) + $notificationFee);
 
-        return  $this->priceCurrency->format($finalPrice);
+        return $this->priceCurrency->format($finalPrice);
+    }
+
+    /**
+     *
+     * @return float
+     */
+    public function getUnformattedCampaignPrice()
+    {
+        $notificationFee =  $this->getNotificationFee();
+        $monthlyAnnuallyFactor = $this->getMonthlyAnnuityFactor();
+        $finalPrice = round(($this->productPrice * $monthlyAnnuallyFactor) + $notificationFee);
+
+        return $finalPrice;
     }
 }
