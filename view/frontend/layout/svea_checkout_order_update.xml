@@ -3,4 +3,10 @@
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
 
     <update handle="svea_checkout_index_index"/>
+    <block class="Svea\Checkout\Block\Checkout" name="svea_checkout.shipping_method" as="shipping_method" template="Svea_Checkout::checkout/shipping/method.phtml" />
+    <block class="Svea\Checkout\Block\Checkout\Cart" name="svea_checkout.cart" as="cart" template="Svea_Checkout::checkout/cart.phtml" />
+    <block class="Svea\Checkout\Block\Checkout" name="svea_checkout.coupon" as="coupon" template="Svea_Checkout::checkout/cart/coupon.phtml" />
+    <block class="Svea\Checkout\Block\Messages" name="svea_checkout.messages"/>
+    <block class="Svea\Checkout\Block\Checkout" name="svea_checkout.svea" as="svea" template="Svea_Checkout::iframe.phtml" cacheable="false"/>
+    <block class="Svea\Checkout\Block\Checkout" name="svea_checkout.newsletter" as="newsletter" template="Svea_Checkout::checkout/subscribe.phtml" ifconfig="svea_checkout/layout/display_newsletter"/>
 </page>
