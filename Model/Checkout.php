@@ -198,7 +198,7 @@ class Checkout extends Onepage
         }
 
         if (!$quote->validateMinimumAmount()) {
-            $error =$this->getHelper()->getStoreConfig('sales/minimum_order/error_message');
+            $error =__($this->getHelper()->getStoreConfig('sales/minimum_order/error_message'));
             if (!$error) {
                 $error = __('Subtotal must exceed minimum order amount.');
             }
