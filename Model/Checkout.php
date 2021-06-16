@@ -150,7 +150,7 @@ class Checkout extends Onepage
 
         if (($reloadIfCurrencyChanged && $currencyChanged) || ($reloadIfCountryChanged && $countryChanged)) {
             //not needed
-            $this->throwReloadException(__('Checkout was reloaded.'));
+            $this->throwReloadException('Checkout was reloaded.');
         }
 
         if ($selectedShippingMethod === false) {
@@ -182,32 +182,32 @@ class Checkout extends Onepage
         }
 
         if (!$this->getHelper()->isEnabled()) {
-            $this->throwRedirectToCartException(__('The Svea Checkout is not enabled, please use an alternative checkout method.'));
+            $this->throwRedirectToCartException('The Svea Checkout is not enabled, please use an alternative checkout method.');
         }
 
         if (!$this->getAllowedCountries()) {
-            $this->throwRedirectToCartException(__('The Svea Checkout is NOT available (no allowed country), please use an alternative checkout method.'));
+            $this->throwRedirectToCartException('The Svea Checkout is NOT available (no allowed country), please use an alternative checkout method.');
         }
 
         if (!$quote->hasItems()) {
-            $this->throwRedirectToCartException(__('There are no items in your cart.'));
+            $this->throwRedirectToCartException('There are no items in your cart.');
         }
 
         if ($quote->getHasError()) {
-            $this->throwRedirectToCartException(__('The cart contains errors.'));
+            $this->throwRedirectToCartException('The cart contains errors.');
         }
 
         if (!$quote->validateMinimumAmount()) {
-            $error =$this->getHelper()->getStoreConfig('sales/minimum_order/error_message');
+            $error = $this->getHelper()->getStoreConfig('sales/minimum_order/error_message');
             if (!$error) {
-                $error = __('Subtotal must exceed minimum order amount.');
+                $error = 'Subtotal must exceed minimum order amount.';
             }
 
             $this->throwRedirectToCartException($error);
         }
 
         if ($quote->getGrandTotal() <= 0) {
-            $this->throwRedirectToCartException(__("Subtotal cannot be 0. Please choose another payment method."));
+            $this->throwRedirectToCartException("Subtotal cannot be 0. Please choose another payment method.");
         }
 
         return true;
@@ -240,11 +240,6 @@ class Checkout extends Onepage
 
         // this will try to change currency only if currency is available
         $store->setCurrentCurrencyCode($requiredCurrency);
-
-//        // check if it was possible to set the currency code!
-//        if ($store->getCurrentCurrencyCode() != $requiredCurrency) {
-//            $this->throwRedirectToCartException(__('This currency is not available, please use an alternative checkout.'));
-//        }
 
         $quote->setTotalsCollectedFlag(false);
         if (!$quote->isVirtual() && $quote->getShippingAddress()) {
@@ -331,14 +326,14 @@ class Checkout extends Onepage
     public function getBlankAddress($country)
     {
         $blankAddress = [
-            'customer_address_id'=>0,
-            'save_in_address_book'=>0,
-            'same_as_billing'=>0,
-            'street'=>'',
-            'city'=>'',
-            'postcode'=>'',
-            'region_id'=>'',
-            'country_id'=>$country
+            'customer_address_id' => 0,
+            'save_in_address_book' => 0,
+            'same_as_billing' => 0,
+            'street' => '',
+            'city' => '',
+            'postcode' => '',
+            'region_id' => '',
+            'country_id' => $country
         ];
         return $blankAddress;
     }
@@ -729,26 +724,26 @@ class Checkout extends Onepage
     }
 
     /**
-     * @param $message
-     * @param $exception
+     * @param string $message
+     * @param \Exception $exception
      * @throws CheckoutException
      */
     protected function throwRedirectToCartException($message, $exception = null)
     {
         if (($exception instanceof \Exception) && $this->getHelper()->isTestMode()) {
-            $message = __($message . " Error: %1", $exception->getMessage());
+            $message .= sprintf(" Error: %s", $exception->getMessage());
         }
 
-        throw new CheckoutException($message, 'checkout/cart');
+        throw new CheckoutException(__($message), 'checkout/cart');
     }
 
     /**
-     * @param $message
+     * @param string $message
      * @throws CheckoutException
      */
     protected function throwReloadException($message)
     {
-        throw new CheckoutException($message, '*/*');
+        throw new CheckoutException(__($message), '*/*');
     }
 
     /**
@@ -771,7 +766,7 @@ class Checkout extends Onepage
      * @throws LocalizedException
      * @throws \Magento\Framework\Exception\AlreadyExistsException
      */
-    public function createCustomer($orderId, $shipping = [], $billing = []) : \Magento\Customer\Api\Data\CustomerInterface
+    public function createCustomer($orderId, $shipping = [], $billing = []): \Magento\Customer\Api\Data\CustomerInterface
     {
         $addressFactory = $this->context->getAddressInterfaceFactory();
         $addressRepository = $this->context->getAddressRepository();
@@ -830,7 +825,7 @@ class Checkout extends Onepage
     /**
      * @return LoadHandler
      */
-    private function getRepositoryLoadHandler() : LoadHandler
+    private function getRepositoryLoadHandler(): LoadHandler
     {
         return ObjectManager::getInstance()->create(LoadHandler::class);
     }
