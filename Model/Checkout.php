@@ -12,6 +12,7 @@ use Magento\Quote\Model\QuoteRepository\LoadHandler;
 use Svea\Checkout\Model\Client\ClientException;
 use Svea\Checkout\Model\Client\DTO\GetOrderResponse;
 use Svea\Checkout\Model\Client\DTO\Order\OrderRow;
+use Svea\Checkout\Helper\Data as SveaHelper;
 
 class Checkout extends Onepage
 {
@@ -693,7 +694,8 @@ class Checkout extends Onepage
     {
         foreach ($orderItems as $item) {
             /** @var $item OrderRow */
-            if ($item->getName() === "InvoiceFee") {
+            $normalizedName = trim(strtolower($item->getName()));
+            if (in_array($normalizedName, SveaHelper::INVOICE_FEE_ROW_NAMES)) {
                 return $item;
             }
         }

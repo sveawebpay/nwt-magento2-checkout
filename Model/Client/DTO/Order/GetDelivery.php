@@ -1,6 +1,8 @@
 <?php
 namespace Svea\Checkout\Model\Client\DTO\Order;
 
+use Svea\Checkout\Helper\Data as SveaHelper;
+
 class GetDelivery
 {
 
@@ -102,7 +104,8 @@ class GetDelivery
     public function getInvoiceFeeRow()
     {
         foreach ($this->getCartItems() as $item) {
-            if ($item->getName() === "InvoiceFee") {
+            $normalizedName = trim(strtolower($item->getName()));
+            if (in_array($normalizedName, SveaHelper::INVOICE_FEE_ROW_NAMES)) {
                 return $item;
             }
         }
