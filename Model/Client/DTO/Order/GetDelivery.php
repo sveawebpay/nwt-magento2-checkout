@@ -104,8 +104,7 @@ class GetDelivery
     public function getInvoiceFeeRow()
     {
         foreach ($this->getCartItems() as $item) {
-            $normalizedName = trim(strtolower($item->getName()));
-            if (in_array($normalizedName, SveaHelper::INVOICE_FEE_ROW_NAMES)) {
+            if ($item->getArticleNumber() == SveaHelper::INVOICE_FEE_ARTICLE_NUMBER) {
                 return $item;
             }
         }

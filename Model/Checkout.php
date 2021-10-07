@@ -632,6 +632,8 @@ class Checkout extends Onepage
         if ($sveaInvoiceFeeRow = $this->getInvoiceFeeRow($sveaOrder->getCartItems())) {
             $fee  = $sveaInvoiceFeeRow->getUnitPrice() / 100;
             $quote->setSveaInvoiceFee($fee);
+            $quote->getBillingAddress()->setSveaInvoiceFee($fee);
+            $quote->getShippingAddress()->setSveaInvoiceFee($fee);
 
             $quote->collectTotals();
         }
@@ -693,9 +695,8 @@ class Checkout extends Onepage
     public function getInvoiceFeeRow($orderItems)
     {
         foreach ($orderItems as $item) {
-            /** @var $item OrderRow */
-            $normalizedName = trim(strtolower($item->getName()));
-            if (in_array($normalizedName, SveaHelper::INVOICE_FEE_ROW_NAMES)) {
+            /** @var OrderRow $item  */
+            if ($item->getArticleNumber() == SveaHelper::INVOICE_FEE_ARTICLE_NUMBER) {
                 return $item;
             }
         }
