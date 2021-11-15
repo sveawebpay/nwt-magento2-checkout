@@ -61,7 +61,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * Invoice fee row
      */
-    const INVOICE_FEE_ROW_NAMES = ['invoicefee','fakturaavgift','fakturagebyr','laskutuslisä'];
+    const INVOICE_FEE_ARTICLE_NUMBER = '6eaceaec-fffc-41ad-8095-c21de609bcfd';
 
     /**
      * Store manager
