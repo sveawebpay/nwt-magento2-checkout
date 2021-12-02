@@ -127,7 +127,7 @@ class CheckoutOrderNumberReference
 
         $cn = $quote->getReservedOrderId();
         if ($sequence > 1) {
-            $cn = $cn . '_' . $sequence;
+            $cn = $cn . '-' . $sequence;
         }
 
         return substr($cn, 0, 31);
