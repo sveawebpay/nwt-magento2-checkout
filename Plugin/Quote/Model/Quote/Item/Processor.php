@@ -35,7 +35,7 @@ class Processor
             $item->setData(CartItemInterface::KEY_QTY, 0);
         }
 
-        if ($item->getQuote()->getSveaClientOrderNumber() === null) {
+        if ($item->getQuote()->getSveaClientOrderNumber() === null && ($item->getQty() != $candidate->getCartQty())) {
             $item->addQty($candidate->getCartQty());
         }
 
