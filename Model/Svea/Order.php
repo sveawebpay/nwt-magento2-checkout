@@ -467,6 +467,7 @@ class Order
                     // we set the id here so we can refund it later :)
                     $payment->setAdditionalInformation('svea_delivery_id', $delivery->getId());
                     $payment->setTransactionId($delivery->getId());
+                    $invoice->setTransactionId($delivery->getId());
                 }
 
                 return;
@@ -560,6 +561,7 @@ class Order
             // save queue_id, we need it later! if a refund will be made
             $payment->setAdditionalInformation('svea_queue_id', $response->getQueueId());
             $payment->setTransactionId($response->getQueueId());
+            $invoice->setTransactionId($response->getQueueId());
         } else {
             throw new LocalizedException(__('You need an svea payment ID to capture.'));
         }
