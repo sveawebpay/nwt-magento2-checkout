@@ -59,6 +59,11 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     const PARTNER_KEY = "2E999136-F4CC-465B-B5CB-873C28E93EEC";
 
     /**
+     * Invoice fee row
+     */
+    const INVOICE_FEE_ARTICLE_NUMBER = '6eaceaec-fffc-41ad-8095-c21de609bcfd';
+
+    /**
      * Store manager
      *
      * @var \Magento\Store\Model\StoreManagerInterface

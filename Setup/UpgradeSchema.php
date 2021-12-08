@@ -29,6 +29,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->installCampaignsInfo($setup);
         }
 
+        if (version_compare($context->getVersion(), '1.1.1') < 0) {
+            $this->alterInvoiceFeeColumns($setup);
+        }
+
         $setup->endSetup();
     }
 
@@ -133,5 +137,24 @@ class UpgradeSchema implements UpgradeSchemaInterface
         );
 
         $installer->getConnection()->createTable($table);
+    }
+
+    private function alterInvoiceFeeColumns(SchemaSetupInterface $setup)
+    {
+        $tables  = ['quote_address','quote_address','quote','sales_order','sales_invoice','sales_creditmemo'];
+
+        foreach ($tables as $table) {
+            $setup->getConnection()->modifyColumn(
+                $table,
+                'svea_invoice_fee',
+                [
+                    'type' => \Magento\Framework\DB\Ddl\Table::TYPE_DECIMAL,
+                    'length' => '20,4',
+                    'default' => 0.00,
+                    'nullable' => true,
+                    'comment' =>'Svea Invoice Fee'
+                ]
+            );
+        }
     }
 }

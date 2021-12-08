@@ -2,6 +2,7 @@
 namespace Svea\Checkout\Model\Client\DTO\Order;
 
 use Svea\Checkout\Model\Client\DTO\MerchantDataResponse;
+use Svea\Checkout\Helper\Data as SveaHelper;
 
 class GetOrder
 {
@@ -491,7 +492,7 @@ class GetOrder
     public function getInvoiceFeeRow()
     {
         foreach ($this->getCartItems() as $item) {
-            if ($item->getName() === "InvoiceFee") {
+            if ($item->getArticleNumber() == SveaHelper::INVOICE_FEE_ARTICLE_NUMBER) {
                 return $item;
             }
         }

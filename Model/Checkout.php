@@ -12,6 +12,7 @@ use Magento\Quote\Model\QuoteRepository\LoadHandler;
 use Svea\Checkout\Model\Client\ClientException;
 use Svea\Checkout\Model\Client\DTO\GetOrderResponse;
 use Svea\Checkout\Model\Client\DTO\Order\OrderRow;
+use Svea\Checkout\Helper\Data as SveaHelper;
 
 class Checkout extends Onepage
 {
@@ -631,6 +632,8 @@ class Checkout extends Onepage
         if ($sveaInvoiceFeeRow = $this->getInvoiceFeeRow($sveaOrder->getCartItems())) {
             $fee  = $sveaInvoiceFeeRow->getUnitPrice() / 100;
             $quote->setSveaInvoiceFee($fee);
+            $quote->getBillingAddress()->setSveaInvoiceFee($fee);
+            $quote->getShippingAddress()->setSveaInvoiceFee($fee);
 
             $quote->collectTotals();
         }
@@ -692,8 +695,8 @@ class Checkout extends Onepage
     public function getInvoiceFeeRow($orderItems)
     {
         foreach ($orderItems as $item) {
-            /** @var $item OrderRow */
-            if ($item->getName() === "InvoiceFee") {
+            /** @var OrderRow $item  */
+            if ($item->getArticleNumber() == SveaHelper::INVOICE_FEE_ARTICLE_NUMBER) {
                 return $item;
             }
         }

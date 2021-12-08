@@ -8,6 +8,7 @@ use Svea\Checkout\Model\Client\DTO\Order\Gui;
 use Svea\Checkout\Model\Client\DTO\Order\IdentityFlags;
 use Svea\Checkout\Model\Client\DTO\Order\MerchantSettings;
 use Svea\Checkout\Model\Client\DTO\Order\OrderRow;
+use Svea\Checkout\Helper\Data as SveaHelper;
 
 class GetOrderInfoResponse
 {
@@ -346,7 +347,7 @@ class GetOrderInfoResponse
     public function getInvoiceFeeRow()
     {
         foreach ($this->getCartItems() as $item) {
-            if ($item->getName() === "InvoiceFee") {
+            if ($item->getArticleNumber() == SveaHelper::INVOICE_FEE_ARTICLE_NUMBER) {
                 return $item;
             }
         }

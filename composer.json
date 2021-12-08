@@ -2,7 +2,7 @@
   "name": "sveawebpay/nwt-magento2-checkout",
   "description": "Svea Checkout",
   "type": "magento2-module",
-  "version": "1.2.8",
+  "version": "1.2.13",
   "autoload": {
     "files": [
       "registration.php"
