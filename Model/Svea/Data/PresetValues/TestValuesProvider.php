@@ -3,20 +3,22 @@
 namespace Svea\Checkout\Model\Svea\Data\PresetValues;
 
 use Svea\Checkout\Model\Client\DTO\Order\PresetValue;
+use Svea\Checkout\Helper\Data as Helper;
 
 class TestValuesProvider implements PresetValuesProviderInterface
 {
+
     /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     * @var Helper
      */
-    private $scopeConfig;
+    private $helper;
 
     /**
      * TestValuesProvider constructor.
      */
-    public function __construct(\Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig)
+    public function __construct(Helper $helper)
     {
-        $this->scopeConfig = $scopeConfig;
+        $this->helper = $helper;
     }
 
     /**
@@ -46,19 +48,17 @@ class TestValuesProvider implements PresetValuesProviderInterface
      */
     public function getIsCompany() : PresetValue
     {
-        $customerType = $this->scopeConfig->getValue('svea_checkout/settings/default_customer_type');
-        $customerTypes = $this->scopeConfig->getValue('svea_checkout/settings/customer_types');
-        $customerTypes = explode(',', $customerTypes);
+        $customerType = $this->helper->getDefaultConsumerType();
+        $customerTypes = $this->helper->getConsumerTypes();
 
         $isB2B = $customerType == 'B2B';
-        $isB2C = in_array('B2C', $customerTypes);
 
         $presetValue = new PresetValue();
         $presetValue->setIsCompany($isB2B);
         $presetValue->setValue($isB2B);
 
         $isReadOnly = true;
-        if (count($customerTypes) > 1) {
+        if (is_array($customerTypes) && count($customerTypes) > 1) {
             $isReadOnly = false;
         }
 
