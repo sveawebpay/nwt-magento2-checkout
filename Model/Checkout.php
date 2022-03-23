@@ -597,6 +597,10 @@ class Checkout extends Onepage
 
         //set payment
         $payment = $quote->getPayment();
+        $customerReference = $sveaOrder->getCustomerReference();
+        if ($customerReference) {
+            $payment->setAdditionalInformation('svea_customer_reference', $customerReference);
+        }
 
         //force payment method
         if (!$payment->getMethod() || $payment->getMethod() != $this->_paymentMethod) {
