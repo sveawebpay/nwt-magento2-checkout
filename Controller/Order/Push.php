@@ -178,20 +178,12 @@ class Push extends Checkout
 
         
         // here we create the magento order
+        $quote->getPayment()->setAdditionalInformation('svea_payment_method', $sveaOrder->getPaymentType());
         try {
             // we try to create the order now ;)
             $order = $this->placeOrder($sveaOrder, $quote);
         } catch (\Exception $e) {
             throw $e;
-        }
-
-        // save svea payment info
-        try {
-            $order->getPayment()->setAdditionalInformation("svea_payment_method", $sveaOrder->getPaymentType());
-            $this->sveaCheckoutContext->getOrderRepository()->save($order);
-        } catch (\Exception $e) {
-            // ignore
-            $this->getSveaCheckout()->getLogger()->error("Svea Push: Could not set svea payment method to order");
         }
         
         return $order;
