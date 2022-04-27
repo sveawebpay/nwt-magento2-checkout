@@ -129,7 +129,6 @@ class Checkout extends Onepage
 
         try {
             $quote->setTotalsCollectedFlag(false)->collectTotals(); //REQUIRED (maybe shipping amount was changed)
-            $this->quoteRepository->save($quote);
         } catch (\Exception $e) {
             // do nothing
         }
