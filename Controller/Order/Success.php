@@ -47,7 +47,10 @@ class Success extends \Svea\Checkout\Controller\Checkout
 
         $this->_eventManager->dispatch(
             'checkout_onepage_controller_success_action',
-            ['order_ids' => [$lastOrderId]]
+            [
+                'order_ids' => [$lastOrderId],
+                'order' => $session->getLastRealOrder()
+            ]
         );
 
         return $resultPage;

@@ -468,13 +468,16 @@ class Order
                     $payment->setAdditionalInformation('svea_delivery_id', $delivery->getId());
                     $payment->setTransactionId($delivery->getId());
                     $invoice->setTransactionId($delivery->getId());
+                    return;
                 }
 
-                return;
-            }
-
-            if ($isFullDelivery && !$sveaOrder->canDeliver()) {
-                throw new LocalizedException(__('We can\'t do a full delivery on this particular order. Capture offline and please do it manually in Svea.'));
+                // If no delivery exists then this order is currently not deliverable for other reasons,
+                // Likely payment review is required due to high invoice amount
+                throw new LocalizedException(
+                    __(
+                        'Can not capture. Svea has not marked the order as Deliverable. Review the order in Svea.'
+                    )
+                );
             }
 
             $paymentObj = new DeliverOrder();
