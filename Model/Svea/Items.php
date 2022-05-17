@@ -240,7 +240,7 @@ class Items
                     ->setArticleNumber($sku)
                     ->setName($item->getName() . " " . ($comment ? "({$comment})" : ""))
                     ->setUnit("st") // TODO! We need to map these somehow!
-                    ->setQuantity($this->addZeroes(round($qty, 0)))
+                    ->setQuantity($this->addZeroes($qty, 0))
                     ->setVatPercent($this->addZeroes($vat)) // the tax rate i.e 25% (2500)
                     ->setUnitPrice($unitPriceInclTaxes); // incl. tax price per item
 
