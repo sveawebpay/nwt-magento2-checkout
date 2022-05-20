@@ -36,4 +36,13 @@ class Info extends \Magento\Payment\Block\Info
             return "";
         }
     }
+
+    public function getSveaCustomerReference()
+    {
+        try {
+            return $this->getInfo()->getAdditionalInformation('svea_customer_reference');
+        } catch (\Exception $e) {
+            return "";
+        }
+    }
 }
