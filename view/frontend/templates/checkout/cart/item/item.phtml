@@ -1,11 +1,15 @@
 <?php
 // @codingStandardsIgnoreFile
+use Magento\Framework\Escaper;
 
-/** @var $block Magento\Checkout\Block\Cart\Item\Renderer */
+/** @var \Magento\Checkout\Block\Cart\Item\Renderer $block  */
+/** @var \Magento\Quote\Model\Quote\Item $_item */
+/** @var Escaper $escaper */
 
 $_item = $block->getItem();
 $product = $_item->getProduct();
 $helper = $this->helper('\Svea\Checkout\Helper\Cart');
+$qtyIncrements = floatval($_item->getData('qty_increments')) ? $_item->getData('qty_increments') : 1 ?>
 ?>
 
 <tr>
@@ -99,7 +103,8 @@ $helper = $this->helper('\Svea\Checkout\Helper\Cart');
                        class="input-text qty ajax-qty-change"
                        maxlength="12"
                        data-validate="{required:true,'validate-greater-than-zero':true}"
-                       data-role="cart-item-qty"/>
+                       data-role="cart-item-qty"
+                       data-qty-increments="<?= $escaper->escapeHtmlAttr($qtyIncrements) ?>"/>
 
                 <span class="input-number-increment">+</span>
             </span>

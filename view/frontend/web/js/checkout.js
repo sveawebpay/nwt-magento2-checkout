@@ -80,6 +80,7 @@ define([
                 var data_submit_url = inputQty.data('cart-url-submit');
                 var data_refresh_url = inputQty.data('cart-url-update');
                 var data_remove_url = inputQty.data('cart-url-remove');
+                const qtyIncrements = inputQty.data('qty-increments');
                 var increment = inputQty.siblings('.input-number-increment');
                 var decrement = inputQty.siblings('.input-number-decrement');
                 var remove = inputQty.closest('tr').find('td.subtotal .remove-product');
@@ -94,7 +95,7 @@ define([
                 remove.data('binded', true);
 
                 increment.on('click', function () {
-                    inputQty.val(parseInt(inputQty.val()) + 1);
+                    inputQty.val(parseFloat(inputQty.val()) + qtyIncrements);
                     if (typeof ajaxActionTriggerTimeout !== "undefined") {
                         clearTimeout(ajaxActionTriggerTimeout);
                     }
@@ -103,9 +104,11 @@ define([
                     }, 1000);
                 });
                 decrement.on('click', function () {
-                    var v = parseInt(inputQty.val());
-                    if (v < 2) return;
-                    inputQty.val(v - 1);
+                    var v = parseFloat(inputQty.val());
+                    if (v < 2 * qtyIncrements) {
+                        return;
+                    }
+                    inputQty.val(v - qtyIncrements);
                     if (typeof ajaxActionTriggerTimeout !== "undefined") {
                         clearTimeout(ajaxActionTriggerTimeout);
                     }
