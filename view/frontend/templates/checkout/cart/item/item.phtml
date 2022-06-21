@@ -9,7 +9,7 @@ use Magento\Framework\Escaper;
 $_item = $block->getItem();
 $product = $_item->getProduct();
 $helper = $this->helper('\Svea\Checkout\Helper\Cart');
-$qtyIncrements = floatval($_item->getData('qty_increments')) ? $_item->getData('qty_increments') : 1 ?>
+$qtyIncrements = floatval($_item->getData('qty_increments')) ? $_item->getData('qty_increments') : 1;
 ?>
 
 <tr>

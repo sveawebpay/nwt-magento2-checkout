@@ -1,8 +1,7 @@
 <?php
 namespace Svea\Checkout\Block\Checkout;
 
-use Magento\InventoryCatalogApi\Api\DefaultStockProviderInterface;
-use Magento\InventoryConfigurationApi\Api\GetStockItemConfigurationInterface;
+use Svea\Checkout\Api\GetQtyIncrementConfigInterface;
 use Magento\Quote\Model\Quote\Item;
 
 class Cart extends \Magento\Checkout\Block\Cart\Totals
@@ -43,14 +42,9 @@ class Cart extends \Magento\Checkout\Block\Cart\Totals
     protected $helper;
 
     /**
-     * @var DefaultStockProviderInterface
+     * @var GetQtyIncrementConfigInterface
      */
-    protected DefaultStockProviderInterface $defaultStock;
-
-    /**
-     * @var GetStockItemConfigurationInterface
-     */
-    protected GetStockItemConfigurationInterface $getStockConfig;
+    private $getQtyIncrement;
 
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
@@ -58,14 +52,12 @@ class Cart extends \Magento\Checkout\Block\Cart\Totals
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Sales\Model\Config $salesConfig,
         \Svea\Checkout\Helper\Data $helper,
-        DefaultStockProviderInterface $defaultStock,
-        GetStockItemConfigurationInterface $getStockConfig,
+        GetQtyIncrementConfigInterface $getQtyIncrement,
         array $layoutProcessors = [],
         array $data = []
     ) {
         $this->helper = $helper;
-        $this->defaultStock = $defaultStock;
-        $this->getStockConfig = $getStockConfig;
+        $this->getQtyIncrement = $getQtyIncrement;
         parent::__construct($context, $customerSession, $checkoutSession,$salesConfig, $layoutProcessors,$data);
     }
 
@@ -86,8 +78,8 @@ class Cart extends \Magento\Checkout\Block\Cart\Totals
     {
         $qtyIncrements = 1;
         try {
-            $stockConfig = $this->getStockConfig->execute($item->getSku(), $this->defaultStock->getId());
-            $qtyIncrements = ($stockConfig->isEnableQtyIncrements()) ? $stockConfig->getQtyIncrements() : 1;
+            $qtyIncrement = $this->getQtyIncrement->execute($item->getProduct());
+            $qtyIncrements = ($qtyIncrement->isEnableQtyIncrements()) ? $qtyIncrement->getQtyIncrements() : 1;
         } finally {
             $item->setData('qty_increments', $qtyIncrements);
             return parent::getItemHtml($item);

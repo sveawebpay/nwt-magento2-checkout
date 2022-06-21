@@ -49,4 +49,5 @@
     <preference for="Svea\Checkout\Api\GetAvailablePartPaymentCampaigns" type="Svea\Checkout\Model\Campaign\CampaignManagement"/>
     <preference for="Svea\Checkout\Api\CampaignInfoRepositoryInterface" type="Svea\Checkout\Model\Campaign\CampaignRepository"/>
 
+    <preference for="Svea\Checkout\Api\GetQtyIncrementConfigInterface" type="Svea\Checkout\Service\GetQtyIncrementConfig" />
 </config>
