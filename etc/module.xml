@@ -7,8 +7,7 @@
             <module name="Magento_Quote"/>
             <module name="Magento_Reward"/>
             <module name="Magento_Widget"/>
-            <module name="Magento_InventoryCatalog" />
-            <module name="Magento_InventoryConfiguration" />
+            <module name="Magento_CatalogInventory" />
         </sequence>
     </module>
 </config>
