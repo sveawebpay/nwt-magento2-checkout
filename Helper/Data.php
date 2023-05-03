@@ -587,7 +587,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
     protected function splitStringToArray($values)
     {
-        return preg_split("#\s*[ ,;]\s*#", $values, -1, PREG_SPLIT_NO_EMPTY);
+        return preg_split("#\s*[ ,;]\s*#", $values ?? "", -1, PREG_SPLIT_NO_EMPTY);
     }
 
     /**
