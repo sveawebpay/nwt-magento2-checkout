@@ -14,6 +14,7 @@
         <policy id="form-action">
             <values>
                 <value id="svea" type="host">https://*.svea.com</value>
+                 <value id="vipps" type="host">*.vipps.no</value>
             </values>
         </policy>
     </policies>
