@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * @var Magento\Framework\View\Element\Template $block
+ * @var Magento\Framework\Escaper $escaper
+ * @var Svea\Checkout\ViewModel\Checkout\Recurring $viewModel
+ */
+
+$viewModel = $block->getViewModel();
+$checked = $viewModel->getMyRecurringStatus();
+$options = $viewModel->getRecurringFrequencyOptions();
+?>
+
+<form
+    id="svea_checkout_set_recurring"
+    action="<?= $escaper->escapeHtmlAttr($viewModel->getFormAction()) ?>"
+    method="POST"
+    data-mage-init='{
+        "recurringFormHandler":{
+            "toggleRecurringSelector":"#svea_checkout_set_recurring_recurring_enabled",
+            "frequencyOptionSelector":"#svea_checkout_set_recurring_frequency_option"
+        }
+    }'
+>
+    <div class="control">
+        <input
+            name="recurring_enabled"
+            id="svea_checkout_set_recurring_recurring_enabled"
+            class="checkbox"
+            type="checkbox"
+            value="enabled"
+            <?= ($checked) ? ' checked="checked"' : '' ?>
+        />
+        <label for="recurring_enabled"><?= $escaper->escapeHtml(__('Enable recurring payments')) ?></label>
+    </div>
+    <div class="control">
+        <select name="frequency_option" id="svea_checkout_set_recurring_frequency_option">
+            <?php foreach ($viewModel->getRecurringFrequencyOptions() as $option): ?>
+                <option
+                    value=<?= $escaper->escapeHtmlAttr($option['value']) ?>
+                    <?= ($option['selected']) ? ' selected="selected"' : '' ?>
+                >
+                    <?= $escaper->escapeHtml($option['label']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+</form>
+

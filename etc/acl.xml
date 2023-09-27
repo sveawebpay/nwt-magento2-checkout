@@ -6,7 +6,16 @@
                 <resource id="Magento_Backend::stores">
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
-                            <resource id="Svea_Checkout::system_config" title="Svea Checkout" />
+                            <resource id="Svea_Checkout::system_config" title="Svea Checkout Config" />
+                        </resource>
+                    </resource>
+                </resource>
+                <resource id="Magento_Sales::sales">
+                    <resource id="Magento_Sales::sales_operation">
+                        <resource id="Magento_Sales::sales_order">
+                            <resource id="Magento_Sales::actions">
+                                <resource id="Svea_Checkout::cancel_recurring" title="Svea Checkout: Cancel Recurring Payment" />
+                            </resource>
                         </resource>
                     </resource>
                 </resource>

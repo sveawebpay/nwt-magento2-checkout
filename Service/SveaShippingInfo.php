@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Svea\Checkout\Service;
 
@@ -15,17 +15,17 @@ class SveaShippingInfo
     /**
      * @var Json
      */
-    private $jsonSerializer;
+    private Json $jsonSerializer;
 
     /**
      * @var DataObjectFactory
      */
-    private $dataObjectFactory;
+    private DataObjectFactory $dataObjectFactory;
 
     /**
      * @var AddressFactory
      */
-    private $addressFactory;
+    private AddressFactory $addressFactory;
 
     /**
      * Read by Carrier model, excludes Svea Shipping as a listed shipping option if set to true

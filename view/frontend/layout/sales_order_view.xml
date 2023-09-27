@@ -1,0 +1,16 @@
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="content">
+            <block name="sales.order.svea.recurring.container" template="Svea_Checkout::order/recurring_container.phtml" after="sales.order.info">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">Svea\Checkout\ViewModel\Order\View\RecurringInfo</argument>
+                </arguments>
+                <block name="sales.order.svea.recurring.info" as="recurring_info" template="Svea_Checkout::order/recurring_info.phtml">
+                    <arguments>
+                        <argument name="view_model" xsi:type="object">Svea\Checkout\ViewModel\Order\View\RecurringInfo</argument>
+                    </arguments>
+                </block>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

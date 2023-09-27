@@ -290,6 +290,23 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             : "$proxyDomain/sveacheckout/order/push/sid/{checkout.order.uri}/$hash";
     }
 
+    public function getRecurringPushUrl(string $token, int $storeId): string
+    {
+        $proxyDomain = $this->getDevProxyBaseUrl();
+
+        return null === $proxyDomain
+            ? $this->_getUrl(
+                'sveacheckout/recurring/push',
+                [
+                    'sid'=>'{checkout.order.uri}',
+                    'token' => $token,
+                    'storeid' => $storeId,
+                    '_escape_params' => false
+                ]
+            )
+            : "$proxyDomain/sveacheckout/recurring/push/sid/{checkout.order.uri}/";
+    }
+
     /**
      * @return string|null
      */
@@ -395,7 +412,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function getSveaShippingActive($store = null)
     {
         return $this->scopeConfig->isSetFlag(
-            'carriers/svea_nshift/active',
+            'carriers/sveanshift/active',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
             $store
         );
@@ -577,5 +594,34 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
              \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
              $store
          );
+    }
+
+    public function getRecurringPaymentsActive($store = null)
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_SETTINGS . 'recurring_payments/active',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $store
+        );
+    }
+
+    public function getRecurringFrequencyOptions($store = null): string
+    {
+        $jsonValue = $this->scopeConfig->getValue(
+            self::XML_PATH_SETTINGS . 'recurring_payments/frequency_options',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $store
+        );
+
+        return $jsonValue;
+    }
+
+    public function getRecurringRequireAccount($store = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_SETTINGS . 'recurring_payments/require_account',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $store
+        );
     }
 }

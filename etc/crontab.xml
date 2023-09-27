@@ -5,5 +5,8 @@
         <job instance="Svea\Checkout\Cron\CheckPendingPayments" method="execute" name="svea_fetch_part_campaigns">
             <schedule>* * * * *</schedule>
         </job>
+        <job instance="Svea\Checkout\Cron\RecurringOrders" method="placeOrders" name="svea_recurring_orders">
+            <schedule>0 6 * * *</schedule>
+        </job>
     </group>
 </config>

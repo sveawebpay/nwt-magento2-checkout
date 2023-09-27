@@ -42,6 +42,9 @@ class CreateOrder extends AbstractRequest
     /** @var Order\ShippingInformation */
     protected $shippingInformation;
 
+    /** @var bool */
+    protected $recurring = false;
+
     /**
      * @return string
      */
@@ -235,7 +238,8 @@ class CreateOrder extends AbstractRequest
             'locale' => $this->getLocale(),
             'clientOrderNumber' => $this->getClientOrderNumber(),
             'merchantSettings' => $this->getMerchantSettings()->toArray(),
-            'merchantData' => $this->getMerchantData()
+            'merchantData' => $this->getMerchantData(),
+            'recurring' => $this->getRecurring()
         ];
 
         $flags = $this->getIdentityFlags();
@@ -295,6 +299,26 @@ class CreateOrder extends AbstractRequest
     public function setShippingInformation(Order\ShippingInformation $shippingInformation)
     {
         $this->shippingInformation = $shippingInformation;
+        return $this;
+    }
+
+    /**
+     * Get the value of recurring
+     */
+    public function getRecurring()
+    {
+        return $this->recurring;
+    }
+
+    /**
+     * Set the value of recurring
+     *
+     * @param bool $recurring
+     * @return self
+     */
+    public function setRecurring($recurring)
+    {
+        $this->recurring = $recurring;
         return $this;
     }
 }

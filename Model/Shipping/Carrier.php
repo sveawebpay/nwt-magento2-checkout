@@ -19,7 +19,7 @@ use Svea\Checkout\Service\SveaShippingInfo;
  */
 class Carrier extends AbstractCarrier implements CarrierInterface
 {
-    const CODE = 'svea_nshift';
+    const CODE = 'sveanshift';
 
     const PLACEHOLDER_NAME = 'placeholder_name';
 

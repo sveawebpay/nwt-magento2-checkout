@@ -3,7 +3,11 @@
 namespace Svea\Checkout\Model;
 
 use Magento\Customer\Api\Data\AddressInterfaceFactory;
+use Magento\Quote\Api\Data\CartExtensionFactory;
+use Magento\Quote\Model\Quote\ShippingAssignment\ShippingAssignmentProcessor;
+use Svea\Checkout\Block\Checkout\Cart;
 use Svea\Checkout\Service\SveaShippingInfo;
+use Svea\Checkout\Service\SveaRecurringInfo;
 
 /**
  * Class CheckoutContext
@@ -55,7 +59,25 @@ class CheckoutContext
      */
     private $orderCollectionFactory;
 
+    /**
+     * @var SveaShippingInfo
+     */
     private SveaShippingInfo $sveaShippingInfoService;
+
+    /**
+     * @var CartExtensionFactory
+     */
+    private CartExtensionFactory $cartExtensionFactory;
+
+    /**
+     * @var ShippingAssignmentProcessor
+     */
+    private ShippingAssignmentProcessor $shippingAssignmentProcessor;
+
+    /**
+     * @var SveaRecurringInfo
+     */
+    private SveaRecurringInfo $sveaRecurringInfo;
 
     /**
      * Constructor
@@ -83,6 +105,9 @@ class CheckoutContext
         AddressInterfaceFactory $addressInterfaceFactory,
         \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory,
         SveaShippingInfo $sveaShippingInfoService,
+        CartExtensionFactory $cartExtensionFactory,
+        ShippingAssignmentProcessor $shippingAssignmentProcessor,
+        SveaRecurringInfo $sveaRecurringInfo
     ) {
         $this->helper        = $helper;
         $this->logger = $logger;
@@ -96,6 +121,9 @@ class CheckoutContext
         $this->addressRepository = $addressRepository;
         $this->addressInterfaceFactory = $addressInterfaceFactory;
         $this->sveaShippingInfoService = $sveaShippingInfoService;
+        $this->cartExtensionFactory = $cartExtensionFactory;
+        $this->shippingAssignmentProcessor = $shippingAssignmentProcessor;
+        $this->sveaRecurringInfo = $sveaRecurringInfo;
     }
 
     /**
@@ -186,5 +214,20 @@ class CheckoutContext
     public function getSveaShippingInfoService(): SveaShippingInfo
     {
         return $this->sveaShippingInfoService;
+    }
+
+    public function getCartExtensionFactory(): CartExtensionFactory
+    {
+        return $this->cartExtensionFactory;
+    }
+
+    public function getShippingAssignmentProcessor(): ShippingAssignmentProcessor
+    {
+        return $this->shippingAssignmentProcessor;
+    }
+
+    public function getRecurringInfoService(): SveaRecurringInfo
+    {
+        return $this->sveaRecurringInfo;
     }
 }

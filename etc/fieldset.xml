@@ -27,5 +27,14 @@
                 <aspect name="to_order_payment"/>
             </field>
         </fieldset>
+
+        <fieldset id="sales_convert_order">
+            <field name="svea_order_id">
+                <aspect name="to_quote" />
+            </field>
+            <field name="svea_invoice_fee">
+                <aspect name="to_quote"/>
+            </field>
+        </fieldset>
     </scope>
 </config>

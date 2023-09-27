@@ -32,4 +32,30 @@ use Magento\Framework\Escaper;
             </td>
         </tr>
     <?php endforeach ?>
+    <?php if ($block->getRecurringInfo()->getId()): ?>
+        <?php if ($block->getRecurringInfo()->getCanceledDate()): ?>
+            <tr>
+                <th><?= $escaper->escapeHtml(__('Subscription was canceled at')) ?>:</th>
+                <td><?= $escaper->escapeHtml($block->getRecurringInfo()->getCanceledDate()) ?></td>
+            </tr>
+        <?php else: ?>
+            <tr>
+                <th><?= $escaper->escapeHtml(__('Subscription frequency')) ?>:</th>
+                <td>
+                    <?=
+                        $escaper->escapeHtml(
+                            $block->readableFrequencyOption($block->getRecurringInfo()->getFrequencyOption())
+                        );
+                    ?>
+                </td>
+            </tr>
+            <tr>
+                <th><?= $escaper->escapeHtml(__('Next order date')) ?>:</th>
+                <td><?= $escaper->escapeHtml($block->getRecurringInfo()->getNextOrderDate()) ?></td>
+            </tr>
+        <?php endif ?>
+    <?php endif ?>
 </table>
+<?php if ($block->getRecurringInfo()->getId() && !$block->getRecurringInfo()->getCanceledDate()): ?>
+    <div><?= /* @noEscape */ $block->getCancelRecurringHtml() ?></div>
+<?php endif ?>

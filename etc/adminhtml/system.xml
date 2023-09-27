@@ -128,7 +128,7 @@
                         <label>Activate Svea Shipping</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <comment>Use Svea Checkout's built-in nShift shipping solution</comment>
-                        <config_path>carriers/svea_nshift/active</config_path>
+                        <config_path>carriers/sveanshift/active</config_path>
                     </field>
                     <field id="enforce_fallback" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="10">
                         <label>Enforce Fallback Shipping Options</label>
@@ -155,6 +155,22 @@
                         <depends>
                             <field id="svea_shipping_active">1</field>
                         </depends>
+                    </field>
+                </group>
+                <group id="recurring_payments" type="text" sortOrder="600" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
+                    <label>Recurring Payments Settings</label>
+                    <field id="active" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
+                        <label>Activate</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="frequency_options" translate="label" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Frequency options</label>
+                        <frontend_model>Svea\Checkout\Block\Adminhtml\Form\Field\Recurring\FrequencyOptions</frontend_model>
+                        <backend_model>Svea\Checkout\Model\System\Config\Backend\Recurring\FrequencyOptions</backend_model>
+                    </field>
+                    <field id="require_account" translate="label" type="select" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Require Customer Account</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     </field>
                 </group>
             </group>

@@ -271,6 +271,8 @@ class Order
         $presetValuesProvider = $this->presetValuesProviderFactory->getProvider($isTestMode);
         $paymentOrder->setPresetValues($presetValuesProvider->getData());
 
+        $this->handleRecurringStatus($quote, $paymentOrder);
+
         if ($reloadCredentials) {
             $this->checkoutApi->resetCredentials($quote->getStoreId());
         }
@@ -886,5 +888,24 @@ class Order
     public function getRefHelper()
     {
         return $this->sveaCheckoutReferenceHelper;
+    }
+
+    /**
+     * Set recurring flag on data object based on config and quote payment contents
+     *
+     * @param Quote $quote
+     * @param CreateOrder $paymentOrder
+     */
+    private function handleRecurringStatus(Quote $quote, CreateOrder $paymentOrder)
+    {
+        if (!$this->helper->getRecurringPaymentsActive()) {
+            return;
+        }
+
+        $payment = $quote->getPayment();
+        $sveaRecurringInfo = $payment->getAdditionalInformation('svea_recurring_info') ?? [];
+        $recurringEnabled = $sveaRecurringInfo['enabled'] ?? false;
+
+        $paymentOrder->setRecurring(!!$recurringEnabled);
     }
 }
