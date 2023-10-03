@@ -1,12 +1,14 @@
 <?php
 namespace Svea\Checkout\Model\Client\DTO;
 
+use Svea\Checkout\Api\Data\HasOrderValidationInterface;
 use Svea\Checkout\Model\Client\DTO\Order\IdentityFlags;
 use Svea\Checkout\Model\Client\DTO\Order\MerchantSettings;
 use Svea\Checkout\Model\Client\DTO\Order\OrderRow;
 use Svea\Checkout\Model\Client\DTO\Order\PresetValue;
+use Svea\Checkout\Model\Client\DTO\Order\OrderValidation;
 
-class CreateOrder extends AbstractRequest
+class CreateOrder extends AbstractRequest implements HasOrderValidationInterface
 {
 
     /** @var $countryCode string */
@@ -41,6 +43,8 @@ class CreateOrder extends AbstractRequest
 
     /** @var Order\ShippingInformation */
     protected $shippingInformation;
+
+    protected ?OrderValidation $validation = null;
 
     /** @var bool */
     protected $recurring = false;
@@ -277,6 +281,10 @@ class CreateOrder extends AbstractRequest
             $data['ShippingInformation'] = $this->getShippingInformation()->toArray();
         }
 
+        if (null !== $this->validation) {
+            $data['validation'] = $this->validation->toArray();
+        }
+
         return $data;
     }
 
@@ -320,5 +328,22 @@ class CreateOrder extends AbstractRequest
     {
         $this->recurring = $recurring;
         return $this;
+    }
+
+    /**
+     * @return OrderValidation|null
+     */
+    public function getValidation(): ?OrderValidation
+    {
+        return $this->validation;
+    }
+
+    /**
+     * @param OrderValidation $validation
+     * @return CreateOrder
+     */
+    public function setValidation(OrderValidation $validation): void
+    {
+        $this->validation = $validation;
     }
 }

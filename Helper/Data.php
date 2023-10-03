@@ -624,4 +624,30 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             $store
         );
     }
+
+    /**
+     * @param null|int|string $store
+     * @return boolean
+     */
+    public function getMinimumAgeRestrictionActive($store = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_SETTINGS . 'minimum_age_restriction/active',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $store
+        );
+    }
+
+    /**
+     * @param null|int|string $store
+     * @return int
+     */
+    public function getGlobalMinimumAge($store = null): int
+    {
+        return (int)$this->scopeConfig->getValue(
+            self::XML_PATH_SETTINGS . 'minimum_age/global_minimum_age',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $store
+        );
+    }
 }

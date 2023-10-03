@@ -84,4 +84,11 @@
             <argument name="logger" xsi:type="object">Svea\Checkout\Logger\Logger</argument>
         </arguments>
     </type>
+    <type name="Svea\Checkout\Model\Svea\Order">
+        <arguments>
+            <argument name="shippingInfoFactory" xsi:type="object">Svea\Checkout\Model\Client\DTO\Order\ShippingInformationFactory\Proxy</argument>
+            <argument name="productCollectionFactory" xsi:type="object">Magento\Catalog\Model\ResourceModel\Product\CollectionFactory\Proxy</argument>
+            <argument name="orderValidationFactory" xsi:type="object">Svea\Checkout\Model\Client\DTO\Order\OrderValidationFactory\Proxy</argument>
+        </arguments>
+    </type>
 </config>

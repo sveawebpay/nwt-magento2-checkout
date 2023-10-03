@@ -6,6 +6,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order\Creditmemo;
 use Magento\Sales\Model\Order\Invoice;
+use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
 use Svea\Checkout\Model\Client\Api\Checkout;
 use Svea\Checkout\Model\Client\ClientException;
 use Svea\Checkout\Model\Client\DTO\CancelOrder;
@@ -13,7 +14,6 @@ use Svea\Checkout\Model\Client\DTO\CancelOrderAmount;
 use Svea\Checkout\Model\Client\DTO\CreateOrder;
 use Svea\Checkout\Model\Client\DTO\DeliverOrder;
 use Svea\Checkout\Model\Client\DTO\GetDeliveryResponse;
-use Svea\Checkout\Model\Client\DTO\GetOrderInfoResponse;
 use Svea\Checkout\Model\Client\DTO\GetOrderResponse;
 use Svea\Checkout\Model\Client\DTO\Order\Address;
 use Svea\Checkout\Model\Client\DTO\Order\MerchantSettings;
@@ -24,6 +24,8 @@ use Svea\Checkout\Model\Client\DTO\RefundPayment;
 use Svea\Checkout\Model\Client\DTO\RefundPaymentAmount;
 use Svea\Checkout\Model\Client\DTO\UpdateOrderCart;
 use Svea\Checkout\Model\Svea\Data\PresetValues\Factory as PresetValuesFactory;
+use Svea\Checkout\Model\Client\DTO\Order\OrderValidationFactory;
+use Svea\Checkout\Api\Data\HasOrderValidationInterface;
 use \Exception as BaseException;
 
 class Order
@@ -75,6 +77,16 @@ class Order
     private $shippingInfoFactory;
 
     /**
+     * @var ProductCollectionFactory
+     */
+    private ProductCollectionFactory $productCollectionFactory;
+
+    /**
+     * @var OrderValidationFactory
+     */
+    private OrderValidationFactory $orderValidationFactory;
+
+    /**
      * Order constructor.
      *
      * @param \Svea\Checkout\Model\Client\Api\OrderManagement $orderManagementApi
@@ -85,6 +97,9 @@ class Order
      * @param PresetValuesFactory $presetValuesProviderFactory
      * @param Items $itemsHandler
      * @param Locale $locale
+     * @param ShippingInformationFactory $shippingInfoFactory
+     * @param ProductRepositoryInterface $productRepo
+     * @param OrderValidationFactory $orderValidationFactory
      */
     public function __construct(
         \Svea\Checkout\Model\Client\Api\OrderManagement $orderManagementApi,
@@ -95,7 +110,9 @@ class Order
         PresetValuesFactory $presetValuesProviderFactory,
         Items $itemsHandler,
         Locale $locale,
-        ShippingInformationFactory $shippingInfoFactory
+        ShippingInformationFactory $shippingInfoFactory,
+        ProductCollectionFactory $productCollectionFactory,
+        OrderValidationFactory $orderValidationFactory
     ) {
         $this->helper = $helper;
         $this->items = $itemsHandler;
@@ -106,6 +123,8 @@ class Order
         $this->_locale = $locale;
         $this->presetValuesProviderFactory = $presetValuesProviderFactory;
         $this->shippingInfoFactory = $shippingInfoFactory;
+        $this->productCollectionFactory = $productCollectionFactory;
+        $this->orderValidationFactory = $orderValidationFactory;
     }
 
     /** @var $_quote Quote */
@@ -184,6 +203,7 @@ class Order
             $payment->setShippingInformation($info);
         }
 
+        $this->handleOrderValidation($quote, $payment);
         $paymentResponse = $this->checkoutApi->updateOrder($payment, $paymentId);
 
         $this->setIframeSnippet($paymentResponse->getGui()->getSnippet());
@@ -267,6 +287,8 @@ class Order
         if ($partnerKey && !empty($partnerKey)) {
             $paymentOrder->setPartnerKey($partnerKey);
         }
+
+        $this->handleOrderValidation($quote, $paymentOrder);
 
         $presetValuesProvider = $this->presetValuesProviderFactory->getProvider($isTestMode);
         $paymentOrder->setPresetValues($presetValuesProvider->getData());
@@ -907,5 +929,44 @@ class Order
         $recurringEnabled = $sveaRecurringInfo['enabled'] ?? false;
 
         $paymentOrder->setRecurring(!!$recurringEnabled);
+    }
+
+    /**
+     * Adds minimum age if we either have a global minimum age set or products with minimum age
+     *
+     * @param Quote $quote
+     * @param CreateOrder $paymentOrder
+     * @return void
+     */
+    private function handleOrderValidation(Quote $quote, HasOrderValidationInterface $paymentOrder): void
+    {
+        $storeId = $quote->getStoreId();
+        if (!$this->helper->getMinimumAgeRestrictionActive($storeId)) {
+            return;
+        }
+
+        $globalMinimumAge = $this->helper->getGlobalMinimumAge($storeId);
+        $validation = $this->orderValidationFactory->create();
+        if ($globalMinimumAge > 0) {
+            $validation->setMinAge($globalMinimumAge);
+            $paymentOrder->setValidation($validation);
+            return;
+        }
+
+        // Use a product collection to find highest minimum age value in the cart
+        $productIds = $quote->getItemsCollection()->getColumnValues('product_id');
+        $productCollection = $this->productCollectionFactory->create();
+        $productCollection
+            ->addFieldToFilter('entity_id', ['in' => $productIds])
+            ->addAttributeToSelect('svea_minimum_age')
+        ;
+
+        $highestMinimumAge = (int)max($productCollection->getColumnValues('svea_minimum_age'));
+        if ($highestMinimumAge === 0) {
+            return;
+        }
+
+        $validation->setMinAge($highestMinimumAge);
+        $paymentOrder->setValidation($validation);
     }
 }
