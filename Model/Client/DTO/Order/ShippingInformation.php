@@ -63,7 +63,7 @@ class ShippingInformation extends AbstractRequest
     /**
      * @var FallbackOption[]
      */
-    private $fallbackOptions;
+    private $fallbackOptions = [];
 
     public function __construct(
         ShippingMethodManagementInterface $shipMethodManagement,

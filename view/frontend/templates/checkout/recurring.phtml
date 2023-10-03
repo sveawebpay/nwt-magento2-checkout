@@ -22,28 +22,30 @@ $options = $viewModel->getRecurringFrequencyOptions();
         }
     }'
 >
-    <div class="control">
-        <input
-            name="recurring_enabled"
-            id="svea_checkout_set_recurring_recurring_enabled"
-            class="checkbox"
-            type="checkbox"
-            value="enabled"
-            <?= ($checked) ? ' checked="checked"' : '' ?>
-        />
-        <label for="recurring_enabled"><?= $escaper->escapeHtml(__('Enable recurring payments')) ?></label>
-    </div>
-    <div class="control">
-        <select name="frequency_option" id="svea_checkout_set_recurring_frequency_option">
-            <?php foreach ($viewModel->getRecurringFrequencyOptions() as $option): ?>
-                <option
-                    value=<?= $escaper->escapeHtmlAttr($option['value']) ?>
-                    <?= ($option['selected']) ? ' selected="selected"' : '' ?>
-                >
-                    <?= $escaper->escapeHtml($option['label']) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
+    <div class="control-wrapper">
+        <div class="control-checkbox">
+            <input
+                name="recurring_enabled"
+                id="svea_checkout_set_recurring_recurring_enabled"
+                class="checkbox"
+                type="checkbox"
+                value="enabled"
+                <?= ($checked) ? ' checked="checked"' : '' ?>
+            />
+            <label for="svea_checkout_set_recurring_recurring_enabled"><?= $escaper->escapeHtml(__('Subscribe')) ?></label>
+        </div>
+        <div class="control">
+            <select name="frequency_option" id="svea_checkout_set_recurring_frequency_option">
+                <?php foreach ($viewModel->getRecurringFrequencyOptions() as $option): ?>
+                    <option
+                        value=<?= $escaper->escapeHtmlAttr($option['value']) ?>
+                        <?= ($option['selected']) ? ' selected="selected"' : '' ?>
+                    >
+                        <?= $escaper->escapeHtml($option['label']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
     </div>
 </form>
 
