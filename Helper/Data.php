@@ -645,7 +645,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     public function getGlobalMinimumAge($store = null): int
     {
         return (int)$this->scopeConfig->getValue(
-            self::XML_PATH_SETTINGS . 'minimum_age/global_minimum_age',
+            self::XML_PATH_SETTINGS . 'minimum_age_restriction/global_minimum_age',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
             $store
         );
