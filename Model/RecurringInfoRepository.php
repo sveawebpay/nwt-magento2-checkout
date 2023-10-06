@@ -5,7 +5,6 @@ namespace Svea\Checkout\Model;
 use Svea\Checkout\Api\Data\RecurringInfoInterface;
 use Svea\Checkout\Api\RecurringInfoRepositoryInterface;
 use Svea\Checkout\Model\RecurringInfoFactory as ModelFactory;
-use Svea\Checkout\Model\RecurringInfo;
 use Svea\Checkout\Model\ResourceModel\RecurringInfoFactory as ResourceFactory;
 use Svea\Checkout\Model\ResourceModel\RecurringInfo\CollectionFactory;
 
@@ -16,11 +15,6 @@ class RecurringInfoRepository implements RecurringInfoRepositoryInterface
     private ResourceFactory $resourceFactory;
 
     private CollectionFactory $collectionFactory;
-
-    /**
-     * @var RecurringInfo[]
-     */
-    private array $instancesById = [];
 
     public function __construct(
         ModelFactory $modelFactory,
@@ -69,16 +63,13 @@ class RecurringInfoRepository implements RecurringInfoRepositoryInterface
         $model = $this->modelFactory->create();
         $resourceModel = $this->resourceFactory->create();
         $resourceModel->load($model, $value, $field);
-        if ($model->getId()) {
-            $this->instancesById[$model->getId()] = $model;
-        }
         return $model;
     }
 
     /**
      * @inheritDoc
      */
-    public function getByTodaysDate(): array
+    public function getByTodaysDate(?int $storeId = null): array
     {
         $todaysDate = date('Y-m-d');
         $collection = $this->collectionFactory->create();
@@ -88,6 +79,11 @@ class RecurringInfoRepository implements RecurringInfoRepositoryInterface
             'main_table.original_order_id = sales_order.entity_id',
             ['store_id']
         );
+
+        if (null !== $storeId) {
+            $collection->addFieldToFilter('sales_order.store_id', $storeId);
+        }
+
         return $collection->getItems();
     }
 }

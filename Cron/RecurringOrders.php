@@ -3,14 +3,20 @@
 namespace Svea\Checkout\Cron;
 
 use Svea\Checkout\Api\RecurringInfoRepositoryInterface;
-use Svea\Checkout\Service\SveaRecurringInfo;
+use Svea\Checkout\Service\SveaRecurringInfo\PlaceOrders;
+use Svea\Checkout\Helper\Data;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\App\State;
 use Magento\Store\Model\App\Emulation;
 use Magento\Framework\App\Area;
 
 class RecurringOrders
 {
-    private SveaRecurringInfo $sveaRecurringInfo;
+    private StoreManagerInterface $storeManager;
+
+    private Data $helper;
+
+    private PlaceOrders $placeOrder;
 
     private RecurringInfoRepositoryInterface $recurringInfoRepo;
 
@@ -19,12 +25,16 @@ class RecurringOrders
     private Emulation $emulation;
 
     public function __construct(
-        SveaRecurringInfo $sveaRecurringInfo,
+        StoreManagerInterface $storeManager,
+        Data $helper,
+        PlaceOrders $placeOrder,
         RecurringInfoRepositoryInterface $recurringInfoRepo,
         State $appState,
         Emulation $emulation
     ) {
-        $this->sveaRecurringInfo = $sveaRecurringInfo;
+        $this->storeManager = $storeManager;
+        $this->helper = $helper;
+        $this->placeOrder = $placeOrder;
         $this->recurringInfoRepo = $recurringInfoRepo;
         $this->appState = $appState;
         $this->emulation = $emulation;
@@ -37,13 +47,28 @@ class RecurringOrders
      */
     public function placeOrders(): void
     {
-        $recurringInfos = $this->recurringInfoRepo->getByTodaysDate();
         $this->appState->setAreaCode(Area::AREA_FRONTEND);
-        foreach ($recurringInfos as $recurringInfo) {
-            $originalOrder = $this->sveaRecurringInfo->loadOrder((int)$recurringInfo->getOriginalOrderId());
-            $this->emulation->startEnvironmentEmulation($originalOrder->getStoreId(), Area::AREA_FRONTEND);
-            $this->sveaRecurringInfo->placeRecurringOrder($recurringInfo);
-            $this->recurringInfoRepo->save($recurringInfo);
+        $stores = $this->storeManager->getStores();
+
+        foreach ($stores as $store) {
+            $storeId = (int)$store->getId();
+
+            if (!$this->helper->getRecurringPaymentsActive($storeId)) {
+                continue;
+            }
+
+            $recurringInfos = $this->recurringInfoRepo->getByTodaysDate($storeId);
+            if (count($recurringInfos) < 1) {
+                continue;
+            }
+
+            // Start store emulation, then place orders for that store
+            $this->emulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
+            $this->placeOrder->placeRecurringOrders($recurringInfos);
+            foreach ($recurringInfos as $recurringInfo) {
+                $this->recurringInfoRepo->save($recurringInfo);
+            }
+            // End store emulation
             $this->emulation->stopEnvironmentEmulation();
         }
     }

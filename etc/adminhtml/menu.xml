@@ -3,8 +3,10 @@
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
     <menu>
         <add id="Svea_Checkout::svea" title="SVEA" module="Svea_Checkout" sortOrder="100"
-             resource="Svea_Checkout::system_config"/>
+            resource="Svea_Checkout::system_config"/>
         <add id="Svea_Checkout::svea_checkout" title="Checkout Configuration" module="Svea_Checkout" sortOrder="100"
-             parent="Svea_Checkout::svea" action="adminhtml/system_config/edit/section/svea_checkout" resource="Svea_Checkout::system_config"/>
+            parent="Svea_Checkout::svea" action="adminhtml/system_config/edit/section/svea_checkout" resource="Svea_Checkout::system_config"/>
+        <add id="Svea_Checkout::recurring_orders" dependsOnConfig="svea_checkout/settings/recurring_payments/active" title="Place Today's Recurring Orders" module="Svea_Checkout" sortOrder="200"
+            parent="Svea_Checkout::svea" action="svea/recurring/place" resource="Svea_Checkout::place_recurring"/>
     </menu>
 </config>

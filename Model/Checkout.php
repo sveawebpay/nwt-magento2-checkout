@@ -890,7 +890,7 @@ class Checkout extends Onepage
         $defaultCountry = $this->context->getHelper()->getDefaultCountry();
         $quote->getShippingAddress()->setCountryId($defaultCountry);
         $extAttributes = $quote->getExtensionAttributes();
-        if ($extAttributes) {
+        if (null === $extAttributes) {
             $extAttributes = $this->context->getCartExtensionFactory()->create();
         }
 

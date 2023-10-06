@@ -31,7 +31,6 @@ class Cancel extends Action
     public function execute()
     {
         $token = $this->getRequest()->getParam('token');
-        $orderId = $this->getRequest()->getParam('order_id');
 
         try {
             $recurringInfo = $this->recurringInfoRepo->getByRecurringToken($token);

@@ -4,6 +4,7 @@ namespace Svea\Checkout\Block\Adminhtml\Form\Field\Recurring\Renderer;
 
 class TimeUnit extends \Magento\Framework\View\Element\Html\Select
 {
+    const OPTION_DAY = 'day';
     const OPTION_WEEK = 'week';
     const OPTION_MONTH = 'month';
 
@@ -18,6 +19,7 @@ class TimeUnit extends \Magento\Framework\View\Element\Html\Select
 
     protected function _toHtml()
     {
+        $this->addOption(self::OPTION_DAY, __('Day'));
         $this->addOption(self::OPTION_WEEK, __('Week'));
         $this->addOption(self::OPTION_MONTH, __('Month'));
         return parent::_toHtml();

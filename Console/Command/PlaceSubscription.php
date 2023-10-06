@@ -11,12 +11,12 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
-use Svea\Checkout\Service\SveaRecurringInfo;
+use Svea\Checkout\Service\SveaRecurringInfo\PlaceOrders;
 use Svea\Checkout\Api\RecurringInfoRepositoryInterface;
 
 class PlaceSubscription extends Command
 {
-    private SveaRecurringInfo $recurringInfoService;
+    private PlaceOrders $placeOrders;
 
     private RecurringInfoRepositoryInterface $recurringInfoRepo;
 
@@ -29,7 +29,7 @@ class PlaceSubscription extends Command
     private State $appState;
 
     public function __construct(
-        SveaRecurringInfo $recurringInfoService,
+        PlaceOrders $placeOrders,
         RecurringInfoRepositoryInterface $recurringInfoRepo,
         OrderFactory $orderFactory,
         OrderResourceFactory $orderResourceFactory,
@@ -37,7 +37,7 @@ class PlaceSubscription extends Command
         State $appState,
         ?string $name = null
     ) {
-        $this->recurringInfoService = $recurringInfoService;
+        $this->placeOrders = $placeOrders;
         $this->recurringInfoRepo = $recurringInfoRepo;
         $this->orderFactory = $orderFactory;
         $this->orderResourceFactory = $orderResourceFactory;
@@ -67,7 +67,7 @@ class PlaceSubscription extends Command
 
         $this->appState->setAreaCode(Area::AREA_FRONTEND);
         $this->emulation->startEnvironmentEmulation($order->getStoreId(), Area::AREA_FRONTEND, true);
-        $this->recurringInfoService->placeRecurringOrder($recurringInfo);
+        $this->placeOrders->placeRecurringOrders([$recurringInfo]);
         $this->emulation->stopEnvironmentEmulation();
     }
 }

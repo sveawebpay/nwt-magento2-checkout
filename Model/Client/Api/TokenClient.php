@@ -7,13 +7,13 @@ use Svea\Checkout\Model\Client\DTO\Token\PatchTokenFactory;
 use Svea\Checkout\Model\Client\ApiClient;
 use Svea\Checkout\Model\Client\Context;
 use Svea\Checkout\Model\Client\DTO\Token\CreateRecurringOrderFactory;
-use Svea\Checkout\Model\Client\DTO\Token\CreateRecurringOrder;
 use Svea\Checkout\Model\Client\DTO\Order\MerchantSettingsFactory;
 use Svea\Checkout\Helper\Data;
 use Svea\Checkout\Model\Svea\Items;
 use Svea\Checkout\Model\Client\ClientException;
 use Svea\Checkout\Model\Client\DTO\Token\GetTokenOrderResponseFactory;
 use Svea\Checkout\Model\Client\DTO\Token\GetTokenOrderResponse;
+use Magento\Framework\Math\Random;
 
 class TokenClient extends ApiClient
 {
@@ -29,7 +29,7 @@ class TokenClient extends ApiClient
 
     private Items $itemsHelper;
 
-    private int $clientOrderNumberSequence = 0;
+    private Random $random;
 
     public function __construct(
         Context $apiContext,
@@ -38,7 +38,8 @@ class TokenClient extends ApiClient
         MerchantSettingsFactory $merchantSettingsFactory,
         GetTokenOrderResponseFactory $getTokenOrderResponseFactory,
         Data $helper,
-        Items $itemsHelper
+        Items $itemsHelper,
+        Random $random
     ) {
         parent::__construct($apiContext);
         $this->patchTokenFactory = $patchTokenFactory;
@@ -47,6 +48,7 @@ class TokenClient extends ApiClient
         $this->getTokenOrderResponseFactory = $getTokenOrderResponseFactory;
         $this->helper = $helper;
         $this->itemsHelper = $itemsHelper;
+        $this->random = $random;
     }
 
     /**
@@ -73,11 +75,17 @@ class TokenClient extends ApiClient
         $createRecurringOrder = $this->createRecurringOrderFactory->create();
         $createRecurringOrder->setCurrency($quote->getQuoteCurrencyCode());
         $createRecurringOrder->setCartItems($cartItems);
-        $createRecurringOrder->setClientOrderNumber($quote->getReservedOrderId());
+
+        $prefix = $quote->getReservedOrderId() . '-';
+        $clientOrderNumber = substr($this->random->getUniqueHash($prefix), 0, 32);
+        $quote->getPayment()->setAdditionalInformation('svea_client_order_number', $clientOrderNumber);
+        $createRecurringOrder->setClientOrderNumber($clientOrderNumber);
+
         $createRecurringOrder->setMerchantSettings($merchantSettings);
         $createRecurringOrder->setPartnerKey($this->helper->getPartnerKey());
 
-        $this->createValidRecurringOrder($createRecurringOrder, $token);
+        $endpoint = sprintf('/api/tokens/%s/orders', $token);
+        $this->post($endpoint, $createRecurringOrder);
     }
 
     /**
@@ -111,49 +119,5 @@ class TokenClient extends ApiClient
         $patchToken = $this->patchTokenFactory->create();
         $patchToken->setStatus('Cancelled');
         $this->patch('/api/tokens/' . $token, $patchToken);
-    }
-
-    /**
-     * Runs recursively until order with valid and unique ClientOrderNumber is created
-     *
-     * @param CreateRecurringOrder $createRecurringOrder
-     * @param string $token
-     * @return void
-     * @throws ClientException
-     */
-    private function createValidRecurringOrder(CreateRecurringOrder $createRecurringOrder, string $token): void
-    {
-        try {
-            $this->sendCreateRecurringOrderRequest($createRecurringOrder, $token);
-        } catch (ClientException $e) {
-            $message = strtolower($e->getMessage());
-
-            // String comparison on the error message is the only way we can check for this specific error
-            $isClientOrderNumberError = strpos($message, 'clientordernumber already exists') !== false;
-            if (!$isClientOrderNumberError) {
-                throw $e;
-            }
-
-            // If error is that ClientOrderNumber already exists, we try again with added sequence suffix
-            $newClientOrderNumber = sprintf(
-                '%s-%s',
-                $createRecurringOrder->getClientOrderNumber(),
-                ++$this->clientOrderNumberSequence
-            );
-            $createRecurringOrder->setClientOrderNumber($newClientOrderNumber);
-            $this->createValidRecurringOrder($createRecurringOrder, $token);
-        }
-    }
-
-    /**
-     * @param CreateRecurringOrder $createRecurringOrder
-     * @param string $token
-     * @return void
-     * @throws ClientException
-     */
-    private function sendCreateRecurringOrderRequest(CreateRecurringOrder $createRecurringOrder, string $token): void
-    {
-        $endpoint = sprintf('/api/tokens/%s/orders', $token);
-        $this->post($endpoint, $createRecurringOrder);
     }
 }

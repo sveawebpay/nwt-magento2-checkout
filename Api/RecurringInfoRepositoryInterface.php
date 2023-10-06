@@ -26,7 +26,11 @@ interface RecurringInfoRepositoryInterface
     public function getByRecurringToken(string $recurringToken) : Data\RecurringInfoInterface;
 
     /**
+     * Gets recurring orders scheduled for today.
+     * Optionally also filter by storeId.
+     *
+     * @param int|null $storeId
      * @return Data\RecurringInfoInterface[]
      */
-    public function getByTodaysDate(): array;
+    public function getByTodaysDate(?int $storeId = null): array;
 }

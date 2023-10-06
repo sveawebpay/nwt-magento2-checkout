@@ -82,6 +82,12 @@
     <type name="Svea\Checkout\Service\SveaRecurringInfo">
         <arguments>
             <argument name="logger" xsi:type="object">Svea\Checkout\Logger\Logger</argument>
+            <argument name="tokenClient" xsi:type="object">Svea\Checkout\Model\Client\Api\TokenClient\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Svea\Checkout\Service\SveaRecurringInfo\PlaceOrder">
+        <arguments>
+            <argument name="logger" xsi:type="object">Svea\Checkout\Logger\Logger</argument>
         </arguments>
     </type>
     <type name="Svea\Checkout\Model\Svea\Order">

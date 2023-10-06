@@ -52,7 +52,7 @@ class CreateRecurringOrder extends AbstractRequest
                 $cartItems[] = $item->toArray();
             }
 
-            $result['Cart'] = ['items' => $cartItems];
+            $result['cart'] = ['items' => $cartItems];
         }
 
         if ($this->getPartnerKey()) {
