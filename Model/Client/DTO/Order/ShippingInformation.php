@@ -264,8 +264,7 @@ class ShippingInformation extends AbstractRequest
             return;
         }
 
-        // 1. Find the highest value of each dimension among the products. This will be packageDimensionX
-        // 2. Find the second highest value of each dimension among the products. This will be packageDimensionY
+        // 1. Load product collection and add dimension attributes
         $productIds = $quote->getItemsCollection()->getColumnValues('product_id');
         $productCollection = $this->productCollectionFactory->create();
         $productCollection->addFieldToFilter('entity_id', ['in' => $productIds]);
@@ -274,6 +273,20 @@ class ShippingInformation extends AbstractRequest
             ->addAttributeToSelect('length_cm')
             ->addAttributeToSelect('width_cm')
         ;
+
+        // 1.a If cart has only one item, we can use its product dimensions as is
+        if (count($quote->getItems()) === 1 && (int)$quote->getItemsQty() === 1) {
+            $product = $productCollection->getFirstItem();
+            $tags = $this->tagsFactory->create();
+            $tags->addTag('height_cm', (int)ceil($product->getHeightCm() ?? 0));
+            $tags->addTag('length_cm', (int)ceil($product->getLengthCm() ?? 0));
+            $tags->addTag('width_cm', (int)ceil($product->getWidthCm() ?? 0));
+            $this->setTags($tags);
+            return;
+        }
+
+        // 2. Find the highest value of each dimension among the products. This will be packageDimensionX
+        // 3. Find the second highest value of each dimension among the products. This will be packageDimensionY
         $maxDimensions = [
             'height' => max($productCollection->getColumnValues('height_cm')),
             'length' => max($productCollection->getColumnValues('length_cm')),
@@ -288,7 +301,7 @@ class ShippingInformation extends AbstractRequest
             return;
         }
 
-        // 3. Add the lowest dimension of each product together. This will be packageDimensionZ
+        // 4. Add the lowest dimension of each product together. This will be packageDimensionZ
         $packageDimensionZ = 0;
         foreach ($productCollection as $product) {
             $item = $quote->getItemByProduct($product);
