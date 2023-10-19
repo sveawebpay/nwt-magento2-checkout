@@ -135,8 +135,10 @@ class ValidateOrder extends Update
     public function loadSveaOrder($sveaOrderId)
     {
         $checkout = $this->getSveaCheckout();
+        $storeId = $this->getRequest()->getParam('store_id');
+
         try {
-            $sveaOrder = $checkout->getSveaPaymentHandler()->loadSveaOrderById($sveaOrderId);
+            $sveaOrder = $checkout->getSveaPaymentHandler()->loadSveaOrderById($sveaOrderId, false, $storeId);
         } catch (ClientException $e) {
             if ($e->getHttpStatusCode() == 404) {
                 $checkout->getLogger()->error("Validate Order: The svea order with ID: " . $sveaOrderId . " was not found in svea.");

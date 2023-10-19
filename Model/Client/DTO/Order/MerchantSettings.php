@@ -71,6 +71,11 @@ class MerchantSettings extends AbstractRequest
     protected $PromotedPartPaymentCampaign;
 
     /**
+     * @var int|null
+     */
+    protected ?int $storeId = null;
+
+    /**
      * @return string
      */
     public function getCheckoutValidationCallBackUri()
@@ -79,12 +84,16 @@ class MerchantSettings extends AbstractRequest
     }
 
     /**
-     * @param string $CheckoutValidationCallBackUri
+     * @param string $checkoutValidationCallBackUri
      * @return MerchantSettings
      */
-    public function setCheckoutValidationCallBackUri($CheckoutValidationCallBackUri)
+    public function setCheckoutValidationCallBackUri($checkoutValidationCallBackUri)
     {
-        $this->CheckoutValidationCallBackUri = $CheckoutValidationCallBackUri;
+        if (null !== $this->storeId) {
+            $checkoutValidationCallBackUri = rtrim($checkoutValidationCallBackUri, '/') . '/';
+            $checkoutValidationCallBackUri .= "store_id/{$this->storeId}";
+        }
+        $this->CheckoutValidationCallBackUri = $checkoutValidationCallBackUri;
         return $this;
     }
 
@@ -187,15 +196,36 @@ class MerchantSettings extends AbstractRequest
     }
 
     /**
-     * @param string $PushUri
+     * @param string $pushUri
      * @return MerchantSettings
      */
-    public function setPushUri($PushUri)
+    public function setPushUri($pushUri)
     {
-        $this->PushUri = $PushUri;
+        if (null !== $this->storeId) {
+            $pushUri = rtrim($pushUri, '/') . '/';
+            $pushUri .= "store_id/{$this->storeId}";
+        }
+        $this->PushUri = $pushUri;
         return $this;
     }
-    
+
+    /**
+     * @return int|null
+     */
+    public function getStoreId(): ?int
+    {
+        return $this->storeId;
+    }
+
+    /**
+     * @param int $storeId
+     * @return MerchantSettings
+     */
+    public function setStoreId(int $storeId): MerchantSettings
+    {
+        $this->storeId = $storeId;
+        return $this;
+    }
 
     public function toJSON()
     {
