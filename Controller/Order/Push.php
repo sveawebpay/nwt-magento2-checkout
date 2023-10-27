@@ -135,7 +135,8 @@ class Push extends Checkout
     {
         $checkout = $this->getSveaCheckout();
         try {
-            $sveaOrder = $checkout->getSveaPaymentHandler()->loadSveaOrderById($sveaOrderId);
+            $storeId = $this->getRequest()->getParam('store_id');
+            $sveaOrder = $checkout->getSveaPaymentHandler()->loadSveaOrderById($sveaOrderId, false, $storeId);
         } catch (ClientException $e) {
             if ($e->getHttpStatusCode() == 404) {
                 $checkout->getLogger()->error("Push: The svea order with ID: " . $sveaOrderId . " was not found in svea.");
