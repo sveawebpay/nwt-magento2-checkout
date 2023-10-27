@@ -6,8 +6,7 @@ use Svea\Checkout\Api\RecurringInfoRepositoryInterface;
 use Svea\Checkout\Service\SveaRecurringInfo\PlaceOrders;
 use Svea\Checkout\Helper\Data;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Framework\App\State;
-use Magento\Store\Model\App\Emulation;
+use Magento\Store\Model\App\EmulationFactory;
 use Magento\Framework\App\Area;
 
 class RecurringOrders
@@ -20,24 +19,20 @@ class RecurringOrders
 
     private RecurringInfoRepositoryInterface $recurringInfoRepo;
 
-    private State $appState;
-
-    private Emulation $emulation;
+    private EmulationFactory $emulationFactory;
 
     public function __construct(
         StoreManagerInterface $storeManager,
         Data $helper,
         PlaceOrders $placeOrder,
         RecurringInfoRepositoryInterface $recurringInfoRepo,
-        State $appState,
-        Emulation $emulation
+        EmulationFactory $emulationFactory
     ) {
         $this->storeManager = $storeManager;
         $this->helper = $helper;
         $this->placeOrder = $placeOrder;
         $this->recurringInfoRepo = $recurringInfoRepo;
-        $this->appState = $appState;
-        $this->emulation = $emulation;
+        $this->emulationFactory = $emulationFactory;
     }
 
     /**
@@ -47,7 +42,6 @@ class RecurringOrders
      */
     public function placeOrders(): void
     {
-        $this->appState->setAreaCode(Area::AREA_FRONTEND);
         $stores = $this->storeManager->getStores();
 
         foreach ($stores as $store) {
@@ -63,13 +57,14 @@ class RecurringOrders
             }
 
             // Start store emulation, then place orders for that store
-            $this->emulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
+            $emulation = $this->emulationFactory->create();
+            $emulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
             $this->placeOrder->placeRecurringOrders($recurringInfos);
             foreach ($recurringInfos as $recurringInfo) {
                 $this->recurringInfoRepo->save($recurringInfo);
             }
             // End store emulation
-            $this->emulation->stopEnvironmentEmulation();
+            $emulation->stopEnvironmentEmulation();
         }
     }
 }

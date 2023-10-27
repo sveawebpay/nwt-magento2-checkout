@@ -78,6 +78,7 @@ class TokenClient extends ApiClient
 
         $prefix = $quote->getReservedOrderId() . '-';
         $clientOrderNumber = substr($this->random->getUniqueHash($prefix), 0, 32);
+        $quote->setSveaClientOrderId($clientOrderNumber);
         $quote->getPayment()->setAdditionalInformation('svea_client_order_number', $clientOrderNumber);
         $createRecurringOrder->setClientOrderNumber($clientOrderNumber);
 
@@ -85,7 +86,13 @@ class TokenClient extends ApiClient
         $createRecurringOrder->setPartnerKey($this->helper->getPartnerKey());
 
         $endpoint = sprintf('/api/tokens/%s/orders', $token);
-        $this->post($endpoint, $createRecurringOrder);
+        $this->resetCredentials($quote->getStoreId());
+        $response = $this->post($endpoint, $createRecurringOrder);
+
+        $createdOrder = $this->getTokenOrderResponseFactory->create();
+        $createdOrder->populateWithJson($response);
+        $quote->getPayment()->setAdditionalInformation('svea_order_id', $createdOrder->getOrderId());
+        $quote->setSveaOrderId($createdOrder->getOrderId());
     }
 
     /**

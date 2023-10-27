@@ -139,12 +139,15 @@ class PlaceOrders
         $this->sveaRecurringInfo->scheduleNextRecurringOrder($quote);
         $quoteRecurringInfo = $this->sveaRecurringInfo->quoteGetter($quote);
         $this->unsetForNextOrder($quoteRecurringInfo);
+
+        // We must save quote lots of times here, looks messy but otherwise it doesn't work properly
         $this->sveaRecurringInfo->quoteSetter($quote, $quoteRecurringInfo);
         $this->quoteRepo->save($quote);
 
         try {
             $this->saveQuoteShippingInfo($quote, $order);
             $this->tokenClient->createRecurringOrder($recurringToken, $quote);
+            $this->quoteRepo->save($quote);
             $orderId = $this->quoteManagement->placeOrder($quote->getId());
             $recurringInfo->setNextOrderDate($quoteRecurringInfo->getNextOrderDate());
         } catch (\Exception $e) {
