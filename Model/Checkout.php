@@ -775,6 +775,10 @@ class Checkout extends Onepage
         if (($exception instanceof \Exception) && $this->getHelper()->isTestMode()) {
             $message .= sprintf(" Error: %s", $exception->getMessage());
         }
+        
+        if (!$exception) {
+            $message = __($message);
+        }
 
         throw new CheckoutException(__($message), 'checkout/cart');
     }
