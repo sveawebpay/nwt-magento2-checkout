@@ -136,6 +136,9 @@ class Checkout extends Onepage
         // Set shipping method. It's required!
         $selectedShippingMethod = $this->checkAndChangeShippingMethod();
 
+        // Needed to calculate table rates
+        $shippingAddress->setCollectShippingRates(true);
+
         try {
             $quote->setTotalsCollectedFlag(false)->collectTotals(); //REQUIRED (maybe shipping amount was changed)
         } catch (\Exception $e) {
