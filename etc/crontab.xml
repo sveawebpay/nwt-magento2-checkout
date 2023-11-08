@@ -3,10 +3,10 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="default">
         <job instance="Svea\Checkout\Cron\CheckPendingPayments" method="execute" name="svea_fetch_part_campaigns">
-            <schedule>* * * * *</schedule>
+            <schedule>*/30 * * * *</schedule>
         </job>
         <job instance="Svea\Checkout\Cron\RecurringOrders" method="placeOrders" name="svea_recurring_orders">
-            <schedule>0 6 * * *</schedule>
+            <schedule>0 6,14 * * *</schedule>
         </job>
     </group>
 </config>
