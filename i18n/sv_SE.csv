@@ -162,4 +162,41 @@ Title,Titel
 "Tax","Moms"
 "Shipping","Frakt"
 "Partial payment from %s / month","Delbetalning från %s / månad",
-"Your payment session has expired. The checkout will reload.","Din betalningssession har löpt ut. Kassan kommer att laddas om."
+"Your payment session has expired. The checkout will reload.","Din betalningssession har löpt ut. Kassan kommer att laddas om.",
+"Subscription Info","Prenumerationsinformation",
+"Subscription frequency","Prenumerationsfrekvens",
+"Every %1","Varje %1",
+"Every %1 %2","Var %1 %2",
+"day","dag"
+"week","vecka"
+"month","månad"
+"days","dagar"
+"weeks","veckor"
+"months","månader"
+"year","år"
+"Next order date","Nästa orderdatum"
+"Cancel Subscription","Avbryt Prenumeration"
+"Subscription was canceled at","Prenumerationen avslutades den"
+"Are you sure you wish to cancel this subscription? This cannot be undone!","Är du säker på att du vill avsluta prenumerationen? Detta kan inte ångras!"
+"Yes, cancel the subscription","Ja, avbryt prenumerationen"
+"No, don\t cancel","Nej, avbryt inte"
+"Subscribe", "Prenumerera"
+"Your payment session has expired. The checkout will reload.","Din betalningssession har löpt ut. Kassan kommer att laddas om.",
+"Subscription Info","Prenumerationsinformation",
+"Subscription frequency","Prenumerationsfrekvens",
+"Every %1","Varje %1",
+"Every %1 %2","Var %1 %2",
+"day","dag"
+"week","vecka"
+"month","månad"
+"days","dagar"
+"weeks","veckor"
+"months","månader"
+"year","år"
+"Next order date","Nästa orderdatum"
+"Cancel Subscription","Avbryt Prenumeration"
+"Subscription was canceled at","Prenumerationen avslutades den"
+"Are you sure you wish to cancel this subscription? This cannot be undone!","Är du säker på att du vill avsluta prenumerationen? Detta kan inte ångras!"
+"Yes, cancel the subscription","Ja, avbryt prenumerationen"
+"No, don\t cancel","Nej, avbryt inte"
+"Subscribe", "Prenumerera"

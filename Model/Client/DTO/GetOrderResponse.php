@@ -8,6 +8,7 @@ use Svea\Checkout\Model\Client\DTO\Order\Gui;
 use Svea\Checkout\Model\Client\DTO\Order\IdentityFlags;
 use Svea\Checkout\Model\Client\DTO\Order\MerchantSettings;
 use Svea\Checkout\Model\Client\DTO\Order\OrderRow;
+use Svea\Checkout\Model\Client\DTO\Order\PresetValue;
 
 class GetOrderResponse extends GetOrder
 {
@@ -188,6 +189,11 @@ class GetOrderResponse extends GetOrder
             }
 
             $this->setCartItems($orderRows);
+        }
+
+        if ($this->get('Recurring')) {
+            $this->setRecurring($this->get('Recurring'));
+            $this->setRecurringToken($this->get('RecurringToken'));
         }
     }
 

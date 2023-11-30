@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * @var Magento\Framework\View\Element\Template $block
+ * @var Magento\Framework\Escaper $escaper
+ * @var Svea\Checkout\ViewModel\Order\View\RecurringInfo $viewModel
+ */
+
+$viewModel = $block->getViewModel();
+$order = $viewModel->getCurrentOrder();
+?>
+
+<?= /* @noEscape */ $viewModel->orderHasRecurringInfo($order) ? $block->getChildHtml('recurring_info') : null ?>

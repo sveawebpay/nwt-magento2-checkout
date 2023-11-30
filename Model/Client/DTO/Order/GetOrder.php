@@ -85,6 +85,12 @@ class GetOrder
     /** @var $merchantData MerchantDataResponse */
     protected $merchantData;
 
+    /** @var bool */
+    protected $recurring;
+
+    /** @var string */
+    protected $recurringToken;
+
     /**
      * @return array
      */
@@ -500,4 +506,48 @@ class GetOrder
         return null;
     }
     
+
+    /**
+     * Get the value of recurring
+     *
+     * @return bool
+     */
+    public function getRecurring()
+    {
+        return $this->recurring;
+    }
+
+    /**
+     * Set the value of recurring
+     *
+     * @param bool $recurring
+     * @return self
+     */
+    public function setRecurring($recurring)
+    {
+        $this->recurring = $recurring;
+        return $this;
+    }
+
+    /**
+     * Get the value of recurringToken
+     *
+     * @return string|null
+     */
+    public function getRecurringToken()
+    {
+        return $this->recurringToken;
+    }
+
+    /**
+     * Set the value of recurringToken
+     *
+     * @param string|null $recurringToken
+     * @return self
+     */
+    public function setRecurringToken($recurringToken)
+    {
+        $this->recurringToken = $recurringToken;
+        return $this;
+    }
 }

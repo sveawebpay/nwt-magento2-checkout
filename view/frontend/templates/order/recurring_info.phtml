@@ -1,0 +1,73 @@
+<?php
+
+/**
+ * @var Magento\Framework\View\Element\Template $block
+ * @var Magento\Framework\Escaper $escaper
+ * @var Svea\Checkout\ViewModel\Order\View\RecurringInfo $viewModel
+ */
+
+$viewModel = $block->getViewModel();
+$currentOrder = $viewModel->getCurrentOrder();
+$originalOrder = $viewModel->getOriginalOrder();
+$recurringInfo = $viewModel->getRecurringInfo();
+
+$urlParams = [
+    'order_id' => $originalOrder->getId(),
+    'token' => $recurringInfo->getRecurringToken(),
+    '_secure' => true,
+];
+$formAction = $block->getUrl(
+    $viewModel->getCancelRecurringPath(),
+    $urlParams
+);
+
+$buttonTitle = __('Cancel Subscription');
+
+?>
+
+<div class="block block-order-details-view">
+    <div class="block-title">
+        <strong><?= $escaper->escapeHtml(__('Subscription Info')) ?></strong>
+    </div>
+    <div class="box">
+        <div class="box-content">
+            <?php if ($recurringInfo->getCanceledDate()): ?>
+                <div>
+                    <?= $escaper->escapeHtml(__('Subscription was canceled at')) ?>:
+                    <?= $escaper->escapeHtml($recurringInfo->getCanceledDate()) ?>
+                </div>
+            <?php else: ?>
+                <div>
+                    <?= $escaper->escapeHtml(__('Subscription frequency')) ?>:
+                    <?=
+                        $escaper->escapeHtml(
+                            $viewModel->readableFrequencyOption($recurringInfo->getFrequencyOption())
+                        )
+                    ?>
+                </div>
+                <div>
+                    <?= $escaper->escapeHtml(__('Next order date')) ?>:
+                    <?= $escaper->escapeHtml($recurringInfo->getNextOrderDate()) ?>
+                </div>
+                <form
+                    action="<?= $escaper->escapeHtmlAttr($formAction) ?>"
+                    method="post"
+                    data-mage-init='{
+                        "cancelSubscriptionFormHandler":{
+                            "buttonSelector": "#cancel-subscription-button"
+                        }
+                    }'
+                >
+                    <div class="actions">
+                        <button
+                            title="<?= $escaper->escapeHtmlAttr($buttonTitle) ?>"
+                            class="action primary"
+                            id="cancel-subscription-button">
+                            <span><?= $escaper->escapeHtml($buttonTitle) ?></span>
+                        </button>
+                    </div>
+                </form>
+            <?php endif ?>
+        </div>
+    </div>
+</div>

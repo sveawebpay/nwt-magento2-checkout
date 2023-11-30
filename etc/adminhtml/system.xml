@@ -122,13 +122,14 @@
                     <label>Send order email</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+
                 <group id="svea_shipping_settings" type="text" sortOrder="500" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
                     <label>Svea Shipping Settings</label>
                     <field id="svea_shipping_active" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
                         <label>Activate Svea Shipping</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <comment>Use Svea Checkout's built-in nShift shipping solution</comment>
-                        <config_path>carriers/svea_nshift/active</config_path>
+                        <config_path>carriers/sveanshift/active</config_path>
                     </field>
                     <field id="enforce_fallback" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="10">
                         <label>Enforce Fallback Shipping Options</label>
@@ -154,6 +155,39 @@
                         <comment>In Admin Order view, show shipping address info together with the shipping method info.</comment>
                         <depends>
                             <field id="svea_shipping_active">1</field>
+                        </depends>
+                    </field>
+                </group>
+                <group id="recurring_payments" type="text" sortOrder="600" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
+                    <label>Recurring Payments Settings</label>
+                    <field id="active" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
+                        <label>Activate</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="frequency_options" translate="label" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Frequency options</label>
+                        <frontend_model>Svea\Checkout\Block\Adminhtml\Form\Field\Recurring\FrequencyOptions</frontend_model>
+                        <backend_model>Svea\Checkout\Model\System\Config\Backend\Recurring\FrequencyOptions</backend_model>
+                    </field>
+                    <field id="require_account" translate="label" type="select" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Require Customer Account</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                </group>
+
+                <group id="minimum_age_restriction" type="text" sortOrder="700" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
+                    <label>Minimum Age Settings</label>
+                    <field id="active" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
+                        <label>Activate Minimum Age Restriction</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <comment>Must be enabled for global minimum age or minimum age set on products to take effect.</comment>
+                    </field>
+                    <field id="global_minimum_age" translate="label comment" type="text" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1" sortOrder="10">
+                        <label>Global minimum age for shopping</label>
+                        <comment>You can alternatively set minimum age on individual products. Setting a global value here will override values set on products.</comment>
+                        <frontend_class>validate-number validate-greater-than-zero</frontend_class>
+                        <depends>
+                            <field id="active">1</field>
                         </depends>
                     </field>
                 </group>

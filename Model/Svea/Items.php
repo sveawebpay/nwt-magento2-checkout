@@ -877,7 +877,8 @@ class Items
         foreach ($cartItems as $item) {
 
             /** @var $item OrderRow */
-            $item->setName(mb_substr($item->getName(), 0, 40));
+            $fixedName = mb_substr(rtrim($item->getName()), 0, 40);
+            $item->setName($fixedName);
             $cart[] = $item;
         }
 

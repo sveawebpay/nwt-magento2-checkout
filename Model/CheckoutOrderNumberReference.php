@@ -62,7 +62,6 @@ class CheckoutOrderNumberReference
     {
         $this->getCheckoutSession()->setSveaOrderId($sveaOrderId);
         $this->getQuote()->setSveaOrderId($sveaOrderId);
-        $this->quoteRepository->save($this->getQuote());
     }
 
     /**
@@ -94,6 +93,15 @@ class CheckoutOrderNumberReference
         }
 
         return $this->getQuote()->getData('svea_client_order_id');
+    }
+
+    /**
+     * @param string $clientOrderNumber
+     * @return void
+     */
+    public function setClientOrderNumber($clientOrderNumber)
+    {
+        $this->getQuote()->setData('svea_client_order_id', $clientOrderNumber);
     }
 
     /**
@@ -261,7 +269,6 @@ class CheckoutOrderNumberReference
     public function setSveaCreatedAt(int $timestamp): void
     {
         $this->getQuote()->getPayment()->setAdditionalInformation('svea_created_at', $timestamp);
-        $this->quoteRepository->save($this->getQuote());
     }
 
     /**

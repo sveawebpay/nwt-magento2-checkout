@@ -357,6 +357,7 @@ class Checkout extends Onepage
     public function initSveaCheckout()
     {
         $quote = $this->getQuote();
+        $this->handleRecurringPayment();
         $this->setSveaShippingDefault();
 
         // we need a reserved order id, since we need to send the order id to svea in validateOrder.
@@ -410,13 +411,7 @@ class Checkout extends Onepage
                 try {
                     // this will create an api call to svea and initiaze an new payment
                     $sveaOrder = $this->initValidOrder($quote);
-                    $this->setSveaShippingDefault();
-                    $sveaOrderId = $sveaOrder->getOrderId();
-
-                    //save the payment id and quote signature in checkout/session
-                    $this->getRefHelper()->setSveaOrderId($sveaOrderId);
-                    $this->getRefHelper()->setQuoteSignature($newSignature);
-                    $this->getRefHelper()->setSveaCreatedAt(time());
+                    $this->handleNewOrderData($quote, $sveaOrder, $newSignature);
                 } catch (\Exception $e2) {
                     $this->getLogger()->error("Could not create an new order again. " . $e2->getMessage());
                     $this->getLogger()->error($e2);
@@ -429,12 +424,7 @@ class Checkout extends Onepage
 
             try {
                 $sveaOrder = $this->initValidOrder($quote);
-
-                //save svea uri in checkout/session
-                $sveaOrderId = $sveaOrder->getOrderId();
-                $this->getRefHelper()->setSveaOrderId($sveaOrderId);
-                $this->getRefHelper()->setQuoteSignature($newSignature);
-                $this->getRefHelper()->setSveaCreatedAt(time());
+                $this->handleNewOrderData($quote, $sveaOrder, $newSignature);
             } catch (\Exception $e) {
                 $this->getLogger()->error("Could not create an new order: " . $e->getMessage());
                 $this->getLogger()->error($e);
@@ -680,6 +670,13 @@ class Checkout extends Onepage
         //- do not recollect totals
         $quote->setTotalsCollectedFlag(true);
 
+        // Schedule first recurring order, if recurring payment has been chosen by customer
+        $recurringEnabled = $sveaOrder->getRecurring();
+        if ($recurringEnabled) {
+            $recurringToken = $sveaOrder->getRecurringToken();
+            $this->context->getRecurringInfoService()->scheduleNextRecurringOrder($quote, $recurringToken);
+        }
+
         //!
         // Now we create the order from the quote
         $order = $this->quoteManagement->submit($quote);
@@ -704,6 +701,10 @@ class Checkout extends Onepage
                 'quote' => $this->getQuote()
             ]
         );
+
+        if ($recurringEnabled) {
+            $this->context->getRecurringInfoService()->saveNewOrderRecurringInfo($order);
+        }
 
         if ($createCustomer) {
             //@see Magento\Checkout\Controller\Account\Create
@@ -888,6 +889,12 @@ class Checkout extends Onepage
         $quote->getShippingAddress()->setBaseShippingAmount(0);
         $defaultCountry = $this->context->getHelper()->getDefaultCountry();
         $quote->getShippingAddress()->setCountryId($defaultCountry);
+        $extAttributes = $quote->getExtensionAttributes();
+        if (null === $extAttributes) {
+            $extAttributes = $this->context->getCartExtensionFactory()->create();
+        }
+
+        $extAttributes->setShippingAssignments([$this->context->getShippingAssignmentProcessor()->create($quote)]);
         $sveaShippingInfoService = $this->context->getSveaShippingInfoService();
         $placeholderData = [
             'carrier' => Carrier::PLACEHOLDER_CARRIER,
@@ -896,5 +903,81 @@ class Checkout extends Onepage
         ];
         $sveaShippingInfoService->setInQuote($quote, $placeholderData);
         $this->quoteRepository->save($quote);
+    }
+
+    /**
+     * Will save the payment id, quote signature, and creation time in checkout session and quote
+     *
+     * @param Quote $quote
+     * @param int $sveaOrderId
+     * @param string $signature
+     * @return void
+     */
+    private function handleNewOrderData(Quote $quote, GetOrderResponse $sveaOrder, $signature): void
+    {
+        $sveaOrderId = $sveaOrder->getOrderId();
+        $this->getRefHelper()->setSveaOrderId($sveaOrderId);
+        $this->getRefHelper()->setQuoteSignature($signature);
+        $this->getRefHelper()->setSveaCreatedAt(time());
+
+        if ($this->getHelper()->getRecurringPaymentsActive()) {
+            $recurringToken = $sveaOrder->getRecurringToken();
+            $payment = $quote->getPayment();
+            $recurringInfo = $payment->getAdditionalInformation('svea_recurring_info') ?? [];
+
+            $orderInfoKey = 'standard_order_id';
+            $clientOrderInfoKey = 'standard_client_order_number';
+            $recurringEnabled = $recurringInfo['enabled'] ?? false;
+            if ($recurringEnabled) {
+                $orderInfoKey = 'recurring_order_id';
+                $clientOrderInfoKey = 'recurring_client_order_number';
+                $recurringInfo['recurring_token'] = $recurringToken;
+            }
+
+            $recurringInfo[$orderInfoKey] = $sveaOrderId;
+            $recurringInfo[$clientOrderInfoKey] = $sveaOrder->getClientOrderNumber();
+            $payment->setAdditionalInformation('svea_recurring_info', $recurringInfo);
+        }
+        $this->quoteRepository->save($quote);
+    }
+
+    /**
+     * If recurring payment is enabled in config and selected by the customer,
+     *  prepare to create a recurring order,
+     *  or switch to use an already stored order ID for a recurring order,
+     *  or if custtmer has un-selected recurring, switch back to the original order ID
+     *
+     * @return void
+     */
+    private function handleRecurringPayment(): void
+    {
+        if (!$this->getHelper()->getRecurringPaymentsActive()) {
+            return;
+        }
+
+        $quote = $this->getQuote();
+        if (!$quote->getSveaOrderId()) {
+            return;
+        }
+
+        $payment = $quote->getPayment();
+        $recurringInfo = $payment->getAdditionalInformation('svea_recurring_info') ?? [];
+        $enabled = $recurringInfo['enabled'] ?? false;
+
+        if (!$enabled) {
+            $standardOrderId = $recurringInfo['standard_order_id'] ?? null;
+            $this->getRefHelper()->setSveaOrderId($standardOrderId);
+            $this->getRefHelper()->setClientOrderNumber($recurringInfo['standard_client_order_number'] ?? null);
+            return;
+        }
+
+        $recurringOrderId = $recurringInfo['recurring_order_id'] ?? null;
+        $recurringClientOrderNumber = $recurringInfo['recurring_client_order_number'] ?? null;
+        if (!$recurringOrderId) {
+            // Add to sequence so order with recurring gets new Client Order Number
+            $this->getRefHelper()->addToSequence();
+        }
+        $this->getRefHelper()->setSveaOrderId($recurringOrderId);
+        $this->getRefHelper()->setClientOrderNumber($recurringClientOrderNumber);
     }
 }
