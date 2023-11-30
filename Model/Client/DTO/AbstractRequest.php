@@ -20,5 +20,8 @@ abstract class AbstractRequest
         return round($amount * 100, 0);
     }
 
+    /**
+     * @return array
+     */
     abstract public function toArray();
 }

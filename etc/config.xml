@@ -32,13 +32,13 @@
         </payment>
 
         <carriers>
-            <svea_nshift>
+            <sveanshift>
                 <description>Svea nShift</description>
                 <name>Svea nShift</name>
                 <title>Svea nShift</title>
                 <model>Svea\Checkout\Model\Shipping\Carrier</model>
                 <enforce_fallback>0</enforce_fallback>
-            </svea_nshift>
+            </sveanshift>
         </carriers>
     </default>
 </config>

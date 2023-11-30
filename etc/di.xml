@@ -39,10 +39,17 @@
         </arguments>
     </type>
 
+    <type name="Svea\Checkout\Console\Command\TestSubscription">
+        <arguments>
+            <argument name="name" xsi:type="string">svea:subscription:test</argument>
+        </arguments>
+    </type>
+
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="svea_campaigns_fetch" xsi:type="object">Svea\Checkout\Console\Command\FetchCampaigns</item>
+                <item name="svea_test_subscription" xsi:type="object">Svea\Checkout\Console\Command\PlaceSubscription</item>
             </argument>
         </arguments>
     </type>
@@ -51,16 +58,43 @@
     <preference for="Svea\Checkout\Api\CampaignInfoRepositoryInterface" type="Svea\Checkout\Model\Campaign\CampaignRepository"/>
 
     <preference for="Svea\Checkout\Api\GetQtyIncrementConfigInterface" type="Svea\Checkout\Service\GetQtyIncrementConfig" />
+    <preference for="Svea\Checkout\Api\RecurringInfoRepositoryInterface" type="Svea\Checkout\Model\RecurringInfoRepository" />
+
     <type name="Svea\Checkout\Block\Payment\Checkout\Info">
         <arguments>
             <argument name="data" xsi:type="array">
                 <item name="svea_order_management" xsi:type="object">Svea\Checkout\Model\Client\Api\OrderManagement</item>
+                <item name="recurring_info_service" xsi:type="object">Svea\Checkout\Service\SveaRecurringInfo</item>
+                <item name="recurring_info_repo" xsi:type="object">Svea\Checkout\Model\RecurringInfoRepository</item>
             </argument>
         </arguments>
     </type>
     <type name="Svea\Checkout\Model\Checkout">
         <arguments>
             <argument name="logger" xsi:type="object">Svea\Checkout\Logger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Svea\Checkout\Model\CheckoutContext">
+        <arguments>
+            <argument name="sveaRecurringInfo" xsi:type="object">Svea\Checkout\Service\SveaRecurringInfo\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Svea\Checkout\Service\SveaRecurringInfo">
+        <arguments>
+            <argument name="logger" xsi:type="object">Svea\Checkout\Logger\Logger</argument>
+            <argument name="tokenClient" xsi:type="object">Svea\Checkout\Model\Client\Api\TokenClient\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Svea\Checkout\Service\SveaRecurringInfo\PlaceOrder">
+        <arguments>
+            <argument name="logger" xsi:type="object">Svea\Checkout\Logger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Svea\Checkout\Model\Svea\Order">
+        <arguments>
+            <argument name="shippingInfoFactory" xsi:type="object">Svea\Checkout\Model\Client\DTO\Order\ShippingInformationFactory\Proxy</argument>
+            <argument name="productCollectionFactory" xsi:type="object">Magento\Catalog\Model\ResourceModel\Product\CollectionFactory\Proxy</argument>
+            <argument name="orderValidationFactory" xsi:type="object">Svea\Checkout\Model\Client\DTO\Order\OrderValidationFactory\Proxy</argument>
         </arguments>
     </type>
 </config>

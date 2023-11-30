@@ -1,11 +1,12 @@
 <?php
 namespace Svea\Checkout\Model\Client\DTO;
 
-
+use Svea\Checkout\Api\Data\HasOrderValidationInterface;
 use Svea\Checkout\Model\Client\DTO\Order\OrderRow;
+use Svea\Checkout\Model\Client\DTO\Order\OrderValidation;
 use Svea\Checkout\Model\Client\DTO\Order\ShippingInformation;
 
-class UpdateOrderCart extends AbstractRequest
+class UpdateOrderCart extends AbstractRequest implements HasOrderValidationInterface
 {
 
     /**
@@ -21,6 +22,8 @@ class UpdateOrderCart extends AbstractRequest
      * @var ShippingInformation
      */
     private $shippingInformation;
+
+    private ?OrderValidation $validation = null;
     
     /**
      * @return string
@@ -59,6 +62,22 @@ class UpdateOrderCart extends AbstractRequest
         return $this;
     }
 
+    /**
+     * @return OrderValidation|null
+     */
+    public function getValidation(): ?OrderValidation
+    {
+        return $this->validation;
+    }
+
+    /**
+     * @param OrderValidation $validation
+     * @return void
+     */
+    public function setValidation(OrderValidation $validation): void
+    {
+        $this->validation = $validation;
+    }
 
     public function toJSON()
     {
@@ -81,6 +100,10 @@ class UpdateOrderCart extends AbstractRequest
 
         if ($this->getShippingInformation()) {
             $array['ShippingInformation'] = $this->getShippingInformation()->toArray();
+        }
+
+        if (null !== $this->validation) {
+            $array['validation'] = $this->validation->toArray();
         }
 
         return $array;
