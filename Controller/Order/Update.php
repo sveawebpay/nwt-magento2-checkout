@@ -2,6 +2,7 @@
 
 namespace Svea\Checkout\Controller\Order;
 
+use Svea\Checkout\Model\Client\ClientException;
 use Svea\Checkout\Model\CheckoutException;
 
 abstract class Update extends \Svea\Checkout\Controller\Checkout
@@ -9,7 +10,7 @@ abstract class Update extends \Svea\Checkout\Controller\Checkout
     //ajax updates
     protected function _sendResponse($blocks = null, $updateCheckout = true)
     {
-        $response = [];
+        $response = ['reload' => false];
 
         //reload the blocks even we have an error
         if (is_null($blocks)) {
@@ -37,7 +38,6 @@ abstract class Update extends \Svea\Checkout\Controller\Checkout
         $checkout->setCheckoutContext($this->sveaCheckoutContext);
 
         if ($updateCheckout) {  //if blocks contains only "messages" do not update
-            $sveaPaymentId = null;
             try {
                 $checkout = $checkout->initCheckout();
 
@@ -46,18 +46,18 @@ abstract class Update extends \Svea\Checkout\Controller\Checkout
 
                 if ($shouldUpdateSvea) {
                     //update svea iframe
-                    $sveaPaymentId = $this->getCheckoutSession()->getSveaOrderId();
-
-                    $checkout->updateSveaPayment($sveaPaymentId);
-                    $response['ctrlkey'] = $checkout->getQuoteSignature();
+                    $response['ctrlkey'] = $this->sendUpdateRequest();
                 }
             } catch (CheckoutException $e) {
-                $this->messageManager->addExceptionMessage(
-                    $e,
-                    $e->getMessage()
-                );
+                if ($this->getSveaCheckout()->getHelper()->isTestMode()) {
+                    $this->messageManager->addExceptionMessage(
+                        $e,
+                        $e->getMessage()
+                    );
+                }
+
                 if ($e->isReload()) {
-                    $response['reload'] = 1;
+                    $response['reload'] = true;
                     $response['messages'] = $e->getMessage();
                     $this->messageManager->addNoticeMessage($e->getMessage());
                 } elseif ($e->getRedirect()) {
@@ -93,15 +93,13 @@ abstract class Update extends \Svea\Checkout\Controller\Checkout
             */
         }
 
-        $response['ok'] = true; //to avoid empty response
-
         if (!$this->getRequest()->isXmlHttpRequest()) {
             $this->_redirect('*');
             return;
         }
 
-        $response['ok'] = true;
-        if ($blocks) {
+        $response['ok'] = true;  //to avoid empty response
+        if ($blocks && !$response['reload']) {
             $this->_view->loadLayout('svea_checkout_order_update');
             foreach ($blocks as $id) {
                 $name = "svea_checkout.{$id}";
@@ -117,5 +115,51 @@ abstract class Update extends \Svea\Checkout\Controller\Checkout
         }
 
         $this->getResponse()->setBody(json_encode($response));
+    }
+
+    /**
+     * Sends the update to Svea and returns the new quote signature.
+     * On errors, throws a CheckoutException with specific configuration based on the response code
+     *
+     * @return string
+     * @throws CheckoutException
+     */
+    private function sendUpdateRequest(): string
+    {
+        $checkout = $this->getSveaCheckout();
+        $sveaPaymentId = $this->getCheckoutSession()->getSveaOrderId();
+
+        try {
+            $checkout->updateSveaPayment($sveaPaymentId);
+        } catch (ClientException $e) {
+            $httpCode = (int)$e->getHttpStatusCode();
+            if ($httpCode > 500 || in_array($httpCode, [401, 403])) {
+                $this->throwCheckoutException('Svea Checkout could not be reached!', false, $e);
+            }
+
+            if (in_array($httpCode, [400, 404])) {
+                $this->throwCheckoutException('Checkout needs to reload', true, $e);
+            }
+        }
+        return $checkout->getQuoteSignature();
+    }
+
+    /**
+     * Throw an appropriate Checkout Exception based on the provided params
+     *
+     * @param string $message
+     * @param bool $reload If true, reload page. If false, redirect to cart.
+     * @param \Exception $exception
+     * @throws CheckoutException
+     */
+    private function throwCheckoutException(string $message, $reload = false, ?\Exception $exception = null): void
+    {
+        $testMode = $this->getSveaCheckout()->getHelper()->isTestMode();
+        if (($exception instanceof \Exception) && $testMode) {
+            $message .= sprintf(' Error: %s', $exception->getMessage());
+        }
+
+        $redirect = $reload ? '*/*' : 'checkout/cart';
+        throw new CheckoutException(__($message), $redirect);
     }
 }
