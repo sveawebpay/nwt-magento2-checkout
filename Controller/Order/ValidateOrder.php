@@ -9,6 +9,7 @@ use Magento\Sales\Model\Order;
 use Svea\Checkout\Model\CheckoutException;
 use Svea\Checkout\Model\Client\ClientException;
 use Svea\Checkout\Model\Client\DTO\GetOrderResponse;
+use Svea\Checkout\Model\Shipping\Carrier;
 
 class ValidateOrder extends Update
 {
@@ -190,15 +191,7 @@ class ValidateOrder extends Update
             throw new CheckoutException(__("Please add shipping information."));
         }
 
-        try {
-            if (!$quote->isVirtual() && !$quote->getShippingAddress()->getShippingMethod()) {
-                $checkout->getLogger()->error("Validate Order: Consumer has not chosen a shipping method.");
-                throw new CheckoutException(__("Please choose a shipping method."));
-            }
-        } catch (\Exception $e) {
-            $checkout->getLogger()->error("Validate Order: Something went wrong... Order ID: " . $sveaOrder->getOrderId() . "... Error message:" . $e->getMessage());
-            throw new CheckoutException(__("Something went wrong... Contact site admin."));
-        }
+        $this->validateShippingMethod($sveaOrder, $quote);
 
         $sveaLastTotal = $sveaOrder->getMerchantData()->getTotal();
         if ((float) $quote->getGrandTotal() !== $sveaLastTotal) {
@@ -242,5 +235,42 @@ class ValidateOrder extends Update
     protected function loadOrder($orderId)
     {
         return $this->sveaCheckoutContext->getOrderRepository()->get($orderId);
+    }
+
+    /**
+     * Validates that shipping method is set,
+     *  and if Svea Shipping is enabled, that the shipping method is not the placeholder
+     *
+     * @param Quote $quote
+     * @return void
+     */
+    private function validateShippingMethod(GetOrderResponse $sveaOrder, Quote $quote): void
+    {
+        if ($quote->isVirtual()) {
+            return;
+        }
+
+        $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
+        $logger = $this->getSveaCheckout()->getLogger();
+        $logContext = sprintf(
+            'Quote ID: %s, Svea Order ID: %s, Client Order Number: %s',
+            $quote->getId(),
+            $sveaOrder->getOrderId(),
+            $sveaOrder->getClientOrderNumber()
+        );
+
+        if (!$shippingMethod) {
+            $message = 'Validate Order: Customer quote is missing shipping method.';
+            $logger->error($message . ' ' . $logContext);
+            throw new CheckoutException(__('Please choose a shipping method.'));
+        }
+
+        $sveaShippingActive = $this->getSveaCheckout()->getHelper()->getSveaShippingActive($quote->getStoreId());
+        $isPlaceholder = strpos($shippingMethod, Carrier::PLACEHOLDER_CARRIER) !== false;
+        if ($sveaShippingActive && $isPlaceholder) {
+            $message = 'Svea Shipping option not registered, is still placeholder data.';
+            $logger->error('Validate Order: ' . $message . ' ' . $logContext);
+            throw new CheckoutException(__($message));
+        }
     }
 }

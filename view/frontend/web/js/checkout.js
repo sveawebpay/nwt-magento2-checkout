@@ -422,9 +422,16 @@ define([
                             }
 
                             if (response.redirect) {
-                                window.location.href = response.redirect;
+                                window.location.href = mageurl.build(response.redirect);
                             } else {
-                                window.location.reload();
+                                alert({
+                                    content: jQuery.mage.__('We need to reload the checkout, excuse us just a moment') + '…',
+                                    actions: {
+                                        always: function () {
+                                            window.location.reload();
+                                        }
+                                    }
+                                });
                             }
                             return true;
                         } //end redirect   
