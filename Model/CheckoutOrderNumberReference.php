@@ -123,7 +123,7 @@ class CheckoutOrderNumberReference
     public function unsetClientOrderNumber()
     {
         $quote = $this->getQuote();
-        $quote->setSveaClientOrderNumber(null);
+        $quote->unsSveaClientOrderId();
         $this->quoteRepository->save($quote);
     }
 
@@ -153,7 +153,7 @@ class CheckoutOrderNumberReference
     public function getSveaHash()
     {
         if (!$this->getQuote()->getSveaHash()) {
-            $hash = hash("sha1", $this->generateClientOrderNumber());
+            $hash = hash("sha1", $this->getClientOrderNumber());
             $this->getQuote()->setSveaHash($hash);
             $this->quoteRepository->save($this->getQuote());
         }
