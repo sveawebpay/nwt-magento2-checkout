@@ -269,7 +269,7 @@ abstract class BaseClient
     }
 
     /**
-     * @param null $store
+     * @param null|int|string $store
      */
     public function resetCredentials($store = null)
     {

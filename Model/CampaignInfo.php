@@ -162,6 +162,23 @@ class CampaignInfo extends AbstractModel implements CampaignInfoInterface
     }
 
     /**
+     * @param integer $storeId
+     * @return void
+     */
+    public function setStoreId(int $storeId)
+    {
+        $this->setData('store_id', $storeId);
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getStoreId(): ?int
+    {
+        return $this->getData('store_id');
+    }
+
+    /**
      *
      * @return string
      */
