@@ -123,14 +123,12 @@ class Checkout extends Onepage
         //force payment method  to our payment method
         $paymentMethod     = $payment->getMethod();
 
-        $shipPaymentMethod = $shippingAddress->getPaymentMethod();
-
-        if (!$paymentMethod || !$shipPaymentMethod || $paymentMethod != $this->_paymentMethod || $shipPaymentMethod != $paymentMethod) {
+        if (!$paymentMethod || $paymentMethod != $this->_paymentMethod) {
             $payment->unsMethodInstance()->setMethod($this->_paymentMethod);
             $quote->setTotalsCollectedFlag(false);
             //if quote is virtual, shipping is set as billing (see above)
             //setCollectShippingRates because in onepagecheckout is affirmed that shipping rates could depends by payment method
-            $shippingAddress->setPaymentMethod($payment->getMethod())->setCollectShippingRates(true);
+            $shippingAddress->setCollectShippingRates(true);
         }
 
         // Set shipping method. It's required!

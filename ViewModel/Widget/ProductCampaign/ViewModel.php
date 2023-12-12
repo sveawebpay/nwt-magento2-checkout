@@ -66,10 +66,10 @@ class ViewModel
     /**
      * @param \Svea\Checkout\Api\Data\CampaignInfoInterface $campaignA
      * @param \Svea\Checkout\Api\Data\CampaignInfoInterface $campaignB
-     * @return bool
+     * @return int
      */
     public function sortCampaignsByPriceAsc($campaignA, $campaignB)
     {
-        return $campaignA->getUnformattedCampaignPrice() > $campaignB->getUnformattedCampaignPrice();
+        return $campaignA->getUnformattedCampaignPrice() > $campaignB->getUnformattedCampaignPrice() ? 1 : -1;
     }
 }

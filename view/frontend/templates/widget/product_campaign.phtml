@@ -10,7 +10,7 @@
     }
     
     // Sorting the campaigns by price Ascending
-    usort($campaigns, array($viewModel, 'sortCampaignsByPriceAsc'));
+    usort($campaigns, [$viewModel, 'sortCampaignsByPriceAsc']);
 
     $cheapestCampaign = reset($campaigns);
     $productCampaignPrice = $cheapestCampaign->getCampaignPrice();

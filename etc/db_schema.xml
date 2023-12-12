@@ -16,4 +16,29 @@
         <constraint xsi:type="foreign" referenceId="SVEA_CHECKOUT_RECURRING_INFO_ORIGINAL_ORDER_ID_SALES_ORDER_ENTITY_ID" table="nwt_externalordersystem_prepared_checkout"
             column="original_order_id" referenceTable="sales_order" referenceColumn="entity_id" onDelete="CASCADE" />
     </table>
+    <table name="svea_campaign_info" resource="default" engine="innodb" comment="Svea Campaign Info">
+        <column xsi:type="smallint" name="entity_id" identity="true" comment="Entity ID" />
+        <column xsi:type="int" name="campaign_code" nullable="false" comment="Campaign code" />
+        <column xsi:type="varchar" name="description" length="255" nullable="false" comment="Description" />
+        <column xsi:type="int" name="payment_plan_type" nullable="false" comment="Payment Plan Type" />
+        <column xsi:type="int" name="contract_length_in_months" comment="Contract Length in Months" />
+        <column xsi:type="int" name="monthly_annuity_factor" comment="Contract Length in Months" />
+        <column xsi:type="decimal" name="initial_fee" comment="Initial fee" />
+        <column xsi:type="decimal" name="notification_fee" comment="Notification fee" />
+        <column xsi:type="decimal" name="interest_rate_percent" comment="Interest Rate Percent" />
+        <column xsi:type="int" name="number_of_interest_free_months" comment="Interest Free Months" />
+        <column xsi:type="int" name="number_of_payment_free_months" comment="Payment Free Months" />
+        <column xsi:type="decimal" name="from_amount" comment="From Amount" />
+        <column xsi:type="decimal" name="to_amount" comment="To Amount" />
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID" />
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id" />
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="SVEA_CAMPAIGN_INFO_STORE_ID" table="svea_campaign_info_store"
+            column="store_id" referenceTable="store" referenceColumn="store_id" onDelete="CASCADE" />
+        <constraint xsi:type="unique" referenceId="SVEA_CAMPAIGN_INFO_CAMPAIGN_CODE_STORE_ID">
+            <column name="campaign_code" />
+            <column name="store_id" />
+        </constraint>
+    </table>
 </schema>
