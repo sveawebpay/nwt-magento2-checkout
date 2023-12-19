@@ -2,7 +2,9 @@
 
 namespace Svea\Checkout\Model\Campaign;
 
+use Magento\Store\Api\StoreManagementInterface;
 use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use Svea\Checkout\Api\GetAvailablePartPaymentCampaigns;
 
 /**
@@ -12,6 +14,11 @@ use Svea\Checkout\Api\GetAvailablePartPaymentCampaigns;
  */
 class CampaignManagement implements GetAvailablePartPaymentCampaigns
 {
+    /**
+     * @var StoreManagerInterface
+     */
+    private $storeManager;
+
     /**
      * @var \Svea\Checkout\Model\Resource\CampaignInfo\CollectionFactory
      */
@@ -31,9 +38,11 @@ class CampaignManagement implements GetAvailablePartPaymentCampaigns
      * CampaignManagement constructor.
      */
     public function __construct(
+        StoreManagerInterface $storeManager,
         \Svea\Checkout\Model\Resource\CampaignInfo\CollectionFactory $campaignCollectionFactory,
         \Svea\Checkout\Model\Campaign\ProductCampaignPriceProvider $productPriceProvider
     ) {
+        $this->storeManager = $storeManager;
         $this->campaignCollectionFactory = $campaignCollectionFactory;
         $this->productPriceProvider = $productPriceProvider;
     }
@@ -71,6 +80,7 @@ class CampaignManagement implements GetAvailablePartPaymentCampaigns
     {
         if (!isset($this->loadedCampaigns)) {
             $campaignCollection = $this->campaignCollectionFactory->create();
+            $campaignCollection->addFieldToFilter('store_id', $this->storeManager->getStore()->getId());
             $campaignCollection->setOrder('from_amount', \Magento\Framework\Data\Collection::SORT_ORDER_ASC);
             $this->loadedCampaigns = $campaignCollection->getItems();
 

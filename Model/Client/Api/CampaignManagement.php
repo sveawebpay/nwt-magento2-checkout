@@ -25,11 +25,15 @@ class CampaignManagement extends ApiClient
     }
 
     /**
+     * @param null|int|string $store
      * @return array
      * @throws ClientException
      */
-    public function getAvailablePartPaymentCampaigns()
+    public function getAvailablePartPaymentCampaigns($store = null)
     {
+        if (null !== $store) {
+            $this->resetCredentials($store);
+        }
         $response = $this->get('api/util/GetAvailablePartPaymentCampaigns?isCompany=false');
 
         return $this->parseCampaigns($response);

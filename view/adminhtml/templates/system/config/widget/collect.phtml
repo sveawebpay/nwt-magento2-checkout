@@ -3,8 +3,8 @@
 <script>
     require([
         'jquery',
-        'prototype'
-    ], function (jQuery) {
+        'Magento_Ui/js/modal/alert'
+    ], function (jQuery, mageAlert) {
         var collectSpan = jQuery('#collect_span');
 
         jQuery('#collect_button').click(function () {
@@ -31,7 +31,9 @@
                     jQuery('#collect_message_span').text(resultText);
 
                     var json = response.responseJSON;
-                    alert(json.status);
+                    mageAlert({
+                        content: json.status,
+                    });
                 }
             });
         });

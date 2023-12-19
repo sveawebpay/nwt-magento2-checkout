@@ -91,7 +91,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param null $store
+     * @param @param null|int|string $store
      * @return mixed
      */
     public function getSharedSecret($store = null)
@@ -104,7 +104,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param null $store
+     * @param @param null|int|string $store
      * @return mixed
      */
     public function getMerchantId($store = null)
@@ -130,7 +130,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param null $store
+     * @param null|int|string $store
      * @return bool
      */
     public function isTestMode($store = null)
