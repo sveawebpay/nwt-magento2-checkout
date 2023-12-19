@@ -133,11 +133,15 @@ class Checkout extends AbstractMethod
      */
     public function canUseForCountry($country)
     {
+        $storeId = $this->getInfoInstance()->getMethodInstance()->getStore();
         $country = trim(strtoupper($country));
-        $result =  $country && in_array($country,$this->_helper->getCountries()) && parent::canUseForCountry($country);
+        $allowedCountries = $this->_helper->getCountries($storeId);
+        if ($this->_helper->getInternationalFlowActive($storeId)) {
+            $allowedCountries = $this->_helper->getGeneralAllowedCountries($storeId);
+        }
+        $result =  $country && in_array($country, $allowedCountries) && parent::canUseForCountry($country);
         return $result;
     }
-
 
     /**
      * Get currency model instance. 

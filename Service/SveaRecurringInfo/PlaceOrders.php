@@ -126,8 +126,8 @@ class PlaceOrders
         $this->orderCreate->setQuote($this->quoteFactory->create());
         $this->orderCreate->initFromOrder($order);
         $quote = $this->orderCreate->getQuote();
-        $quote->reserveOrderId();
         $quote->setStoreId($order->getStoreId());
+        $quote->reserveOrderId();
         $this->objectCopyService->copyFieldsetToTarget(
             'sales_convert_order_payment',
             'to_quote_payment',
@@ -138,7 +138,6 @@ class PlaceOrders
         // Update recurring info for new Quote
         $this->sveaRecurringInfo->scheduleNextRecurringOrder($quote);
         $quoteRecurringInfo = $this->sveaRecurringInfo->quoteGetter($quote);
-        $this->unsetForNextOrder($quoteRecurringInfo);
 
         // We must save quote lots of times here, looks messy but otherwise it doesn't work properly
         $this->sveaRecurringInfo->quoteSetter($quote, $quoteRecurringInfo);
@@ -172,20 +171,6 @@ class PlaceOrders
             'success' => true,
             'message' => $logMessage
         ];
-    }
-
-    /**
-     * Remove data irrelevant for new recurring order
-     *
-     * @param PaymentRecurringInfo $recurringInfo
-     * @return void
-     */
-    private function unsetForNextOrder(PaymentRecurringInfo $recurringInfo): void
-    {
-        $recurringInfo->setStandardOrderId(null);
-        $recurringInfo->setStandardClientOrderNumber(null);
-        $recurringInfo->setRecurringOrderId(null);
-        $recurringInfo->setRecurringClientOrderNumber(null);
     }
 
     /**

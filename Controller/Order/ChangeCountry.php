@@ -1,36 +1,97 @@
-<?php
+<?php declare(strict_types=1);
+
 namespace Svea\Checkout\Controller\Order;
 
-use Magento\Quote\Model\Quote;
+use Magento\Framework\App\Request\Http as HttpRequest;
+use Magento\Framework\App\Action\HttpPostActionInterface;
+use Magento\Framework\Controller\Result\Json;
+use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Checkout\Model\Session;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Api\Data\CartExtensionFactory;
+use Magento\Quote\Model\Quote\ShippingAssignment\ShippingAssignmentProcessor;
+use Magento\Framework\Message\ManagerInterface;
+use Svea\Checkout\Model\Svea\Locale;
 
-class ChangeCountry extends \Svea\Checkout\Controller\Order\Update
+class ChangeCountry implements HttpPostActionInterface
 {
     /**
-     * @return \Magento\Framework\App\ResponseInterface|\Magento\Framework\Controller\ResultInterface|void
+     * @var HttpRequest
      */
-    public function execute()
+    private HttpRequest $request;
+
+    /**
+     * @var Session
+     */
+    private Session $checkoutSession;
+
+    /**
+     * @var JsonFactory
+     */
+    private JsonFactory $jsonResultFactory;
+
+    /**
+     * @var Locale
+     */
+    private Locale $localeHelper;
+
+    /**
+     * @var CartExtensionFactory
+     */
+    private CartExtensionFactory $cartExtensionFactory;
+
+    /**
+     * @var ShippingAssignmentProcessor
+     */
+    private ShippingAssignmentProcessor $shippingAssignmentProcessor;
+
+    /**
+     * @var CartRepositoryInterface
+     */
+    private CartRepositoryInterface $quoteRepo;
+
+    public function __construct(
+        HttpRequest $request,
+        Session $checkoutSession,
+        JsonFactory $jsonResultFactory,
+        Locale $localeHelper,
+        CartExtensionFactory $cartExtensionFactory,
+        ShippingAssignmentProcessor $shippingAssignmentProcessor,
+        CartRepositoryInterface $quoteRepo
+    ) {
+        $this->request = $request;
+        $this->checkoutSession = $checkoutSession;
+        $this->jsonResultFactory = $jsonResultFactory;
+        $this->localeHelper = $localeHelper;
+        $this->cartExtensionFactory = $cartExtensionFactory;
+        $this->shippingAssignmentProcessor = $shippingAssignmentProcessor;
+        $this->quoteRepo = $quoteRepo;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function execute(): Json
     {
-        if (!$this->getRequest()->isXmlHttpRequest()) {
-            $this->_redirect('*');
-            return;
+        $countryId = $this->request->getParam('country_id');
+        if (!$this->countryHasChanged($countryId)) {
+            return $this->sendNoChangedResponse();
         }
 
-        $countryId = $this->getRequest()->getParam('country_id');
-
-        try {
-            if (! $this->countryHasChanged($countryId)) {
-                $this->sendNoChangedResponse();
-                return;
-            }
-
-            $this->changeCountry($countryId);
-            $this->sendUpdates();
-        } catch (\Exception $e) {
-            if ($e->isReload()) {
-                $this->handleReloadException($e);
-            }
-            $this->addExceptionMessage($e);
+        // First check if country is allowed (should be valid outside of some very strange configuration)
+        $quote = $this->checkoutSession->getQuote();
+        if (!$quote->getPayment()->getMethodInstance()->canUseForCountry($countryId)) {
+            $result = $this->jsonResultFactory->create()->setData([
+                'message' => __('We are sorry, this country is not allowed for Svea Checkout.'),
+                'reload' => false,
+            ]);
+            return $result;
         }
+
+        // Set new country
+        $this->changeCountry($countryId);
+        $result = $this->jsonResultFactory->create()->setData(['reload' => true]);
+        return $result;
     }
 
     /**
@@ -40,11 +101,10 @@ class ChangeCountry extends \Svea\Checkout\Controller\Order\Update
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    private function countryHasChanged($countryId)
+    private function countryHasChanged($countryId): bool
     {
-        $shippingAddress = $this->getShippingAddress();
-
-        return $countryId !== $shippingAddress->getCountryId();
+        $billingAddress = $this->getBillingAddress();
+        return $countryId !== $billingAddress->getCountryId();
     }
 
     /**
@@ -53,48 +113,26 @@ class ChangeCountry extends \Svea\Checkout\Controller\Order\Update
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    private function changeCountry($countryId) : void
+    private function changeCountry($countryId): void
     {
-        $address = $this->getShippingAddress();
-        $address->setCountryId($countryId);
+        $quote = $this->checkoutSession->getQuote();
+        $this->getBillingAddress()->setCountryId($countryId);
+        $defaultData = $this->localeHelper->getDefaultDataByCountryCode($countryId);
+        $defaultPostcode = $defaultData['PostalCode'] ?? '';
+        $this->getBillingAddress()->setPostcode($defaultPostcode);
+        if (!$quote->isVirtual()) {
+            $shippingAddress = $this->getShippingAddress();
+            $shippingAddress->setCountryId($countryId);
+            $shippingAddress->setPostcode($defaultPostcode);
 
-        $this->createNewSveaOrder($this->checkoutSession->getQuote());
-    }
-
-    /**
-     * @param Quote $quote
-     *
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Svea\Checkout\Model\CheckoutException
-     * @throws \Exception
-     */
-    private function createNewSveaOrder(Quote $quote)
-    {
-        $checkout = $this->getSveaCheckout();
-        $checkout->setCheckoutContext($this->sveaCheckoutContext);
-        $refHandler = $checkout->getRefHelper();
-
-        // Genereta new quote signature
-        $newSignature = $this->sveaCheckoutContext->getHelper()->generateHashSignatureByQuote($quote);
-
-        if ($newSignature == $refHandler->getQuoteSignature()) {
-            return;
+            $extAttributes = $quote->getExtensionAttributes();
+            if (null === $extAttributes) {
+                $extAttributes = $this->cartExtensionFactory->create();
+            }
+            $extAttributes->setShippingAssignments([$this->shippingAssignmentProcessor->create($quote)]);
+            $quote->setExtensionAttributes($extAttributes);
         }
-
-        // Init checkout
-        $checkout = $checkout->initCheckout(false, false);
-
-        // Generate new response
-        $paymentHandler = $checkout->getSveaPaymentHandler();
-        $paymentResponse = $paymentHandler->initNewSveaCheckoutPaymentByQuote($quote);
-
-        $orderId = $paymentResponse->getOrderId();
-        $refHandler->setSveaOrderId($orderId);
-        $refHandler->setQuoteSignature($newSignature);
-        $refHandler->generateClientOrderNumberToQuote();
-
-        // Generate new svea hash
-        // $refHandler->resetSveaHash();
+        $this->quoteRepo->save($quote);
     }
 
     /**
@@ -102,7 +140,20 @@ class ChangeCountry extends \Svea\Checkout\Controller\Order\Update
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    private function getShippingAddress() : \Magento\Quote\Model\Quote\Address
+    private function getBillingAddress(): \Magento\Quote\Model\Quote\Address
+    {
+        $quote = $this->checkoutSession->getQuote();
+        $billingAddress = $quote->getBillingAddress();
+
+        return $billingAddress;
+    }
+
+    /**
+     * @return \Magento\Quote\Model\Quote\Address
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    private function getShippingAddress(): \Magento\Quote\Model\Quote\Address
     {
         $quote = $this->checkoutSession->getQuote();
         $shippingAddress = $quote->getShippingAddress();
@@ -111,69 +162,11 @@ class ChangeCountry extends \Svea\Checkout\Controller\Order\Update
     }
 
     /**
-     *
+     * @return void
      */
-    private function sendNoChangedResponse() : void
+    private function sendNoChangedResponse(): Json
     {
-        $response = ['ok' => true];
-        $this->getResponse()->setBody(json_encode($response));
-    }
-
-    /**
-     * @param \Exception $e
-     */
-    private function handleReloadException(\Exception $e)
-    {
-        $response = [];
-        $response['reload'] = 1;
-        $response['messages'] = $e->getMessage();
-        $this->getResponse()->setBody(json_encode($response));
-    }
-
-    /**
-     * @param array $blocks
-     */
-    private function sendUpdates($blocks = ['shipping_method','cart','coupon','messages', 'svea','newsletter', 'svea_snippet'])
-    {
-        if (!in_array('messages', $blocks)) {
-            $blocks[] = 'messages';
-        }
-
-        $checkout = $this->getSveaCheckout();
-        $response = [
-            'ctrlkey' => $checkout->getCheckoutSession()->getSveaQuoteSignature(),
-            'ok' => true
-        ];
-
-        if ($blocks) {
-            $this->_view->loadLayout('svea_checkout_order_update');
-            foreach ($blocks as $id) {
-                $name = "svea_checkout.{$id}";
-                $block = $this->_view->getLayout()->getBlock($name);
-                if ($block) {
-                    $response['updates'][$id] = $block->toHtml();
-                }
-            }
-        }
-
-        if (in_array('svea_snippet', $blocks)) {
-            $sveaSnippet = sprintf(
-                '<div id="svea-checkout_svea"><div id="sveaIframeSnippet">%s</div></div>',
-                $checkout->getSveaPaymentHandler()->getIframeSnippet()
-            );
-            $response['updates']['svea'] = $sveaSnippet;
-        }
-
-        $this->getResponse()->setBody(json_encode($response));
-    }
-
-    /**
-     * @param \Exception $e
-     */
-    private function addExceptionMessage(\Exception $e)
-    {
-        $this->messageManager->addErrorMessage(
-            $e->getMessage() ? $e->getMessage() : __('Cannot update checkout (%1)', get_class($e))
-        );
+        $response = ['reload' => false];
+        return $this->jsonResultFactory->create()->setData($response);
     }
 }

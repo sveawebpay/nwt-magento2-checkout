@@ -171,6 +171,15 @@
                 <!-- IFRAME -->
                 <container name="svea_checkout.main" as="svea_checkoutMain" label="Main svea_checkout Container"
                            htmlTag="div" htmlId="svea_checkoutMain">
+                    <block 
+                        name="svea_checkout.svea.international"
+                        ifconfig="svea_checkout/settings/international_flows/international_flow_active"
+                        template="Svea_Checkout::checkout/international.phtml"
+                    >
+                        <arguments>
+                            <argument name="view_model" xsi:type="object">Svea\Checkout\ViewModel\Checkout\International</argument>
+                        </arguments>
+                    </block>
                     <block name="svea_checkout.svea.recurring_payments" ifconfig="svea_checkout/settings/recurring_payments/active">
                         <arguments>
                             <argument name="view_model" xsi:type="object">Svea\Checkout\ViewModel\Checkout\Recurring</argument>

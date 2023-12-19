@@ -7,6 +7,7 @@ var config = {
             'Magento_Reward/js/action/set-use-reward-points': 'Svea_Checkout/js/action/set-use-reward-points',
             recurringFormHandler: 'Svea_Checkout/js/recurring-form-handler',
             cancelSubscriptionFormHandler: 'Svea_Checkout/js/cancel-subscription-form-handler',
+            internationalFormHandler: 'Svea_Checkout/js/international-form-handler',
         }
     },
     paths: {

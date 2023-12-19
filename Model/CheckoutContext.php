@@ -5,9 +5,13 @@ namespace Svea\Checkout\Model;
 use Magento\Customer\Api\Data\AddressInterfaceFactory;
 use Magento\Quote\Api\Data\CartExtensionFactory;
 use Magento\Quote\Model\Quote\ShippingAssignment\ShippingAssignmentProcessor;
-use Svea\Checkout\Block\Checkout\Cart;
+use Magento\Quote\Model\Quote;
 use Svea\Checkout\Service\SveaShippingInfo;
 use Svea\Checkout\Service\SveaRecurringInfo;
+use Svea\Checkout\Model\Session;
+use Svea\Checkout\Model\SessionFactory;
+use Svea\Checkout\Model\ResourceModel\Session as SessionResource;
+use Svea\Checkout\Model\ResourceModel\SessionFactory as SessionResourceFactory;
 
 /**
  * Class CheckoutContext
@@ -80,17 +84,35 @@ class CheckoutContext
     private SveaRecurringInfo $sveaRecurringInfo;
 
     /**
-     * Constructor
-     *
+     * @var SessionFactory
+     */
+    private SessionFactory $sessionFactory;
+
+    /**
+     * @var SessionResourceFactory
+     */
+    private SessionResourceFactory $sessionResourceFactory;
+
+    private ?SessionResource $sessionResource = null;
+
+    /**
      * @param \Svea\Checkout\Helper\Data $helper
      * @param \Svea\Checkout\Model\Svea\Order $sveaOrderHandler
-     * @param CheckoutOrderNumberReference $sveaCheckoutReferenceHelper
+     * @param \Svea\Checkout\Model\CheckoutOrderNumberReference $sveaCheckoutReferenceHelper
      * @param \Svea\Checkout\Logger\Logger $logger
-     * @param \Svea\Checkout\Model\Svea\Locale $sveaLocale ,
+     * @param \Svea\Checkout\Model\Svea\Locale $sveaLocale
      * @param \Magento\Sales\Api\OrderCustomerManagementInterface $orderCustomerManagement
      * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
      * @param \Magento\Newsletter\Model\Subscriber $subscriber
      * @param \Magento\Customer\Api\AddressRepositoryInterface $addressRepository
+     * @param AddressInterfaceFactory $addressInterfaceFactory
+     * @param \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory
+     * @param SveaShippingInfo $sveaShippingInfoService
+     * @param CartExtensionFactory $cartExtensionFactory
+     * @param ShippingAssignmentProcessor $shippingAssignmentProcessor
+     * @param SveaRecurringInfo $sveaRecurringInfo
+     * @param SessionFactory $sessionFactory
+     * @param SessionResourceFactory $sessionResourceFactory
      */
     public function __construct(
         \Svea\Checkout\Helper\Data $helper,
@@ -107,7 +129,9 @@ class CheckoutContext
         SveaShippingInfo $sveaShippingInfoService,
         CartExtensionFactory $cartExtensionFactory,
         ShippingAssignmentProcessor $shippingAssignmentProcessor,
-        SveaRecurringInfo $sveaRecurringInfo
+        SveaRecurringInfo $sveaRecurringInfo,
+        SessionFactory $sessionFactory,
+        SessionResourceFactory $sessionResourceFactory
     ) {
         $this->helper        = $helper;
         $this->logger = $logger;
@@ -124,6 +148,8 @@ class CheckoutContext
         $this->cartExtensionFactory = $cartExtensionFactory;
         $this->shippingAssignmentProcessor = $shippingAssignmentProcessor;
         $this->sveaRecurringInfo = $sveaRecurringInfo;
+        $this->sessionFactory = $sessionFactory;
+        $this->sessionResourceFactory = $sessionResourceFactory;
     }
 
     /**
@@ -229,5 +255,54 @@ class CheckoutContext
     public function getRecurringInfoService(): SveaRecurringInfo
     {
         return $this->sveaRecurringInfo;
+    }
+
+    /**
+     * Fetches Svea Session object by the unique identifiers:
+     *  Quote ID, Country ID, and Recurring flag
+     *  Returns object with empty ID if Session does not exist yet
+     *
+     * @param Quote $checkoutSession
+     * @return Session
+     */
+    public function fetchSveaSession(Quote $quote): Session
+    {
+        $session = $this->sessionFactory->create();
+        if (!$quote->getId() || !$quote->getBillingAddress()->getCountryId()) {
+            return $session;
+        }
+
+        $recurringActive = $this->helper->getRecurringPaymentsActive();
+        $recurringInfo = $this->getRecurringInfoService()->quoteGetter($quote);
+        $this->getSessionResource()->loadByIdentifiers(
+            $session,
+            (int)$quote->getId(),
+            (string)$quote->getBillingAddress()->getCountryId(),
+            ($recurringActive && $recurringInfo->getEnabled())
+        );
+
+        return $session;
+    }
+
+    /**
+     * @param Session $session
+     * @return void
+     */
+    public function saveSveaSession(Session $session): void
+    {
+        $resource = $this->getSessionResource();
+        $resource->save($session);
+    }
+
+    /**
+     * @return SessionResource
+     */
+    private function getSessionResource(): SessionResource
+    {
+        if ($this->sessionResource === null) {
+            $this->sessionResource = $this->sessionResourceFactory->create();
+        }
+
+        return $this->sessionResource;
     }
 }
