@@ -352,10 +352,6 @@ define([
             this._ajaxFormSubmit(jQuery(this.options.shippingMethodFormSelector));
         },
 
-        _changeCountry: function () {
-            this._ajaxFormSubmit(jQuery(this.options.shippingMethodFormSelector));
-        },
-
         _loadShippingMethod: function () {
             this._ajaxFormSubmit(jQuery(this.options.shippingMethodLoaderSelector));
             return false;

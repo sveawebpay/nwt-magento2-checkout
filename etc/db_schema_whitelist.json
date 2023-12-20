@@ -36,5 +36,22 @@
             "SVEA_CAMPAIGN_INFO_STORE_ID_STORE_STORE_ID": true,
             "SVEA_CAMPAIGN_INFO_CAMPAIGN_CODE_STORE_ID": true
         }
+    },
+    "svea_checkout_session": {
+        "column": {
+            "entity_id": true,
+            "quote_id": true,
+            "svea_order_id": true,
+            "svea_client_order_id": true,
+            "country_id": true,
+            "recurring": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "SVEA_CHECKOUT_SESSION_QUOTE_ID_QUOTE_ENTITY_ID": true,
+            "SVEA_CHECKOUT_SESSION_QUOTE_ID_COUNTRY_ID_RECURRING": true,
+            "SVEA_CHECKOUT_SESSION_SVEA_ORDER_ID": true,
+            "SVEA_CHECKOUT_SESSION_SVEA_CLIENT_ORDER_ID": true
+        }
     }
 }

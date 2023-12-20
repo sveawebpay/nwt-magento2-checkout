@@ -13,7 +13,7 @@
         <constraint xsi:type="unique" referenceId="RECURRING_TOKEN_UNIQUE">
             <column name="recurring_token" />
         </constraint>
-        <constraint xsi:type="foreign" referenceId="SVEA_CHECKOUT_RECURRING_INFO_ORIGINAL_ORDER_ID_SALES_ORDER_ENTITY_ID" table="nwt_externalordersystem_prepared_checkout"
+        <constraint xsi:type="foreign" referenceId="SVEA_CHECKOUT_RECURRING_INFO_ORIGINAL_ORDER_ID_SALES_ORDER_ENTITY_ID" table="svea_recurring_info"
             column="original_order_id" referenceTable="sales_order" referenceColumn="entity_id" onDelete="CASCADE" />
     </table>
     <table name="svea_campaign_info" resource="default" engine="innodb" comment="Svea Campaign Info">
@@ -39,6 +39,34 @@
         <constraint xsi:type="unique" referenceId="SVEA_CAMPAIGN_INFO_CAMPAIGN_CODE_STORE_ID">
             <column name="campaign_code" />
             <column name="store_id" />
+        </constraint>
+    </table>
+    <table name="svea_checkout_session" resource="default" engine="innodb" comment="Svea Checkout Session Data">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true" comment="Entity ID" />
+        <column xsi:type="int" name="quote_id" unsigned="true" nullable="false" comment="Quote ID" />
+        <column xsi:type="smallint" name="store_id" unsigned="true" nullable="false" comment="Store ID" />
+        <column xsi:type="varchar" name="svea_order_id" nullable="false" comment="Svea Order ID" />
+        <column xsi:type="varchar" name="svea_client_order_id" nullable="false" comment="Svea Client Order Number" />
+        <column xsi:type="varchar" name="country_id" nullable="false" comment="Country ID" />
+        <column xsi:type="tinyint" name="recurring" nullable="false" unsigned="true" default="0" comment="Recurring" />
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id" />
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="SVEA_CHECKOUT_SESSION_QUOTE_ID_QUOTE_ENTITY_ID" table="svea_checkout_session"
+            column="quote_id" referenceTable="quote" referenceColumn="entity_id" onDelete="CASCADE" />
+        <constraint xsi:type="foreign" referenceId="SVEA_CHECKOUT_SESSION_STORE_ID_STORE_STORE_ID" table="svea_checkout_session"
+            column="store_id" referenceTable="store" referenceColumn="store_id" onDelete="CASCADE" />
+        <constraint xsi:type="unique" referenceId="SVEA_CHECKOUT_SESSION_QUOTE_ID_COUNTRY_ID_RECURRING_UNIQUE">
+            <column name="quote_id" />
+            <column name="country_id" />
+            <column name="recurring" />
+        </constraint>
+        <constraint xsi:type="unique" referenceId="SVEA_CHECKOUT_SESSION_SVEA_ORDER_ID_UNIQUE">
+            <column name="svea_order_id" />
+        </constraint>
+        <constraint xsi:type="unique" referenceId="SVEA_CHECKOUT_SESSION_SVEA_CLIENT_ORDER_ID_UNIQUE">
+            <column name="store_id" />
+            <column name="svea_client_order_id" />
         </constraint>
     </table>
 </schema>

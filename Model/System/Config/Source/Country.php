@@ -5,7 +5,7 @@ class Country implements \Magento\Framework\Option\ArrayInterface
 {
 
 
-    /** @var $_country \Magento\Directory\Model\Config\Source\Country */
+    /** @var \Magento\Directory\Model\Config\Source\Country $_country */
     protected $_country;
 
     /** @var \Svea\Checkout\Model\Svea\Locale $_locale */

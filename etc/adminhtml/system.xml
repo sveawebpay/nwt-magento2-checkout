@@ -191,6 +191,15 @@
                         </depends>
                     </field>
                 </group>
+
+                <group id="international_flows" type="text" sortOrder="800" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
+                    <label>International Flows</label>
+                    <field id="international_flow_active" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
+                        <label>International Flow Active</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <comment>Enables country switcher in checkout, letting customer choose among all Allowed Countries in General config.</comment>
+                    </field>
+                </group>
             </group>
 
             <group id="layout" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">

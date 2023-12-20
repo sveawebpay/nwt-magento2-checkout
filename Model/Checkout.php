@@ -65,7 +65,7 @@ class Checkout extends Onepage
      * @throws CheckoutException
      * @throws LocalizedException
      */
-    public function initCheckout($reloadIfCurrencyChanged = true, $reloadIfCountryChanged = false)
+    public function initCheckout()
     {
         if (!($this->context instanceof CheckoutContext)) {
             throw new BaseException("Svea Context must be set first!");
@@ -81,70 +81,18 @@ class Checkout extends Onepage
             $quote->setCustomer($customer->getCustomerDataObject());
         }
 
-        $allowedCountries = $this->getAllowedCountries(); //this is not null (it is checked in $this->checkCart())
+        $this->setAddressDefaults();
 
-        $billingAddress  = $quote->getBillingAddress();
-        if ($quote->isVirtual()) {
-            $shippingAddress = $billingAddress;
-        } else {
-            $shippingAddress = $quote->getShippingAddress();
-        }
-
-        $defaultCountry = $this->getHelper()->getDefaultCountry();
-        $countryChanged = false;
-        if (!$shippingAddress->getCountryId()) {
-            $this->_logger->info(__("No country set, change to %1", $defaultCountry));
-            $this->changeCountry($defaultCountry, $save = false);
-            $countryChanged = true;
-        } elseif (!in_array($shippingAddress->getCountryId(), $allowedCountries)) {
-            $this->_logger->info(__("Wrong country set %1, change to %2", $shippingAddress->getCountryId(), $defaultCountry));
-            $this->messageManager->addNoticeMessage(__("Svea checkout is not available for %1, country was changed to %2.", $shippingAddress->getCountryId(), $defaultCountry));
-            $this->changeCountry($defaultCountry, $save = false);
-            $countryChanged = true;
-        }
-
-        if (!$billingAddress->getCountryId() || $billingAddress->getCountryId() != $shippingAddress->getCountryId()) {
-            $this->changeCountry($shippingAddress->getCountryId(), $save = false);
-            $countryChanged = true;
-        }
-
-        // Set a default postcode to get correct tax rates
-        if (!$shippingAddress->getPostcode()) {
-            $countryId = $shippingAddress->getCountryId();
-            $localeHelper =  $this->context->getSveaLocale();
-            $defaultData = $localeHelper->getDefaultDataByCountryCode($countryId);
-            $defaultPostcode = $defaultData['PostalCode'] ?? '';
-            $shippingAddress->setPostcode($defaultPostcode);
-        }
-
-        $currencyChanged = false;
         $payment = $quote->getPayment();
 
         //force payment method  to our payment method
         $paymentMethod     = $payment->getMethod();
-
         if (!$paymentMethod || $paymentMethod != $this->_paymentMethod) {
             $payment->unsMethodInstance()->setMethod($this->_paymentMethod);
-            $quote->setTotalsCollectedFlag(false);
-            //if quote is virtual, shipping is set as billing (see above)
-            //setCollectShippingRates because in onepagecheckout is affirmed that shipping rates could depends by payment method
-            $shippingAddress->setCollectShippingRates(true);
         }
 
         // Set shipping method. It's required!
         $selectedShippingMethod = $this->checkAndChangeShippingMethod();
-
-        try {
-            $quote->setTotalsCollectedFlag(false)->collectTotals(); //REQUIRED (maybe shipping amount was changed)
-        } catch (\Exception $e) {
-            // do nothing
-        }
-
-        if (($reloadIfCurrencyChanged && $currencyChanged) || ($reloadIfCountryChanged && $countryChanged)) {
-            //not needed
-            $this->throwReloadException('Checkout was reloaded.');
-        }
-
         if ($selectedShippingMethod === false) {
             throw new LocalizedException(__('Missing shipping method.'));
         }
@@ -206,67 +154,40 @@ class Checkout extends Onepage
     }
 
     /**
-     * @return bool
-     * @throws LocalizedException
+     * Sets default country and post code on quote addresses if needed
+     *
+     * @return void
      */
-    public function checkAndChangeCurrency()
+    private function setAddressDefaults(): void
     {
-        $quote  = $this->getQuote();
-        $store  = $quote->getStore();
-        $country    = $quote->getBillingAddress()->getCountryId();
-        $currentCurrency = $quote->getQuoteCurrencyCode();
-        $requiredCurrency = $this->getSveaPaymentHandler()->getlocale()->getCurrencyByCountryCode($country);
-
-        if (!$country) {
-            throw new LocalizedException(__('Country is not set.')); // this shouldn't happen
-        }
-
-        if (!$requiredCurrency) {
-            throw new LocalizedException(__('Invalid Country. No valid currency code found for country %1.', $country)); // this shouldn't happen
-        }
-
-        if ($requiredCurrency == $currentCurrency) {
-            //currency not changed
-            return false;
-        }
-
-        // this will try to change currency only if currency is available
-        $store->setCurrentCurrencyCode($requiredCurrency);
-
-        $quote->setTotalsCollectedFlag(false);
-        if (!$quote->isVirtual() && $quote->getShippingAddress()) {
-            $quote->getShippingAddress()->setCollectShippingRates(true);
-        }
-
-        // we add a message
-        $this->messageManager->addNoticeMessage(__('Currency was changed to %1.', $requiredCurrency));
-
-        //currency was changed
-        return true;
-    }
-
-    /**
-     * @param $country
-     * @param bool $saveQuote
-     * @throws LocalizedException
-     */
-    public function changeCountry($country, $saveQuote = false)
-    {
-        $allowedCountries = $this->getAllowedCountries();
-        if (!$country || !in_array($country, $allowedCountries)) {
-            throw new LocalizedException(__('Invalid country (%1)', $country));
-        }
-
-        $blankAddress = $this->getBlankAddress($country);
-        $quote        = $this->getQuote();
-
-        $quote->getBillingAddress()->addData($blankAddress);
+        $quote = $this->getQuote();
+        $shippingAddress = $quote->getShippingAddress();
+        $billingAddress = $quote->getBillingAddress();
+        $billingAddressDataSet = !!$billingAddress->getCountryId() && !!$billingAddress->getPostcode();
+        $shippingAddressDataSet = true;
+        $mainAddress = $shippingAddress;
         if (!$quote->isVirtual()) {
-            $quote->getShippingAddress()->addData($blankAddress)->setCollectShippingRates(true);
+            $mainAddress = $billingAddress;
+            $shippingAddressDataSet = !!$shippingAddress->getCountryId() && !!$shippingAddress->getPostcode();
         }
-        if ($saveQuote) {
-            $this->checkAndChangeCurrency();
-            $quote->collectTotals()->save();
+
+        if ($billingAddressDataSet && $shippingAddressDataSet) {
+            return;
+        }
+
+        $country = $mainAddress->getCountry() ?? $this->getHelper()->getDefaultCountry();
+        $blankAddress = $this->getBlankAddress($country);
+
+        $billingAddress->addData($blankAddress);
+        if (!$quote->isVirtual()) {
+            $shippingAddress->addData($blankAddress)->setCollectShippingRates(true);
+            $extAttributes = $quote->getExtensionAttributes();
+            if (null === $extAttributes) {
+                $extAttributes = $this->context->getCartExtensionFactory()->create();
+            }
+    
+            $extAttributes->setShippingAssignments([$this->context->getShippingAssignmentProcessor()->create($quote)]);
+            $quote->setExtensionAttributes($extAttributes);
         }
     }
 
@@ -317,18 +238,21 @@ class Checkout extends Onepage
     }
 
     /**
-     * @param $country
+     * @param string $country
      * @return array
      */
-    public function getBlankAddress($country)
+    private function getBlankAddress(string $country): array
     {
+        $localeHelper =  $this->context->getSveaLocale();
+        $defaultData = $localeHelper->getDefaultDataByCountryCode($country);
+        $defaultPostcode = $defaultData['PostalCode'] ?? '';
         $blankAddress = [
             'customer_address_id' => 0,
             'save_in_address_book' => 0,
             'same_as_billing' => 0,
             'street' => '',
             'city' => '',
-            'postcode' => '',
+            'postcode' => $defaultPostcode,
             'region_id' => '',
             'country_id' => $country
         ];
@@ -338,10 +262,13 @@ class Checkout extends Onepage
     /**
      * @return array
      */
-    public function getAllowedCountries()
+    private function getAllowedCountries()
     {
-        if (is_null($this->_allowedCountries)) {
+        if (null === $this->_allowedCountries) {
             $this->_allowedCountries = $this->getHelper()->getCountries();
+            if ($this->getHelper()->getInternationalFlowActive()) {
+                $this->_allowedCountries = $this->getHelper()->getGeneralAllowedCountries();
+            }
         }
 
         return $this->_allowedCountries;
@@ -355,7 +282,7 @@ class Checkout extends Onepage
     public function initSveaCheckout()
     {
         $quote = $this->getQuote();
-        $this->handleRecurringPayment();
+        $this->initSveaSession();
         $this->setSveaShippingDefault();
 
         // we need a reserved order id, since we need to send the order id to svea in validateOrder.
@@ -882,11 +809,13 @@ class Checkout extends Onepage
             return;
         }
 
-        $quote->getShippingAddress()->setShippingMethod(Carrier::CODE . '_' . Carrier::PLACEHOLDER_CARRIER);
-        $quote->getShippingAddress()->setShippingAmount(0);
-        $quote->getShippingAddress()->setBaseShippingAmount(0);
-        $defaultCountry = $this->context->getHelper()->getDefaultCountry();
-        $quote->getShippingAddress()->setCountryId($defaultCountry);
+        $shippingAddress->setShippingMethod(Carrier::CODE . '_' . Carrier::PLACEHOLDER_CARRIER);
+        $shippingAddress->setShippingAmount(0);
+        $shippingAddress->setBaseShippingAmount(0);
+        if (!$shippingAddress->getCountryId()) {
+            $defaultCountry = $this->context->getHelper()->getDefaultCountry();
+            $shippingAddress->setCountryId($defaultCountry);
+        }
         $extAttributes = $quote->getExtensionAttributes();
         if (null === $extAttributes) {
             $extAttributes = $this->context->getCartExtensionFactory()->create();
@@ -919,63 +848,54 @@ class Checkout extends Onepage
         $this->getRefHelper()->setSveaCreatedAt(time());
 
         if ($this->getHelper()->getRecurringPaymentsActive()) {
-            $recurringToken = $sveaOrder->getRecurringToken();
-            $payment = $quote->getPayment();
-            $recurringInfo = $payment->getAdditionalInformation('svea_recurring_info') ?? [];
+            $recurringService = $this->context->getRecurringInfoService();
+            $recurringInfo = $recurringService->quoteGetter($quote);
 
-            $orderInfoKey = 'standard_order_id';
-            $clientOrderInfoKey = 'standard_client_order_number';
             $recurringEnabled = $recurringInfo['enabled'] ?? false;
             if ($recurringEnabled) {
-                $orderInfoKey = 'recurring_order_id';
-                $clientOrderInfoKey = 'recurring_client_order_number';
-                $recurringInfo['recurring_token'] = $recurringToken;
+                $recurringInfo['recurring_token'] = $sveaOrder->getRecurringToken();
             }
 
-            $recurringInfo[$orderInfoKey] = $sveaOrderId;
-            $recurringInfo[$clientOrderInfoKey] = $sveaOrder->getClientOrderNumber();
-            $payment->setAdditionalInformation('svea_recurring_info', $recurringInfo);
+            $recurringService->quoteSetter($quote, $recurringInfo);
         }
+        $this->updateSveaSession();
         $this->quoteRepository->save($quote);
     }
 
     /**
-     * If recurring payment is enabled in config and selected by the customer,
-     *  prepare to create a recurring order,
-     *  or switch to use an already stored order ID for a recurring order,
-     *  or if custtmer has un-selected recurring, switch back to the original order ID
+     * Initializes session IDs for this combination of: Quote ID, Country ID, and Recurring setting,
+     *  Or leaves them empty if IDs don't exist yet
      *
      * @return void
      */
-    private function handleRecurringPayment(): void
+    private function initSveaSession(): void
     {
-        if (!$this->getHelper()->getRecurringPaymentsActive()) {
-            return;
-        }
-
         $quote = $this->getQuote();
-        if (!$quote->getSveaOrderId()) {
+        $session = $this->context->fetchSveaSession($quote);
+        if (!$session->getId()) {
+            // Add to sequence if a client order number was previously set
+            if ($this->getRefHelper()->getClientOrderNumber()) {
+                $this->getRefHelper()->addToSequence();
+            }
+            $this->getRefHelper()->unsetSessions();
             return;
         }
 
-        $payment = $quote->getPayment();
-        $recurringInfo = $payment->getAdditionalInformation('svea_recurring_info') ?? [];
-        $enabled = $recurringInfo['enabled'] ?? false;
+        $this->getRefHelper()->setSveaOrderId($session->getSveaOrderId());
+        $this->getRefHelper()->setClientOrderNumber($session->getSveaClientOrderId());
+    }
 
-        if (!$enabled) {
-            $standardOrderId = $recurringInfo['standard_order_id'] ?? null;
-            $this->getRefHelper()->setSveaOrderId($standardOrderId);
-            $this->getRefHelper()->setClientOrderNumber($recurringInfo['standard_client_order_number'] ?? null);
-            return;
-        }
-
-        $recurringOrderId = $recurringInfo['recurring_order_id'] ?? null;
-        $recurringClientOrderNumber = $recurringInfo['recurring_client_order_number'] ?? null;
-        if (!$recurringOrderId) {
-            // Add to sequence so order with recurring gets new Client Order Number
-            $this->getRefHelper()->addToSequence();
-        }
-        $this->getRefHelper()->setSveaOrderId($recurringOrderId);
-        $this->getRefHelper()->setClientOrderNumber($recurringClientOrderNumber);
+    /**
+     * Sets the Svea Order Id and Client Order Number on Svea Session for this combination of:
+     *  Quote ID, Country ID, and Recurring setting
+     */
+    private function updateSveaSession(): void
+    {
+        $quote = $this->getQuote();
+        $session = $this->context->fetchSveaSession($quote);
+        $session->setSveaOrderId($this->getRefHelper()->getSveaOrderId());
+        $session->setSveaClientOrderId($this->getRefHelper()->getClientOrderNumber());
+        $session->setStoreId($quote->getStoreId());
+        $this->context->saveSveaSession($session);
     }
 }
