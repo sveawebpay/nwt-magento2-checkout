@@ -165,9 +165,9 @@ class Checkout extends Onepage
         $billingAddress = $quote->getBillingAddress();
         $billingAddressDataSet = !!$billingAddress->getCountryId() && !!$billingAddress->getPostcode();
         $shippingAddressDataSet = true;
-        $mainAddress = $shippingAddress;
+        $mainAddress = $billingAddress;
         if (!$quote->isVirtual()) {
-            $mainAddress = $billingAddress;
+            $mainAddress = $shippingAddress;
             $shippingAddressDataSet = !!$shippingAddress->getCountryId() && !!$shippingAddress->getPostcode();
         }
 

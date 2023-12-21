@@ -2,12 +2,12 @@
 
 namespace Svea\Checkout\Block\Total;
 
-use Magento\Checkout\Block\Total\DefaultTotal;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Tax\Block\Checkout\Shipping as DefaultShippingTotal;
 use Svea\Checkout\Model\Shipping\Carrier;
 use Svea\Checkout\ViewModel\Total\Shipping as ShippingTotalViewModel;
 
-class Shipping extends DefaultTotal
+class Shipping extends DefaultShippingTotal
 {
     /**
      * @inheritDoc
