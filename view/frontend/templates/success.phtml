@@ -2,7 +2,7 @@
 // @codingStandardsIgnoreFile
 
 ?>
-<?php /** @var $block \Svea\Checkout\Block\Success */
+<?php /** @var \Svea\Checkout\Block\Success $block */
 $orderId = $block->getOrderId();
 $realId = $block->getRealOrderId();
 ?>
@@ -65,12 +65,12 @@ $realId = $block->getRealOrderId();
                     <?php if ($orderData->getData('discount_amount') > 0) : ?>
                         <tr>
                             <td class="col-item"><?= __('Discount:') ?></td>
-                            <td class="col-amount"><?= $orderData->formatPrice($orderData->formatPrice($orderData->getData('discount_amount'))) ?></td>
+                            <td class="col-amount"><?= $orderData->formatPrice($orderData->getData('discount_amount')) ?></td>
                         </tr>
                     <?php endif; ?>
                     <tr>
                         <td class="col-item"><?= __('Shipping:') ?></td>
-                        <td class="col-amount"><?= $orderData->formatPrice($orderData->getData('shipping_amount')) . '<span class="count">(' . $orderData->getData('shipping_description') . ')</span >' ?></td>
+                        <td class="col-amount"><?= $orderData->formatPrice($orderData->getShippingInclTax()) . '<span class="count"> (' . $orderData->getData('shipping_description') . ')</span >' ?></td>
                     </tr>
                     <tr>
                         <td class="col-item"><?= __('Payment Method:') ?></td>
