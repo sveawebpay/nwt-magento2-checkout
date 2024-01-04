@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * @var Magento\Framework\View\Element\Template $block
+ * @var Magento\Framework\Escaper $escaper
+ * @var Svea\Checkout\ViewModel\Checkout\International $viewModel
+ */
+
+$viewModel = $block->getViewModel();
+$options = $viewModel->getCountryOptions();
+?>
+
+<form
+    id="svea_checkout_set_international"
+    action="<?= $escaper->escapeHtmlAttr($viewModel->getFormAction()) ?>"
+    method="POST"
+    data-mage-init='{
+        "internationalFormHandler":{
+            "countrySelector":"#svea_checkout_set_country"
+        }
+    }'
+>
+    <div class="control-wrapper">
+        <div class="control">
+            <div class="control-checkbox">
+                <label for="svea_checkout_set_country">
+                    <?=
+                    $escaper->escapeHtml(
+                        __(
+                            'International customer? Choose your country here:',
+                        )
+                    )
+                    ?>
+                </label>
+            </div>
+            <select name="country_id" id="svea_checkout_set_country">
+                <?php foreach ($options as $option): ?>
+                    <option
+                        value=<?= $escaper->escapeHtmlAttr($option['value']) ?>
+                        <?= ($option['selected']) ? ' selected="selected"' : '' ?>
+                    >
+                        <?= $escaper->escapeHtml($option['label']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+    </div>
+</form>
+

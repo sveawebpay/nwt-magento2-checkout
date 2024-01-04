@@ -2,7 +2,7 @@
 
 namespace Svea\Checkout\Console\Command;
 
-use Svea\Checkout\Cron\CheckPendingPayments;
+use Svea\Checkout\Cron\FetchCampaigns as FetchCampaignsCron;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -10,20 +10,20 @@ use Symfony\Component\Console\Output\OutputInterface;
 class FetchCampaigns extends Command
 {
     /**
-     * @var CheckPendingPayments
+     * @var FetchCampaignsCron
      */
     private $fetchCampaignsCron;
 
     /**
      * FetchCampaigns constructor.
      *
-     * @param CheckPendingPayments $checkPendingPaymentsAction
+     * @param FetchCampaignsCron $fetchCampaignsCron
      */
     public function __construct(
-        CheckPendingPayments $checkPendingPaymentsAction,
+        FetchCampaignsCron $fetchCampaignsCron,
         ?string $name = null
     ) {
-        $this->fetchCampaignsCron = $checkPendingPaymentsAction;
+        $this->fetchCampaignsCron = $fetchCampaignsCron;
         parent::__construct($name);
     }
 
@@ -39,17 +39,23 @@ class FetchCampaigns extends Command
     }
 
     /**
-     * Execute the command
-     *
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     *
-     * @return void
+     * @inheritDoc
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $output->writeln('<comment>Starting fetching of campaigns.</comment>');
         $this->fetchCampaignsCron->execute();
+        $messages = $this->fetchCampaignsCron->getMessages();
+
+        if (empty($messages)) {
+            $output->writeln('<info>Nothing fetched</info>');
+            return 0;
+        }
+
+        foreach ($messages as $message) {
+            $output->writeln('<info>' . $message . '</info>');
+        }
         $output->writeln('<info>Finished</info>');
+        return 0;
     }
 }

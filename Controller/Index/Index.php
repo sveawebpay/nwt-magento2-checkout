@@ -16,7 +16,7 @@ class Index extends Checkout
         $checkout->setCheckoutContext($this->sveaCheckoutContext);
 
         try {
-            $checkout->initCheckout(false); // magento business logic
+            $checkout->initCheckout(); // magento business logic
             $checkout->initSveaCheckout(); // handles magento and SVEA business logic
         } catch (CheckoutException $e) {
             if ($e->isReload()) {

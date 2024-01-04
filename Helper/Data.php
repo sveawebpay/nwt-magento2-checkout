@@ -3,6 +3,7 @@ namespace Svea\Checkout\Helper;
 
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Payment;
+use Magento\Directory\Model\AllowedCountries;
 
 /**
  * Class Data
@@ -90,7 +91,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param null $store
+     * @param @param null|int|string $store
      * @return mixed
      */
     public function getSharedSecret($store = null)
@@ -103,7 +104,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param null $store
+     * @param @param null|int|string $store
      * @return mixed
      */
     public function getMerchantId($store = null)
@@ -129,7 +130,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param null $store
+     * @param null|int|string $store
      * @return bool
      */
     public function isTestMode($store = null)
@@ -649,5 +650,35 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
             $store
         );
+    }
+
+    /**
+     * @param null|int|string $store
+     * @return bool
+     */
+    public function getInternationalFlowActive($store = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_SETTINGS . 'international_flows/international_flow_active',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $store
+        );
+    }
+
+    /**
+     * Gets allowed countries set in General config. Used when International Flow is active.
+     *
+     * @param null|int|string $store
+     * @return array
+     */
+    public function getGeneralAllowedCountries($store = null): array
+    {
+        $values = $this->scopeConfig->getValue(
+            AllowedCountries::ALLOWED_COUNTRIES_PATH,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $store
+        ) ?? '';
+
+        return explode(',', $values);
     }
 }

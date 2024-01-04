@@ -235,7 +235,12 @@ class Order
     protected function createNewSveaPayment(Quote $quote, $reloadCredentials = false)
     {
         $countryCode = $quote->getBillingAddress()->getCountryId();
-        if (!in_array($countryCode, $this->getLocale()->getAllowedCountries())) {
+        $allowedCountries = $this->getLocale()->getAllowedCountries();
+        if ($this->helper->getInternationalFlowActive()) {
+            $allowedCountries = $this->helper->getGeneralAllowedCountries();
+        }
+
+        if (!in_array($countryCode, $allowedCountries)) {
             throw new BaseException("The country is not supported.");
         }
 
