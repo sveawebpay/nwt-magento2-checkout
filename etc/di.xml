@@ -97,4 +97,11 @@
             <argument name="orderValidationFactory" xsi:type="object">Svea\Checkout\Model\Client\DTO\Order\OrderValidationFactory\Proxy</argument>
         </arguments>
     </type>
+    <type name="Svea\Checkout\Block\Adminhtml\System\Config\Info">
+        <arguments>
+            <argument name="data" xsi:type="array">
+                <item name="layout_helper" xsi:type="object">Svea\Checkout\Helper\Adminhtml\Layout</item>
+            </argument>
+        </arguments>
+    </type>
 </config>
