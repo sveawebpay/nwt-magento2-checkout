@@ -1,3 +1,17 @@
+<?php
+
+/**
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+?>
+
 <div class="svea_admin_info">
     <div class="svea_info"></div>
+    <?php if (!!$block->getComposerVersion()): ?>
+        <div class="svea_version_info">
+            <?= $escaper->escapeHtml(__('Module Version:')) ?> <?= $escaper->escapeHtml($block->getComposerVersion()) ?>
+        </div>
+    <?php endif; ?>
 </div>
