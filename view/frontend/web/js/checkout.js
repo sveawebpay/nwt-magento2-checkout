@@ -10,12 +10,13 @@ define([
     "uiRegistry",
     'mage/url',
     "Svea_Checkout/js/model/bind-select-shipping",
+    "Svea_Checkout/js/action/reload-shipping-methods",
     "jquery/ui",
     "mage/translate",
     "mage/mage",
     "mage/validation",
     "Magento_Customer/js/customer-data"
-], function (jQuery, alert, uiRegistry, mageurl, bindSelectShipping) {
+], function (jQuery, alert, uiRegistry, mageurl, bindSelectShipping, reloadShippingMethods) {
     "use strict";
     jQuery.widget('mage.nwtsveaCheckout', {
         options: {
@@ -168,6 +169,9 @@ define([
                                     }
                                 }
                                 _this._ajaxSubmit(mageurl.build('sveacheckout/order/cart'));
+                                if (!_this.options.sveaShippingActive) {
+                                    reloadShippingMethods(_this.options.shippingMethodFormSelector);
+                                }
                             }
                         });
                     }
