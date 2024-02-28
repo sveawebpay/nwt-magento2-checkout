@@ -5,6 +5,7 @@ namespace Svea\Checkout\Model\Svea;
 
 class Locale
 {
+    const DEFAULT_TEST_EMAIL = 'test@example.com';
 
     /**
      * Swedish, Norway, Danish Kronor
@@ -15,7 +16,7 @@ class Locale
     ];
 
     protected $allowedCountries = [
-        "SE","NO","DK","FI","DE","NL","SJ"
+        "SE","NO","DK","FI","DE","NL","SJ","EE","LV","LT"
     ];
 
     protected $locales = [
@@ -23,7 +24,6 @@ class Locale
             "locale" => "sv-SE",
             "currency" => "SEK",
             "test" => [
-                "EmailAddress" => "test@example.com",
                 "PhoneNumber" => "0811111111",
                 "PostalCode" => "99999",
             ],
@@ -35,7 +35,6 @@ class Locale
             "locale" => "nn-NO",
             "currency" => "NOK",
             "test" => [
-                "EmailAddress" => "test@example.com",
                 "PhoneNumber" => "21222222",
                 "PostalCode" => "0359",
             ],
@@ -47,7 +46,6 @@ class Locale
             "locale" => "da-DK",
             "currency" => "DKK",
             "test" => [
-                "EmailAddress" => "test@example.com",
                 "PhoneNumber" => "22222222",
                 "PostalCode" => "2100",
             ],
@@ -59,7 +57,6 @@ class Locale
             "locale" => "fi-FI",
             "currency" => "EUR",
             "test" => [
-                "EmailAddress" => "test@example.com",
                 "PostalCode" => "370",
             ],
             "default" => [
@@ -70,7 +67,6 @@ class Locale
             "locale" => "de-DE",
             "currency" => "EUR",
             "test" => [
-                "EmailAddress" => "test@example.com",
                 "PostalCode" => "13591",
             ],
             "default" => [
@@ -81,7 +77,6 @@ class Locale
             "locale" => "en-US",
             "currency" => "EUR",
             "test" => [
-                "EmailAddress" => "test@example.com",
                 "PostalCode" => "1111 CD",
             ],
             "default" => [
@@ -92,11 +87,40 @@ class Locale
             "locale" => "nn-NO",
             "currency" => "NOK",
             "test" => [
-                "EmailAddress" => "test@example.com",
                 "PostalCode" => "9170",
             ],
             "default" => [
                 "PostalCode" => "9170"
+            ]
+        ],
+        "EE" => [
+            "locale" => "en-US",
+            "currency" => "EUR",
+            "test" => [
+                "PostalCode" => "10415"
+            ],
+            "default" => [
+                "PostalCode" => "10415"
+            ]
+        ],
+        "LV" => [
+            "locale" => "en-US",
+            "currency" => "EUR",
+            "test" => [
+                "PostalCode" => "LV-1050"
+            ],
+            "default" => [
+                "PostalCode" => "LV-1050"
+            ]
+        ],
+        "LT" => [
+            "locale" => "en-US",
+            "currency" => "EUR",
+            "test" => [
+                "PostalCode" => "01302"
+            ],
+            "default" => [
+                "PostalCode" => "01302"
             ]
         ]
     ];
@@ -137,7 +161,9 @@ class Locale
     public function getTestPresetValuesByCountryCode($countryCode)
     {
         if (isset($this->locales[$countryCode]['test'])) {
-            return $this->locales[$countryCode]['test'];
+            $testData = $this->locales[$countryCode]['test'];
+            $testData['EmailAddress'] = self::DEFAULT_TEST_EMAIL;
+            return $testData;
         }
 
         return [];
