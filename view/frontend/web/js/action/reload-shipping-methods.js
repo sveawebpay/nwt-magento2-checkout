@@ -9,7 +9,7 @@ define([
 
     // Calls ReloadShippingMethods controller,
     // then takes action based on returned requiredShippingAction
-    return function (shippingFormSelector) {
+    return function (shippingFormSelector, delay = 0) {
         setTimeout(function() {
             $.ajax({
                 context: '#shipping-method-form',
@@ -29,6 +29,6 @@ define([
                 bindSelectShipping.execute();
                 return true;
             });
-        },2000);
+        }, delay);
     }
 });

@@ -6,7 +6,7 @@ define([
 
     function main(config, element) {
         $(document).on('change', '.qty input', function() {
-            reloadShippingMethods('#shipping-method-form');
+            reloadShippingMethods('#shipping-method-form', 2000);
         });
     };
     return main;

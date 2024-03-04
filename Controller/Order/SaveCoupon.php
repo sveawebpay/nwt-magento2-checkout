@@ -14,7 +14,7 @@ class SaveCoupon extends \Svea\Checkout\Controller\Order\Update
         $quote = $this->getSveaCheckout()->getQuote();
 
         $couponCode    = (string)$this->getRequest()->getParam('coupon_code');
-        $oldCouponCode = $quote->getCouponCode();
+        $oldCouponCode = (string)$quote->getCouponCode();
         $remove        = (int)$this->getRequest()->getParam('remove') > 0;
 
         if($remove) {
@@ -62,7 +62,7 @@ class SaveCoupon extends \Svea\Checkout\Controller\Order\Update
                 __('We can\'t apply your coupon.')
             );
         }
-        $this->_sendResponse(['cart','coupon','messages','shipping','svea']);
+        $this->_sendResponse(['cart','coupon','messages','shipping','shipping_method', 'svea']);
 
     }
 
