@@ -38,8 +38,10 @@ class SaveCoupon extends \Svea\Checkout\Controller\Order\Update
 
         try {
 
+            $shippingMethodBefore = (string)$quote->getShippingAddress()->getShippingMethod();
             $quote->getShippingAddress()->setCollectShippingRates(true);
             $quote->setCouponCode($couponCode)->collectTotals()->save();
+            $shippingMethodAfter = (string)$quote->getShippingAddress()->getShippingMethod();
 
             if($couponCode) {
                 if ($couponCode == $quote->getCouponCode()) {
@@ -49,6 +51,10 @@ class SaveCoupon extends \Svea\Checkout\Controller\Order\Update
                 }
             } else {
                 $this->messageManager->addSuccess(__('Coupon code was canceled.',$couponCode));
+            }
+
+            if (!$quote->getIsVirtual() && $shippingMethodBefore !== $shippingMethodAfter) {
+                $this->checkoutSession->setPredefinedRequiredShippingAction(2);
             }
 
         }  catch (\Magento\Framework\Exception\LocalizedException $e) {
@@ -62,6 +68,7 @@ class SaveCoupon extends \Svea\Checkout\Controller\Order\Update
                 __('We can\'t apply your coupon.')
             );
         }
+
         $this->_sendResponse(['cart','coupon','messages','shipping','shipping_method', 'svea']);
 
     }
