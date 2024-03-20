@@ -19,4 +19,19 @@
             </argument>
         </arguments>
     </type>
+
+    <type name="Magento\Checkout\Controller\Sidebar\UpdateItemQty">
+        <plugin name="svea_shipping_include" type="Svea\Checkout\Plugin\Checkout\Controller\Sidebar\UpdateItemQty" />
+    </type>
+
+    <type name="Magento\Checkout\Controller\Sidebar\RemoveItem">
+        <plugin name="svea_shipping_include" type="Svea\Checkout\Plugin\Checkout\Controller\Sidebar\RemoveItem" />
+    </type>
+
+    <type name="Svea\Checkout\Plugin\Checkout\Controller\Sidebar\SveaShippingIncluder">
+        <arguments>
+            <argument name="shipInfoService" xsi:type="object">Svea\Checkout\Service\SveaShippingInfo\Proxy</argument>
+            <argument name="helper" xsi:type="object">Svea\Checkout\Helper\Data\Proxy</argument>
+        </arguments>
+    </type>
 </config>

@@ -168,10 +168,11 @@ define([
                                         jQuery('.page.messages').append(errHtml);
                                     }
                                 }
-                                _this._ajaxSubmit(mageurl.build('sveacheckout/order/cart'));
-                                if (!_this.options.sveaShippingActive) {
-                                    reloadShippingMethods(_this.options.shippingMethodFormSelector);
-                                }
+                                _this._ajaxSubmit(mageurl.build('sveacheckout/order/cart'), {}, 'post', false, function () {
+                                    if (!this.options.sveaShippingActive) {
+                                        reloadShippingMethods(this.options.shippingMethodFormSelector);
+                                    }
+                                }.bind(_this));
                             }
                         });
                     }
@@ -366,7 +367,14 @@ define([
         },
 
         _applyCoupon: function () {
-            this._ajaxFormSubmit(jQuery(this.options.couponFormSelector));
+            const form = jQuery(this.options.couponFormSelector);
+            const formAction = form.prop('action');
+            const formData = form.serialize();
+            this._ajaxSubmit(formAction, formData, 'post', false, function () {
+                if (!this.options.sveaShippingActive) {
+                    reloadShippingMethods(this.options.shippingMethodFormSelector);
+                }
+            }.bind(this));
             return false;
         },
 

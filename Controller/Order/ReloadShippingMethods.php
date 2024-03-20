@@ -6,6 +6,7 @@ use Magento\Framework\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\View\Result\PageFactory;
 use Magento\Quote\Model\Quote;
+use Magento\Checkout\Model\Session;
 
 class ReloadShippingMethods extends Action
 {
@@ -19,6 +20,11 @@ class ReloadShippingMethods extends Action
      * @var JsonFactory
      */
     protected $_resultJsonFactory;
+
+    /**
+     * @var Session
+     */
+    private Session $checkoutSession;
  
     /**
      * View constructor.
@@ -26,11 +32,16 @@ class ReloadShippingMethods extends Action
      * @param PageFactory $resultPageFactory
      * @param JsonFactory $resultJsonFactory
      */
-    public function __construct(Context $context, PageFactory $resultPageFactory, JsonFactory $resultJsonFactory)
-    {
+    public function __construct(
+        Context $context,
+        PageFactory $resultPageFactory,
+        JsonFactory $resultJsonFactory,
+        Session $checkoutSession
+    ) {
  
         $this->_resultPageFactory = $resultPageFactory;
         $this->_resultJsonFactory = $resultJsonFactory;
+        $this->checkoutSession = $checkoutSession;
  
         parent::__construct($context);
     }
@@ -69,6 +80,12 @@ class ReloadShippingMethods extends Action
     {
         if ($quote->getIsVirtual()) {
             return 0;
+        }
+
+        $predefinedRequiredShippingAction = $this->checkoutSession->getPredefinedRequiredShippingAction();
+        if ($predefinedRequiredShippingAction) {
+            $this->checkoutSession->unsPredefinedRequiredShippingAction();
+            return $predefinedRequiredShippingAction;
         }
 
         $address = $quote->getShippingAddress();
