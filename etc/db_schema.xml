@@ -22,7 +22,7 @@
         <column xsi:type="varchar" name="description" length="255" nullable="false" comment="Description" />
         <column xsi:type="int" name="payment_plan_type" nullable="false" comment="Payment Plan Type" />
         <column xsi:type="int" name="contract_length_in_months" comment="Contract Length in Months" />
-        <column xsi:type="int" name="monthly_annuity_factor" comment="Contract Length in Months" />
+        <column xsi:type="float" name="monthly_annuity_factor" comment="Contract Length in Months" />
         <column xsi:type="decimal" name="initial_fee" comment="Initial fee" />
         <column xsi:type="decimal" name="notification_fee" comment="Notification fee" />
         <column xsi:type="decimal" name="interest_rate_percent" comment="Interest Rate Percent" />
