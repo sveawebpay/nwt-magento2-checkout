@@ -25,6 +25,8 @@ class Checkout extends Onepage
 
     protected $_doNotMarkCartDirty  = false;
 
+    private bool $saveQuote = false;
+
     /**
      * @param CheckoutContext $context
      */
@@ -310,6 +312,7 @@ class Checkout extends Onepage
 
                     // Update new svea quote signature!
                     $this->getRefHelper()->setQuoteSignature($newSignature);
+                    $this->saveQuote = true;
                 } else {
 
                     // if we should update the order, we also set the svea iframe here
@@ -364,6 +367,10 @@ class Checkout extends Onepage
             }
         }
 
+        if ($this->saveQuote) {
+            $this->quoteRepository->save($quote);
+            $this->saveQuote = false;
+        }
         return $this;
     }
 
@@ -829,7 +836,7 @@ class Checkout extends Onepage
             'price' => 0
         ];
         $sveaShippingInfoService->setInQuote($quote, $placeholderData);
-        $this->quoteRepository->save($quote);
+        $this->saveQuote = true;
     }
 
     /**
@@ -859,7 +866,7 @@ class Checkout extends Onepage
             $recurringService->quoteSetter($quote, $recurringInfo);
         }
         $this->updateSveaSession();
-        $this->quoteRepository->save($quote);
+        $this->saveQuote = true;
     }
 
     /**

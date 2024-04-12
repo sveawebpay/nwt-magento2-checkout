@@ -19,13 +19,6 @@ class CheckoutOrderNumberReference
      */
     protected $_quote = null;
 
-    const CLIENT_ID_PREFIX = "quote_id_";
-
-    /**
-     * @var \Magento\Quote\Api\CartRepositoryInterface
-     */
-    protected $quoteRepository;
-
     /**
      * @var \Magento\Checkout\Model\Session
      */
@@ -38,11 +31,9 @@ class CheckoutOrderNumberReference
      */
     public function __construct(
         \Magento\Checkout\Model\Session $_checkoutSession,
-        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
         int $sessionLifetimeSeconds = 172800
     ) {
         $this->_checkoutSession = $_checkoutSession;
-        $this->quoteRepository = $quoteRepository;
         $this->sessionLifetimeSeconds = $sessionLifetimeSeconds;
     }
 
@@ -113,8 +104,6 @@ class CheckoutOrderNumberReference
             'svea_client_order_id',
             $this->generateClientOrderNumber()
         );
-
-        $this->quoteRepository->save($this->getQuote());
     }
 
     /**
@@ -124,7 +113,6 @@ class CheckoutOrderNumberReference
     {
         $quote = $this->getQuote();
         $quote->unsSveaClientOrderId();
-        $this->quoteRepository->save($quote);
     }
 
     /**
@@ -155,20 +143,9 @@ class CheckoutOrderNumberReference
         if (!$this->getQuote()->getSveaHash()) {
             $hash = hash("sha1", $this->getClientOrderNumber());
             $this->getQuote()->setSveaHash($hash);
-            $this->quoteRepository->save($this->getQuote());
         }
 
         return $this->getQuote()->getSveaHash();
-    }
-
-    /**
-     * @return string
-     */
-    public function resetSveaHash()
-    {
-        $hash = hash("sha1", $this->generateClientOrderNumber());
-        $this->getQuote()->setSveaHash($hash);
-        $this->quoteRepository->save($this->getQuote());
     }
 
     /**
