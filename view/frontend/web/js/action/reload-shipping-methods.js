@@ -3,8 +3,9 @@ define([
     "Svea_Checkout/js/model/bind-select-shipping",
     'Magento_Ui/js/modal/alert',
     "mage/translate",
+    'mage/url',
     "jquery/ui"
-], function($, bindSelectShipping, magealert, $t) {
+], function($, bindSelectShipping, magealert, $t, mageUrl) {
     'use strict';
 
     // Calls ReloadShippingMethods controller,
@@ -13,7 +14,7 @@ define([
         setTimeout(function() {
             $.ajax({
                 context: '#shipping-method-form',
-                url: '/sveacheckout/order/ReloadShippingMethods',
+                url: mageUrl.build('sveacheckout/order/ReloadShippingMethods'),
                 type: 'GET'
             }).done(function (data) {
                 if (data.requiredShippingAction == 2) {
