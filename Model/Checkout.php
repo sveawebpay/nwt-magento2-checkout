@@ -193,6 +193,12 @@ class Checkout extends Onepage
         }
     }
 
+    /**
+     * Sets a pre-selected shipping method in quote
+     *  (not if Svea Shipping is enabled)
+     *
+     * @return string|bool
+     */
     public function checkAndChangeShippingMethod()
     {
         $quote = $this->getQuote();
@@ -225,17 +231,12 @@ class Checkout extends Onepage
             return $method;
         }
 
-        // check if default shipping method exists, use it then!
-        $method = $this->getHelper()->getDefaultShippingMethod();
-        if ($method && isset($rates[$method])) {
-            $shipping->setShippingMethod($method);
-            return $method;
-        }
-
-        // fallback, use first shipping method found
-        $rate = $allRates[0];
-        $method = $rate->getCode();
-        $shipping->setShippingMethod($method);
+        // check if default shipping method exists, use it then! Otherwise use first method in list as fallback
+        $defaultMethod = $this->getHelper()->getDefaultShippingMethod();
+        $methodToSet = (isset($rates[$defaultMethod])) ? $rates[$defaultMethod] : $allRates[0]->getCode();
+        $shipping->setShippingMethod($methodToSet);
+        $quote->setTotalsCollectedFlag(false);
+        $quote->collectTotals();
         return $method;
     }
 
