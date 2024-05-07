@@ -31,7 +31,7 @@ class LogDownload extends Field
         )->setData(
             [
                 'id' => 'download_logs_button',
-                'label' => __('Download All Logs'),
+                'label' => __('Download error logs'),
                 'onclick' => 'setLocation(\'' . $this->getLogDownloadUrl() . '\')',
             ]
         );
