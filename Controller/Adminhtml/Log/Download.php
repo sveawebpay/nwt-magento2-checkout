@@ -7,7 +7,7 @@ use Magento\Framework\App\Filesystem\DirectoryList;
 
 class Download extends Action
 {
-    const ADMIN_RESOURCE = 'Svea_Checkout::system_config';
+    const ADMIN_RESOURCE = 'Svea_Checkout::log_download';
     protected $fileFactory;
     protected $directoryList;
     protected $allowedLogFiles = [
@@ -37,7 +37,7 @@ class Download extends Action
         $zip = new \ZipArchive();
         if ($zip->open($zipFilePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
             $this->messageManager->addErrorMessage(__('Unable to create zip archive.'));
-            return $this->_redirect('adminhtml/system_config/edit/section/svea_checkout');
+            return $this->_redirect('admin/system_config/edit/section/svea_checkout');
         }
 
         foreach ($this->allowedLogFiles as $logFile) {

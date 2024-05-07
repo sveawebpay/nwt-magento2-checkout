@@ -45,6 +45,6 @@ class LogDownload extends Field
      */
     public function getLogDownloadUrl()
     {
-        return $this->getUrl('svea_checkout/log/download', ['_current' => true, '_secure' => true]);
+        return $this->getUrl('svea/log/download');
     }
 }
