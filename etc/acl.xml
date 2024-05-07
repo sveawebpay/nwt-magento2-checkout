@@ -7,6 +7,7 @@
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
                             <resource id="Svea_Checkout::system_config" title="Svea Checkout Config" />
+                            <resource id="Svea_Checkout::log_download" title="Download Log" />
                         </resource>
                     </resource>
                 </resource>
