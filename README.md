@@ -3,8 +3,7 @@
 ## How to install:
 Install it to via composer in your magento site:   
 ```
-composer config repositories.svea_checkout vcs  
-composer require --prefer-source sveawebpay/nwt-magento2-checkout
+composer require sveawebpay/nwt-magento2-checkout
 ```
 
 If you don't want to use composer, install it manually:  
