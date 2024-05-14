@@ -14,6 +14,13 @@
                    showInStore="1">
                 <frontend_model>Svea\Checkout\Block\Adminhtml\System\Config\Info</frontend_model>
             </group>
+             <group id="log_settings" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Logs</label>
+                <field id="download_logs" translate="label" type="button" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Download Logs</label>
+                    <frontend_model>Svea\Checkout\Block\Adminhtml\System\Config\LogDownload</frontend_model>
+                </field>
+            </group>
             <group id="connection" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Connection</label>
                 <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
