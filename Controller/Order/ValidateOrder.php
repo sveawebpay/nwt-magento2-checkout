@@ -74,6 +74,20 @@ class ValidateOrder extends Update
                 throw new CheckoutException(__("Invalid Quote hash"));
             }
 
+            // check that quote items are still valid
+            foreach ($quote->getAllItems() as $quoteItem) {
+                if ($quote->getHasError()) {
+                    break;
+                }
+                $quoteItem->checkData();
+            }
+            if ($quote->getHasError()) {
+                foreach ($quote->getErrors() as $error) {
+                    throw new \Exception($error->getText());
+                }
+                throw new CheckoutException(__("Quote has errors"));
+            }
+
             // check if everything is valid
             $this->validateOrder($sveaOrder, $quote);
         } catch (CheckoutException $e) {
