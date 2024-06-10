@@ -305,21 +305,16 @@ class Items
             return $this;
         }
 
-        $taxAmount = $address->getShippingTaxAmount() + $address->getShippingHiddenTaxAmount();
-        $exclTax    = $address->getShippingAmount();
-        $inclTax    = $address->getShippingInclTax();
-        $tax        = $inclTax-$exclTax;
 
-        //
-        if ($exclTax != 0 && $tax > 0) {
-            $vat = $tax /  $exclTax  * 100;
-        } else {
-            $vat = 0;
+        $inclTax = $address->getShippingInclTax();
+        $shippingTaxAmount = $address->getShippingTaxAmount();
+        $appliedTaxes = $address->getAppliedTaxes();
+        $vatPercent = 0;
+        if ($shippingTaxAmount > 0 && !empty($appliedTaxes)) {
+            $vatPercent = reset($appliedTaxes)['percent'];
         }
-
-        $vat = round($vat, 0);
-        if ($vat>$this->_maxvat) {
-            $this->_maxvat = $vat;
+        if ($vatPercent > $this->_maxvat) {
+            $this->_maxvat = $vatPercent;
         }
 
         //
@@ -329,7 +324,7 @@ class Items
             ->setName((string)__('Shipping Fee (%1)', $address->getShippingDescription()))
             ->setUnit("st") // TODO! We need to map these somehow!
             ->setQuantity($this->addZeroes(1))
-            ->setVatPercent($this->addZeroes($vat)) // the tax rate i.e 25% (2500)
+            ->setVatPercent($this->addZeroes($vatPercent)) // the tax rate i.e 25% (2500)
             ->setUnitPrice($this->addZeroes($inclTax)) // incl. tax price per item
             ->setRowTypeIsShippingFee();
 
@@ -347,21 +342,21 @@ class Items
 
             //check if Taxes are applied BEFORE or AFTER the discount
             //if taxes are applied BEFORE the discount we have shipping_incl_tax = shipping_amount + shipping_tax_amount
-            if ($vat != 0 && abs($address->getShippingInclTax() - ($address->getShippingAmount()+$address->getShippingTaxAmount())) < .001) {
+            if ($vatPercent != 0 && abs($address->getShippingInclTax() - ($address->getShippingAmount()+$address->getShippingTaxAmount())) < .001) {
                 //the taxes are applied BEFORE discount; add discount without VAT (is not OK for EU, but, is customer settings
-                $vat =0;
+                $vatPercent =0;
             }
 
-            if (!isset($this->_discounts[$vat])) {
-                $this->_discounts[$vat] = 0;
+            if (!isset($this->_discounts[$vatPercent])) {
+                $this->_discounts[$vatPercent] = 0;
             }
 
-            if ($vat != 0 && $address->getShippingDiscountTaxCompensationAmount() == 0) {   //prices (and discount) EXCL taxes,
-                $discountAmount += $discountAmount*$vat/100;
+            if ($vatPercent != 0 && $address->getShippingDiscountTaxCompensationAmount() == 0) {   //prices (and discount) EXCL taxes,
+                $discountAmount += $discountAmount*$vatPercent/100;
             }
 
             // set for later
-            $this->_discounts[$vat] += $discountAmount;
+            $this->_discounts[$vatPercent] += $discountAmount;
         }
         return $this;
     }
