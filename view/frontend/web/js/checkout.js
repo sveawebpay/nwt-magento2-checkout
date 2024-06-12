@@ -27,10 +27,13 @@ define([
             getShippingMethodButton: '#shipping-method-button',
             newsletterFormSelector: '#svea-checkout-newsletter-form',
             couponFormSelector: '#discount-coupon-form',
+            giftcardFormSelector: '#giftcard-coupon-form',
             cartContainerSelector: '#details-table',
             waitLoadingContainer: '#review-please-wait',
             couponToggler: '#svea_coupon_toggle input',
+            giftcardToggler: '#svea_giftcard_toggle input',
             couponFormContainer: '#svea-checkout_coupon',
+            giftcardFormContainer: '#svea-checkout_giftcard',
             commentFormSelector: '#svea-checkout-comment',
             commentTextAreaSelector: '#svea-checkout-comment .fieldset.comment',
             commentTextAreaToggler: '#svea-checkout-comment .svea-btn.show-more',
@@ -55,6 +58,7 @@ define([
             this._bindShipping();
             this.uiManipulate();
             this.toggleCouponContainer();
+            this.toggleGiftCardContainer();
             this.toggleOrderCommentTextArea();
             uiRegistry.set('sveaCheckout', this);
         },
@@ -247,6 +251,10 @@ define([
                 jQuery(this.options.couponFormSelector).on('submit', jQuery.proxy(this._applyCoupon, this));
                 this.checkValueOfInputs(jQuery(this.options.couponFormSelector));
             }
+            if (!block || block == 'giftcard') {
+                jQuery(this.options.giftcardFormSelector).on('submit', jQuery.proxy(this._applyGiftcard, this));
+                this.checkValueOfInputs(jQuery(this.options.giftcardFormSelector));
+            }
             if (!block || block == 'comment') {
                 jQuery(this.options.commentFormSelector).on('submit', jQuery.proxy(this._saveComment, this));
                 this.checkValueOfInputs(jQuery(this.options.commentFormSelector));
@@ -333,6 +341,7 @@ define([
             jQuery(this.options.waitLoadingContainer).hide();
             this.sveaApiChanges();
             this.toggleCouponContainer();
+            this.toggleGiftCardContainer();
         },
 
         _showSveaCheckout: function () {
@@ -375,6 +384,10 @@ define([
                     reloadShippingMethods(this.options.shippingMethodFormSelector);
                 }
             }.bind(this));
+            return false;
+        },
+        _applyGiftcard: function () {
+            this._ajaxFormSubmit(jQuery(this.options.giftcardFormSelector));
             return false;
         },
 
@@ -466,6 +479,9 @@ define([
                                     if (block === 'shipping_method') {
                                         jQuery(this.options.shippingMethodsListSelector).show();
                                     }
+                                    if (block === 'cart') {
+                                        jQuery('#svea-checkout_cart_totals').trigger('contentUpdated');
+                                    }
                                 }
 
                             }
@@ -548,6 +564,18 @@ define([
         toggleCouponContainer: function () {
             var target = this.options.couponFormContainer,
                 toggler = this.options.couponToggler;
+
+            jQuery(toggler).on('change', function () {
+                if (this.checked)
+                    jQuery(target).addClass('visible');
+                else
+                    jQuery(target).removeClass('visible');
+            });
+        },
+
+        toggleGiftCardContainer: function () {
+            var target = this.options.giftcardFormContainer,
+                toggler = this.options.giftcardToggler;
 
             jQuery(toggler).on('change', function () {
                 if (this.checked)
