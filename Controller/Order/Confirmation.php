@@ -45,20 +45,12 @@ class Confirmation extends Push
             return $this->returnMissingIdError($orderId, $quoteId);
         }
 
-        $push = null;
-        for ($i = 0; $i<4;$i++) {
-            try {
-                $push = $this->pushRepo->get($sveaOrderId);
-                if ($push->getOrderId()) {
-                   break;
-                }
-            } catch (NoSuchEntityException $e) {
-                // do nothing
-                $push = null;
-            }
-
-            // sleep for 5 seconds, we wait for the push!
-            sleep(5);
+        try {
+            sleep(2); // wait for the Push Controller to create order for Svea Order ID
+            $push = $this->pushRepo->get($sveaOrderId);
+        } catch (NoSuchEntityException $e) {
+            // do nothing
+            $push = null;
         }
 
         $jofabLastOrderId = $this->checkMagentoOrderBySveaId($sveaOrderId);
@@ -70,7 +62,7 @@ class Confirmation extends Push
             return $this->_redirect('*');
         }
 
-        // if the push hasn't created an order yet, (we have waited 20 seconds), we will try to create the order here!
+        // if the push hasn't created an order yet, we will try to create the order here!
         if ($push->getOrderId()) {
             $lastOrderId = $push->getOrderId();
         } elseif ($jofabLastOrderId) {
