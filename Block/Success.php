@@ -16,8 +16,6 @@ class Success extends \Magento\Checkout\Block\Onepage\Success
 
     /** @var $iframeSnippet string */
     protected $iframeSnippet;
-    /** @var \Svea\Checkout\Helper\GiftCard */
-    protected $giftcardHelper;
 
     /**
      * Success constructor.
@@ -34,7 +32,7 @@ class Success extends \Magento\Checkout\Block\Onepage\Success
         \Magento\Sales\Model\Order\Config $orderConfig,
         \Magento\Framework\App\Http\Context $httpContext,
         \Magento\Sales\Model\OrderRepository $orderRepository,
-        \Svea\Checkout\Helper\GiftCard $giftCardHelper,
+
         array $data = []
     )
     {
@@ -46,7 +44,6 @@ class Success extends \Magento\Checkout\Block\Onepage\Success
             $data
         );
         $this->orderRepository = $orderRepository;
-        $this->giftcardHelper = $giftCardHelper;
 
     }
 
@@ -90,13 +87,6 @@ class Success extends \Magento\Checkout\Block\Onepage\Success
         $this->iframeSnippet = $snippet;
     }
 
-    /**
-     * @param $order
-     * @return array|\Magento\GiftCardAccount\Model\GiftCard[]
-     */
-    public function getGiftCards($order): array
-    {
-        return $this->giftcardHelper->getGiftCards($order->getGiftCards());
-    }
+
 }
 

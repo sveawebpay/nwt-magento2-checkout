@@ -205,8 +205,8 @@
   }
 
   .svea-checkout-block {
-    &.discount, &.giftcard {
-      #discount-coupon-form, #giftcard-coupon-form {
+    &.discount {
+      #discount-coupon-form {
         .fieldset {
           position: relative;
           display: flex;
@@ -276,7 +276,7 @@
 }
 
 
-label[for="coupon-toggle"], label[for="giftcard-toggle"] {
+label[for="coupon-toggle"] {
   span {
     text-decoration: underline;
   }
@@ -756,7 +756,7 @@ button:not(.primary).svea-primary {
   }
 }
 
-#svea-checkout_coupon, #svea-checkout_giftcard {
+#svea-checkout_coupon {
   opacity: 0;
   visibility: hidden;
   display: none;
@@ -789,7 +789,7 @@ button:not(.primary).svea-primary {
     flex: 1.5;
   }*/
 
-  #discount-coupon-form, #giftcard-coupon-form {
+  #discount-coupon-form {
     .fieldset {
       padding: 0 30px;
     }
@@ -932,7 +932,7 @@ button:not(.primary).svea-primary {
   }
 
   .svea-checkout-block {
-    &.discount, &.giftcard {
+    &.discount {
       width: 660px;
       margin: 0 auto;
     }
@@ -991,8 +991,8 @@ button:not(.primary).svea-primary {
     padding: 20px 0;
 
     .svea-checkout-block {
-      &.discount, &.giftcard {
-        #discount-coupon-form, #giftcard-coupon-form {
+      &.discount {
+        #discount-coupon-form {
           .fieldset {
             .actions-toolbar {
               right: 0;

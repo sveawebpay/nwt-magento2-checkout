@@ -378,21 +378,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * Check if gift card layout is enabled
-     *
-     * @param $store
-     * @return bool
-     */
-    public function showGiftCardLayout($store = null): bool
-    {
-        return $this->scopeConfig->isSetFlag(
-            self::XML_PATH_LAYOUT . 'display_giftcard',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $store
-        );
-    }
-
-    /**
      * @param null $store
      * @return array|null
      */

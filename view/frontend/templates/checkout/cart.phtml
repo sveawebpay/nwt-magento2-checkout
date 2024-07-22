@@ -57,17 +57,6 @@
             <?php endif;?>
 
         </div>
-        <div id="svea_giftcard_toggle">
-            <?php if($block->showGiftCardCode()): ?>
-                <div class="fieldset comment">
-                <input type="checkbox" name="giftcard-toggle" value="1" id="giftcard-toggle"
-                       title="<?php echo __('Use giftcard'); ?>" class="checkbox">
-                <label for="giftcard-toggle"><?php echo __('Do you have a giftcard code?'); ?>
-                    <span><?= __('Click here to enter code')?> </span></label>
-            </div>
-            <?php endif;?>
-
-        </div>
         <?php echo $block->getChildHtml('newsletter'); ?>
     </div>
     <div id="svea-checkout_cart_totals">

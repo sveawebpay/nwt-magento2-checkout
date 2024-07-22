@@ -489,8 +489,7 @@ class Order
             // we reload the credentials using the right store view
             $this->orderManagementApi->resetCredentials($invoice->getOrder()->getStoreId());
 
-            $precision = 8;
-            $isFullDelivery = abs(round($invoice->getGrandTotal(), $precision) - round((float)$invoice->getOrder()->getGrandTotal(), $precision)) < PHP_FLOAT_EPSILON;
+            $isFullDelivery = $invoice->getGrandTotal() === (float)$invoice->getOrder()->getGrandTotal();
             try {
                 // we need order row ids, so we load the order from svea!
                 $sveaOrder = $this->orderManagementApi->getOrder($sveaOrderId);

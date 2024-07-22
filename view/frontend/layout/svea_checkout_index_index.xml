@@ -108,18 +108,6 @@
                                                template="Magento_Checkout::cart/item/renderer/actions/remove.phtml"/>
                                     </block>
                                 </block>
-                                <block class="Magento\Checkout\Block\Cart\Item\Renderer" as="giftcard"
-                                       template="Svea_Checkout::checkout/cart/item/item.phtml">
-                                    <block class="Magento\Checkout\Block\Cart\Item\Renderer\Actions"
-                                           name="checkout.cart.item.renderers.giftcard.actions" as="actions">
-                                        <block class="Magento\Checkout\Block\Cart\Item\Renderer\Actions\Edit"
-                                               name="checkout.cart.item.renderers.giftcard.actions.edit"
-                                               template="Magento_Checkout::cart/item/renderer/actions/edit.phtml"/>
-                                        <block class="Magento\Checkout\Block\Cart\Item\Renderer\Actions\Remove"
-                                               name="checkout.cart.item.renderers.giftcard.actions.remove"
-                                               template="Magento_Checkout::cart/item/renderer/actions/remove.phtml"/>
-                                    </block>
-                                </block>
                                 <block class="Magento\Downloadable\Block\Checkout\Cart\Item\Renderer" name="checkout.cart.item.renderers.downloadable" as="downloadable"
                                     template="Svea_Checkout::checkout/cart/item/item.phtml">
                                     <block class="Magento\Checkout\Block\Cart\Item\Renderer\Actions"
@@ -147,10 +135,6 @@
                         <block class="Svea\Checkout\Block\Checkout" name="svea_checkout.coupon" as="coupon"
                                template="Svea_Checkout::checkout/cart/coupon.phtml"
                                ifconfig="svea_checkout/layout/display_discount"/>
-                        <!-- Apply Giftcard Code -->
-                        <block class="Svea\Checkout\Block\Checkout" name="svea_checkout.giftcard" as="giftcard"
-                               template="Svea_Checkout::checkout/cart/giftcard.phtml"
-                               ifconfig="svea_checkout/layout/display_giftcard"/>
                         <!-- Shipping Method -->
                         <block class="Svea\Checkout\Block\Checkout" name="svea_checkout.shipping" as="shipping">
                             <arguments>

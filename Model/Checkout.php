@@ -149,7 +149,7 @@ class Checkout extends Onepage
         }
 
         if ($quote->getGrandTotal() <= 0) {
-//            $this->throwRedirectToCartException("Subtotal cannot be 0. Please choose another payment method.");
+            $this->throwRedirectToCartException("Subtotal cannot be 0. Please choose another payment method.");
         }
 
         return true;
