@@ -83,6 +83,19 @@ class Cart extends AbstractHelper
         );
     }
 
+     /**
+     * @param null $store
+     * @return mixed
+     */
+    public function getCrosssellHeadline($store = null)
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_CROSSSELL . 'crosssell_headline',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $store
+        );
+    }
+
     /**
      * @return mixed
      */

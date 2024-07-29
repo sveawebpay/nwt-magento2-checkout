@@ -92,4 +92,14 @@ class Crosssell extends \Magento\Checkout\Block\Cart\Crosssell
             ]
         ];
     }
+
+    /**
+     * Get crosssell headline text
+     *
+     * @return string
+     */
+    public function getCrosssellHeadline()
+    {
+        return $this->sveaCartHelper->getCrosssellHeadline();
+    }
 }

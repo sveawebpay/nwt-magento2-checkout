@@ -35,7 +35,10 @@ switch ($type = $block->getType()) {
             $class = $type;
 
             $image = 'cart_cross_sell_products';
-            $title = __('Cross-sell products');
+
+            $headline = $block->getCrosssellHeadline();
+            $title = $headline ? $headline : __('Cross-sell products');
+
             $items = $block->getItems();
 
             $showAddTo = true;

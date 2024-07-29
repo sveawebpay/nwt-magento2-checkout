@@ -257,6 +257,10 @@
                 <field id="crosssell_limit" type="text" translate="label comment" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="20">
                     <label>Number of Products</label>
                 </field>
+                 <field id="crosssell_headline" type="text" translate="label comment" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="30">
+                    <label>Crosssell Headline Text</label>
+                    <comment>Enter the headline title for crosssell products.</comment>
+                </field>
             </group>
 
             <group id="campaign_widget" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
