@@ -746,7 +746,7 @@ class Items
             }
 
             $sveaItem = $rowRef[$magentoOrderItem->getArticleNumber()];
-            if ($sveaItem->getQuantity() != $magentoOrderItem->getQuantity()) {
+            if ($sveaItem->getQuantity() < $magentoOrderItem->getQuantity()) {
                 return false;
             }
         }
