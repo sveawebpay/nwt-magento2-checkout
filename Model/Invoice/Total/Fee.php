@@ -17,6 +17,15 @@ class Fee extends AbstractTotal
             return $this;
         }
 
+        $invoiceFeeInvoiced =
+            $invoice->getOrder()->getPayment()->getAdditionalInformation()['svea_invoice_fee_invoiced']
+            ?? false
+        ;
+
+        if ($invoiceFeeInvoiced) {
+            return $this;
+        }
+
         $invoice->setSveaInvoiceFee($amount);
 
         $invoice->setGrandTotal($invoice->getGrandTotal() + $amount);
