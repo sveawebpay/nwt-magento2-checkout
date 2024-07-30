@@ -694,7 +694,11 @@ class Items
                 throw new LocalizedException(__("Could not match Magento and Svea for article: %1", $magentoOrderItem->getArticleNumber()));
             }
 
-            $matchingItems[] = $rowRef[$magentoOrderItem->getArticleNumber()];
+            $matchingItem = $rowRef[$magentoOrderItem->getArticleNumber()];
+
+            // Get quantity from the Magento item since this might be a partial capture or refund
+            $matchingItem->setQuantity($magentoOrderItem->getQuantity());
+            $matchingItems[] = $matchingItem;
         }
 
         return $matchingItems;
