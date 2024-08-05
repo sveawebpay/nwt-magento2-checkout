@@ -530,6 +530,10 @@ class Order
                 // lets att the invoice fee if it exists!
                 if ($invoiceFeeRow = $sveaOrder->getInvoiceFeeRow()) {
                     $this->items->addInvoiceFeeItem($invoiceFeeRow);
+                    $orderPayment = $invoice->getOrder()->getPayment();
+                    $additionalInfo = $orderPayment->getAdditionalInformation();
+                    $additionalInfo['svea_invoice_fee_invoiced'] = true;
+                    $orderPayment->setAdditionalInformation($additionalInfo);
                 }
 
                 // We validate the items before we send them to Svea. This might throw an exception!
