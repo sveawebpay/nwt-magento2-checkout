@@ -150,8 +150,10 @@ class Items
             // Now we can loop through the items!
             foreach ($allItems as $item) {
                 $oid = $item->getData('order_item_id');
+                $isFullDelivery = null;
                 if ($oid) { //invoice or creditmemo item
                     $mainItem = $item->getOrderItem();
+                    $isFullDelivery = $mainItem->getQtyOrdered() == $item->getQty();
                 } else { //quote or order item
                     $mainItem = $item;
                 }
@@ -244,7 +246,11 @@ class Items
                     ->setQuantity($this->addZeroes($qty, 0))
                     ->setVatPercent($this->addZeroes($vat)) // the tax rate i.e 25% (2500)
                     ->setUnitPrice($unitPriceInclTaxes); // incl. tax price per item
-                
+
+                if (null !== $isFullDelivery) {
+                    $orderItem->setFullDelivery($isFullDelivery);
+                }
+
                 if ($this->_helper->getSveaShippingActive()) {
                     $shippingInformation = new ShippingInformation();
                     $shippingInformation->setWeight(0);
@@ -648,7 +654,7 @@ class Items
     }
 
     /**
-     * @param $items []OrderRow
+     * @param OrderRow[] $items
      * @param bool $addNegative
      * @return int[]
      */
@@ -664,6 +670,28 @@ class Items
         }
 
         return $rowNumbers;
+    }
+
+    /**
+     * @param OrderRow[] $items
+     * @return ?array
+     */
+    public function getOrderRowDeliveryOptions($items): ?array
+    {
+        $result = [];
+
+        foreach ($items as $item) {
+            if ($item->getFullDelivery()) {
+                continue;
+            }
+
+            $result[] = [
+                'OrderRowId' => $item->getRowNumber(),
+                'Quantity' => $item->getQuantity()
+            ];
+        }
+
+        return (count($result)) ? $result : null;
     }
 
     /**
@@ -696,8 +724,10 @@ class Items
 
             $matchingItem = $rowRef[$magentoOrderItem->getArticleNumber()];
 
-            // Get quantity from the Magento item since this might be a partial capture or refund
+            // Get quantity and full delivery status from the Magento item,
+            // since this might be a partial capture or refund
             $matchingItem->setQuantity($magentoOrderItem->getQuantity());
+            $matchingItem->setFullDelivery($magentoOrderItem->getFullDelivery());
             $matchingItems[] = $matchingItem;
         }
 
