@@ -603,6 +603,7 @@ class Order
 
             // capture/deliver it now!
             $paymentObj->setOrderRowIds($this->items->getOrderRowNumbers($rowsToDeliver));
+            $paymentObj->setRowDeliveryOptions($this->items->getOrderRowDeliveryOptions($rowsToDeliver));
             $response = $this->orderManagementApi->deliverOrder($paymentObj, $sveaOrderId);
 
             // save queue_id, we need it later! if a refund will be made

@@ -96,6 +96,14 @@ class OrderRow extends AbstractRequest
     protected $ShippingInformation;
 
     /**
+     * Used to determine if all items of row should be delivered or refunded
+     * Not included in data sent in API call
+     *
+     * @var boolean
+     */
+    protected bool $fullDelivery = true;
+
+    /**
      * @return string
      */
     public function getArticleNumber()
@@ -284,6 +292,23 @@ class OrderRow extends AbstractRequest
     public function getRowType()
     {
         return $this->RowType;
+    }
+
+    /**
+     * @param bool $val
+     * @return void
+     */
+    public function setFullDelivery(bool $val): void
+    {
+        $this->fullDelivery = $val;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getFullDelivery(): bool
+    {
+        return $this->fullDelivery;
     }
 
     /**
