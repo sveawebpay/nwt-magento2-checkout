@@ -530,6 +530,10 @@ class Order
                 // lets att the invoice fee if it exists!
                 if ($invoiceFeeRow = $sveaOrder->getInvoiceFeeRow()) {
                     $this->items->addInvoiceFeeItem($invoiceFeeRow);
+                    $orderPayment = $invoice->getOrder()->getPayment();
+                    $additionalInfo = $orderPayment->getAdditionalInformation();
+                    $additionalInfo['svea_invoice_fee_invoiced'] = true;
+                    $orderPayment->setAdditionalInformation($additionalInfo);
                 }
 
                 // We validate the items before we send them to Svea. This might throw an exception!
@@ -599,6 +603,7 @@ class Order
 
             // capture/deliver it now!
             $paymentObj->setOrderRowIds($this->items->getOrderRowNumbers($rowsToDeliver));
+            $paymentObj->setRowDeliveryOptions($this->items->getOrderRowDeliveryOptions($rowsToDeliver));
             $response = $this->orderManagementApi->deliverOrder($paymentObj, $sveaOrderId);
 
             // save queue_id, we need it later! if a refund will be made

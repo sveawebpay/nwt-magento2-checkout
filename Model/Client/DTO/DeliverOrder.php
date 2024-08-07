@@ -18,6 +18,16 @@ class DeliverOrder extends AbstractRequest
     protected $InvoiceDistributionType;
 
     /**
+     * Details of partial delivery of order rows. Optional field
+     *  "RowDeliveryOptions":[
+     *   {"OrderRowId":1,"Quantity":100},
+     *   {"OrderRowId":2,"Quantity":100}
+     * ]
+     * @var array|null
+     */
+    protected $RowDeliveryOptions = null;
+
+    /**
      * @return int[]
      */
     public function getOrderRowIds()
@@ -35,6 +45,22 @@ class DeliverOrder extends AbstractRequest
         return $this;
     }
 
+    /**
+     * @return array|null
+     */
+    public function getRowDeliveryOptions(): ?array
+    {
+        return $this->RowDeliveryOptions;
+    }
+
+    /**
+     * @param array|null $rowDeliveryOptions
+     * @return void
+     */
+    public function setRowDeliveryOptions(?array $rowDeliveryOptions): void
+    {
+        $this->RowDeliveryOptions = $rowDeliveryOptions;
+    }
 
     /**
      * @return string
@@ -68,6 +94,10 @@ class DeliverOrder extends AbstractRequest
 
         $rows = $this->getOrderRowIds() ? $this->getOrderRowIds() : [];
         $data['OrderRowIds'] = $rows;
+
+        if (null !== $this->getRowDeliveryOptions()) {
+            $data['RowDeliveryOptions'] = $this->getRowDeliveryOptions();
+        }
 
         return $data;
     }
