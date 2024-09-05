@@ -148,7 +148,7 @@ class Checkout extends Onepage
             $this->throwRedirectToCartException($error);
         }
 
-        if ($quote->getGrandTotal() <= 0) {
+        if (!$this->getHelper()->showGiftCardLayout() && $quote->getGrandTotal() <= 0) {
             $this->throwRedirectToCartException("Subtotal cannot be 0. Please choose another payment method.");
         }
 
