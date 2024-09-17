@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace Svea\Checkout\Helper;
 
 use Magento\GiftCardAccount\Model\Giftcardaccount;
+use Magento\GiftCardAccount\Api\GiftCardAccountManagementInterface;
+use Magento\GiftCardAccount\Api\GiftCardAccountRepositoryInterface;
+use Magento\GiftCardAccount\Model\GiftCardFactory;
+use Magento\GiftCardAccount\Api\Data\GiftCardAccountInterfaceFactory;
+use Magento\Framework\App\ObjectManager;
 
 class GiftCard
 {
@@ -16,28 +21,42 @@ class GiftCard
     protected $giftCardFactory;
 
     public function __construct(
-        \Magento\GiftCardAccount\Api\GiftCardAccountManagementInterface $managementService,
-        \Magento\GiftCardAccount\Api\GiftCardAccountRepositoryInterface $giftCardAccountRepository,
-        \Magento\GiftCardAccount\Api\Data\GiftCardAccountInterfaceFactory $giftCardAccountFactory,
+        \Magento\Framework\Module\Manager $moduleManager,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Serialize\Serializer\Json $serializer,
-        \Magento\GiftCardAccount\Model\GiftCardFactory $giftCardFactory
+        $giftCardAccountRepository = null,
+        $giftCardAccountFactory = null,
+        $giftCardFactory = null,
+        $managementService = null
     ) {
-        $this->giftCardAccountManagement = $managementService;
-        $this->giftCardAccountRepository = $giftCardAccountRepository;
-        $this->giftCardAccountFactory = $giftCardAccountFactory;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->serializer = $serializer;
-        $this->giftCardFactory = $giftCardFactory;
+        if($moduleManager->isEnabled('Magento_GiftCardAccount')) {
+            $this->giftCardAccountRepository = ObjectManager::getInstance()->get(GiftCardAccountRepositoryInterface::class);
+            $this->giftCardAccountFactory = ObjectManager::getInstance()->get(GiftCardAccountInterfaceFactory::class);
+            $this->giftCardFactory = ObjectManager::getInstance()->get(GiftCardFactory::class);
+            $this->giftCardAccountManagement = ObjectManager::getInstance()->get(GiftCardAccountManagementInterface::class);
+        } else {
+            $this->giftCardAccountRepository = null;
+            $this->giftCardAccountFactory = null;
+            $this->giftCardFactory = null;
+            $this->giftCardAccountManagement = null;
+        }
     }
 
     public function deleteByQuoteId(int $quoteId, string $code)
     {
+        if($this->giftCardAccountManagement === null) {
+            return;
+        }
         $this->giftCardAccountManagement->deleteByQuoteId($quoteId, $code);
     }
 
     public function saveByQuoteId(int $quoteId, $code)
     {
+        if($this->giftCardAccountManagement === null) {
+            return;
+        }
         $this->giftCardAccountManagement->saveByQuoteId(
             $quoteId,
             $this->giftCardAccountFactory->create(['data' => ['gift_cards' => [$code]]])
@@ -60,6 +79,9 @@ class GiftCard
 
     public function getGiftCardsByQuoteId(int $quoteId)
     {
+        if($this->giftCardAccountManagement === null) {
+            return [];
+        }
         $giftCardAccount = $this->giftCardAccountManagement->getListByQuoteId($quoteId);
 
         return $this->getByCodes($giftCardAccount->getGiftCards());
@@ -73,6 +95,9 @@ class GiftCard
      */
     private function getByCodes(array $giftCardCodes): array
     {
+        if($this->giftCardAccountRepository === null) {
+            return [];
+        }
         return $this->giftCardAccountRepository->getList(
             $this->searchCriteriaBuilder->addFilter('code', $giftCardCodes, 'in')->create()
         )->getItems();
@@ -86,6 +111,9 @@ class GiftCard
      */
     private function createGiftCards(array $items): array
     {
+        if($this->giftCardFactory === null) {
+            return [];
+        }
         $giftCards = [];
         foreach ($items as $item) {
             /** @var \Magento\GiftCardAccount\Model\GiftCard $giftCard */

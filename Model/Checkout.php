@@ -596,8 +596,7 @@ class Checkout extends Onepage
             $quote->setSveaInvoiceFee($fee);
             $quote->getBillingAddress()->setSveaInvoiceFee($fee);
             $quote->getShippingAddress()->setSveaInvoiceFee($fee);
-
-            $quote->collectTotals();
+            $quote->save();
         }
 
         //- do not recollect totals
