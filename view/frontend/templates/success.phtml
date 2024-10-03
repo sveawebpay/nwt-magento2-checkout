@@ -18,6 +18,7 @@ $realId = $block->getRealOrderId();
 
         <?php echo $block->getAdditionalInfoHtml() ?>
         <?php if ($orderData) : ?>
+        <?php $giftCards = $block->getGiftCards($orderData); ?>
             <div class="order_inside">
                 <ul class="svea-checkout-order-overview svea-checkout-thankyou-order-details order_details">
                     <li class="svea-checkout-order-overview__order order">
@@ -67,6 +68,14 @@ $realId = $block->getRealOrderId();
                             <td class="col-item"><?= __('Discount:') ?></td>
                             <td class="col-amount"><?= $orderData->formatPrice($orderData->getData('discount_amount')) ?></td>
                         </tr>
+                    <?php endif; ?>
+                    <?php if ($orderData->getData('gift_cards_amount') > 0) : ?>
+                        <?php foreach ($giftCards as $giftCard) : ?>
+                            <tr>
+                                <td class="col-item"><?= __('Gift card (%1):', $giftCard->getCode()); ?></td>
+                                <td class="col-amount"><?= $orderData->formatPrice($giftCard->getAmount()); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
                     <?php endif; ?>
                     <tr>
                         <td class="col-item"><?= __('Shipping:') ?></td>

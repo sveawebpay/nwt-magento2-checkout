@@ -43,6 +43,14 @@ class OrderRow extends AbstractRequest
     protected $DiscountPercent;
 
     /**
+     * Optional
+     *
+     * The discount amount of the product. ,
+     * @var $DiscountAmount int
+     */
+    protected $DiscountAmount;
+
+    /**
      *
      * The VAT percentage of the current product. Valid vat percentage for that country. ,
      * @var $VatPercent int
@@ -190,6 +198,24 @@ class OrderRow extends AbstractRequest
     public function setDiscountPercent($DiscountPercent)
     {
         $this->DiscountPercent = $DiscountPercent;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getDiscountAmount()
+    {
+        return $this->DiscountAmount;
+    }
+
+    /**
+     * @param int $DiscountAmount
+     * @return OrderRow
+     */
+    public function setDiscountAmount($DiscountAmount)
+    {
+        $this->DiscountAmount = $DiscountAmount;
         return $this;
     }
 
@@ -348,7 +374,7 @@ class OrderRow extends AbstractRequest
             'Quantity' => $this->getQuantity(),
             'UnitPrice' => $this->getUnitPrice(),
             'VatPercent' => $this->getVatPercent(),
-            'RowType' => $this->getRowType()
+            'RowType' => $this->getRowType(),
         ];
 
         if ($this->getUnit()) {
@@ -357,6 +383,10 @@ class OrderRow extends AbstractRequest
 
         if ($this->getDiscountPercent()) {
             $data['DiscountPercent'] = $this->getDiscountPercent();
+        }
+
+        if ($this->getDiscountAmount()) {
+            $data['DiscountAmount'] = $this->getDiscountAmount();
         }
 
         if ($this->getTemporaryReference()) {

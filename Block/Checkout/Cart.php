@@ -68,6 +68,16 @@ class Cart extends \Magento\Checkout\Block\Cart\Totals
     }
 
     /**
+     * Check if gift card layout should be shown
+     *
+     * @return bool
+     */
+    public function showGiftCardCode(): bool
+    {
+        return $this->helper->showGiftCardLayout();
+    }
+
+    /**
      * Get qty increment configuration and set on item object
      * Then get item row html
      *

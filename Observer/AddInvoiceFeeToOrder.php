@@ -18,6 +18,7 @@ class AddInvoiceFeeToOrder implements ObserverInterface
 
         $order = $observer->getOrder();
         $order->setData('svea_invoice_fee', $invoiceFee);
+        $order->setGrandTotal($order->getGrandTotal() + $invoiceFee);
 
         return $this;
     }

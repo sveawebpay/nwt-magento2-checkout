@@ -72,6 +72,7 @@ class Checkout extends \Magento\Framework\View\Element\Template
      * @var Context
      */
     private $checkoutContext;
+    private $giftCardHelper;
 
 
     /**
@@ -95,6 +96,7 @@ class Checkout extends \Magento\Framework\View\Element\Template
         \Svea\Checkout\Service\GetCurrentQuote $getCurrentQuoteService,
         \Svea\Checkout\Service\GetCurrentSveaOrderId $getCurrentSveaOrderIdService,
         \Svea\Checkout\Model\Svea\Context $checkoutContext,
+        \Svea\Checkout\Helper\GiftCard $giftCardHelper,
         array $data = []
     ) {
         $this->priceCurrency = $priceCurrency;
@@ -105,6 +107,7 @@ class Checkout extends \Magento\Framework\View\Element\Template
         $this->getCurrentSveaOrderIdService = $getCurrentSveaOrderIdService;
         $this->getCurrentQuoteService = $getCurrentQuoteService;
         $this->checkoutContext = $checkoutContext;
+        $this->giftCardHelper = $giftCardHelper;
         parent::__construct($context, $data);
     }
 
@@ -362,6 +365,8 @@ class Checkout extends \Magento\Framework\View\Element\Template
             $this->getUrl("{$this->_controllerPath}/SaveNewsletter")
         )->setCouponSubmitUrl(
             $this->getUrl("{$this->_controllerPath}/SaveCoupon")
+        )->setGiftcardSubmitUrl(
+            $this->getUrl("{$this->_controllerPath}/SaveGiftCard")
         );
 
         return parent::_beforeToHtml();

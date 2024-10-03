@@ -8,6 +8,7 @@ use Magento\Sales\Model\Order;
 use Svea\Checkout\Model\CheckoutException;
 use Svea\Checkout\Model\Client\DTO\Order\OrderRow;
 use Svea\Checkout\Model\Client\DTO\Order\OrderRow\ShippingInformation;
+use Svea\Checkout\Helper\GiftCard;
 
 /**
  * Svea (Checkout) Order Items Model
@@ -23,6 +24,11 @@ class Items
 
     /** @var \Magento\Tax\Model\Calculation */
     protected $calculationTool;
+
+    /**
+     * GiftCard giftCardHelper
+     */
+    protected $giftCardHelper;
 
     /**
      * Catalog product configuration
@@ -50,11 +56,13 @@ class Items
     public function __construct(
         \Svea\Checkout\Helper\Data $helper,
         \Magento\Catalog\Helper\Product\Configuration $productConfig,
-        \Magento\Tax\Model\Calculation $calculationTool
+        \Magento\Tax\Model\Calculation $calculationTool,
+        GiftCard $giftCardHelper
     ) {
         $this->_helper = $helper;
         $this->_productConfig = $productConfig;
         $this->calculationTool = $calculationTool;
+        $this->giftCardHelper = $giftCardHelper;
 
         // resets all values
         $this->init();
@@ -446,6 +454,24 @@ class Items
         return $this;
     }
 
+    public function setGiftCardDiscount($giftCardDiscount)
+    {
+        $reference = 'gift-card-discount';
+        $amountInclTax = $this->addZeroes($giftCardDiscount);
+        $vat = 0;
+
+        $orderItem = new OrderRow();
+        $orderItem
+            ->setArticleNumber($reference)
+            ->setName('Gift Card Discount')
+            ->setUnit("st")
+            ->setQuantity($this->addZeroes(1))
+            ->setVatPercent($this->addZeroes($vat)) // the tax rate i.e 25% (2500)
+            ->setUnitPrice(-$amountInclTax); // incl. tax price per item
+
+        $this->_cart[$reference] = $orderItem;
+    }
+
     /**
      * @param Quote $quote
      *
@@ -563,6 +589,7 @@ class Items
 
         $this->addTotalsDiscount($quote->getTotals());
         $this->addDiscounts($quote->getCouponCode());
+        $this->setGiftCardDiscount($quote->getGiftCardsAmountUsed());
 
         try {
             $this->validateTotals($quote->getGrandTotal());
