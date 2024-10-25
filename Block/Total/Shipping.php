@@ -26,10 +26,15 @@ class Shipping extends DefaultShippingTotal
             return parent::toHtml();
         }
 
+        $quote = $checkoutSession->getQuote();
+        if ($quote->isVirtual()) {
+            return parent::toHtml();
+        }
+
         // If Svea Shipping is active but option isn't selected yet, hide the shipping
-        $shippingAddress = $checkoutSession->getQuote()->getShippingAddress();
+        $shippingAddress = $quote->getShippingAddress();
         $carrierCode = Carrier::CODE;
-        $shippingMethod = $shippingAddress->getShippingMethod();
+        $shippingMethod = (string)$shippingAddress->getShippingMethod();
         if (strpos($shippingMethod, $carrierCode) !== false) {
             return $this->handleSveaShippingInfo();
         }
