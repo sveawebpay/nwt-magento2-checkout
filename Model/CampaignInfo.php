@@ -86,7 +86,7 @@ class CampaignInfo extends AbstractModel implements CampaignInfoInterface
      */
     public function getContractLengthInMonths(): int
     {
-        return $this->getData('contract_length_in_months');
+        return (int)$this->getData('contract_length_in_months');
     }
 
     /**
@@ -186,7 +186,9 @@ class CampaignInfo extends AbstractModel implements CampaignInfoInterface
     {
         $notificationFee =  $this->getNotificationFee();
         $monthlyAnnuallyFactor = $this->getMonthlyAnnuityFactor();
-        $finalPrice = round(($this->productPrice * $monthlyAnnuallyFactor) + $notificationFee);
+        $initialFee = $this->getInitialFee();
+        $contractLengthInMonths = $this->getContractLengthInMonths();
+        $finalPrice = round(($this->productPrice * $monthlyAnnuallyFactor) + $notificationFee + ($initialFee/$contractLengthInMonths));
 
         return $this->priceCurrency->format($finalPrice);
     }
@@ -199,7 +201,9 @@ class CampaignInfo extends AbstractModel implements CampaignInfoInterface
     {
         $notificationFee =  $this->getNotificationFee();
         $monthlyAnnuallyFactor = $this->getMonthlyAnnuityFactor();
-        $finalPrice = round(($this->productPrice * $monthlyAnnuallyFactor) + $notificationFee);
+        $initialFee = $this->getInitialFee();
+        $contractLengthInMonths = $this->getContractLengthInMonths();
+        $finalPrice = round(($this->productPrice * $monthlyAnnuallyFactor) + $notificationFee + ($initialFee/$contractLengthInMonths));
 
         return $finalPrice;
     }
