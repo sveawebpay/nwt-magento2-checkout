@@ -31,7 +31,7 @@ class ProductCampaignPriceProvider
                 return $this->getCompositePrice($product);
                 break;
             default:
-                return [(float) $product->getPrice()];
+                return [(float) $product->getFinalPrice()];
                 break;
         }
     }
@@ -46,7 +46,7 @@ class ProductCampaignPriceProvider
 
         $prices = [];
         foreach ($childrenProduct as $product) {
-            $prices[] = (float) $product->getPrice();
+            $prices[] = (float) $product->getFinalPrice();
         }
         krsort($prices);
 

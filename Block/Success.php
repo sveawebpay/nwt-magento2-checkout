@@ -96,6 +96,9 @@ class Success extends \Magento\Checkout\Block\Onepage\Success
      */
     public function getGiftCards($order): array
     {
+        if (!$order->getGiftCards()) {
+            return [];
+        }
         return $this->giftcardHelper->getGiftCards($order->getGiftCards());
     }
 }
