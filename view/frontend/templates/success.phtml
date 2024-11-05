@@ -85,6 +85,18 @@ $realId = $block->getRealOrderId();
                         <td class="col-item"><?= __('Payment Method:') ?></td>
                         <td class="col-amount"><?= __('Svea Checkout') ?></td>
                     </tr>
+                    <?php if ($orderData->getData('svea_invoice_fee') > 0) : ?>
+                        <tr>
+                            <td class="col-item"><?= __('Invoice fee:') ?></td>
+                            <td class="col-amount"><?= $orderData->formatPrice($orderData->getData('svea_invoice_fee')) ?></td>
+                        </tr>
+                    <?php endif; ?>
+                    <?php if ($orderData->getData('tax_amount') > 0) : ?>
+                        <tr>
+                            <td class="col-item"><?= __('Tax:') ?></td>
+                            <td class="col-amount"><?= $orderData->formatPrice($orderData->getData('tax_amount')) ?></td>
+                        </tr>
+                    <?php endif; ?>
                     <tr>
                         <td class="col-item"><?= __('Total:') ?></td>
                         <td class="col-amount"><?= $orderData->formatPrice($orderData->getData('grand_total')) ?></td>
