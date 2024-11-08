@@ -45,10 +45,12 @@ Svea Checkout Order ID: %1,Svea Checkout Order ID: %1
 Order number:,Ordernummer:
 #: %1,#: %1
 Date,Datum
+Date:,Datum:
 Order Details,Orderdetaljer
 Product,Produkt
 Discount:,Rabatt:
 Shipping,Frakt
+Shipping:,Frakt:
 Payment Method:,Betalmetod:
 Total:,Total:
 Continue Shopping,Fortsätt handla
@@ -119,6 +121,7 @@ Cannot update checkout (%1),Kunde ej uppdatera checkouten (%1)
 Cannot initialize Svea Checkout (%1),Kunde ej initisera Svea Checkout (%1)
 Svea Checkout,Svea Checkout
 Invoice Fee,Fakturaavgift
+Invoice Fee:,Fakturaavgift:
 Crosssell products,Cross-sell produkter
 "Date:,Date:","Datum:,Datum:"
 "Total:,Total:","Totalsumma:,Totalsumma:"
@@ -160,6 +163,7 @@ Title,Titel
 "Show Less","Visa mindre"
 "Remove","Ta bort"
 "Tax","Moms"
+"Tax:","Moms:"
 "Shipping","Frakt"
 "Partial payment from %s / month","Delbetalning från %s / månad",
 "Your payment session has expired. The checkout will reload.","Din betalningssession har löpt ut. Kassan kommer att laddas om.",
