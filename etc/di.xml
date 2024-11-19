@@ -104,4 +104,7 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magento\Quote\Model\Quote\Item\CartItemPersister">
+        <plugin name="svea_checkout_cart_item_persister" type="Svea\Checkout\Plugin\Quote\Item\CartItemPersister" />
+    </type>
 </config>
