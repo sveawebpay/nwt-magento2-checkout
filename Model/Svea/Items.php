@@ -473,7 +473,7 @@ class Items
     }
 
     /**
-     * @param Quote $quote
+     * @param $grandTotal
      *
      * @return $this
      * @throws CheckoutException
