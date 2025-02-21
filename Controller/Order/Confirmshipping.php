@@ -3,34 +3,17 @@
 namespace Svea\Checkout\Controller\Order;
 
 use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\Controller\Result\JsonFactory;
-use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Checkout\Model\ShippingInformationFactory;
 use Magento\Checkout\Model\ShippingInformationManagement;
-use Magento\Quote\Api\CartRepositoryInterface;
+use Svea\Checkout\Api\UsesServiceContainerInterface;
 use Svea\Checkout\Model\Shipping\Carrier;
 use Svea\Checkout\Service\SveaShippingInfo;
+use Svea\Checkout\Controller\Order\Update;
 
-/**
- * @SuppressWarnings(PHPMD.UnusedFormalParameter)
- */
-class Confirmshipping implements HttpPostActionInterface
+class Confirmshipping extends Update implements HttpPostActionInterface, UsesServiceContainerInterface
 {
-    /**
-     * @var JsonFactory
-     */
-    private $jsonResultFactory;
-
-    /**
-     * @var Session
-     */
-    private $checkoutSession;
-
-    /**
-     * @var HttpRequest
-     */
-    private $request;
+    const SERVICE_CONTAINER_NAME = 'controller:order:confirmshipping';
 
     /**
      * @var ShippingInformationFactory
@@ -47,33 +30,14 @@ class Confirmshipping implements HttpPostActionInterface
      */
     private $shipInfoService;
 
-    /**
-     * @var CartRepositoryInterface
-     */
-    private $quoteRepo;
-
-    public function __construct(
-        JsonFactory $jsonFactory,
-        Session $checkoutSession,
-        HttpRequest $request,
-        ShippingInformationFactory $shipInfoFactory,
-        ShippingInformationManagement $shipInfoManagement,
-        SveaShippingInfo $shipInfoService
-    ) {
-        $this->jsonResultFactory = $jsonFactory;
-        $this->checkoutSession = $checkoutSession;
-        $this->request = $request;
-        $this->shipInfoFactory = $shipInfoFactory;
-        $this->shipInfoManagement = $shipInfoManagement;
-        $this->shipInfoService = $shipInfoService;
-    }
-
     public function execute()
     {
+        $this->assignServices();
+        $request = $this->getRequest();
+        /** @var HttpRequest $request */
         $quote = $this->checkoutSession->getQuote();
-        $content = $this->request->getPost()->toArray();
+        $content = $request->getPost()->toArray();
         $carrier = $content['carrier'];
-        $this->shipInfoService->setExcludeSveaShipping(false);
 
         try {
             $this->shipInfoService->setInQuote($quote, $content);
@@ -93,9 +57,14 @@ class Confirmshipping implements HttpPostActionInterface
             return $this->returnError();
         }
 
-        return $this->jsonResultFactory->create()->setData(
-            ['success' => true]
-        );
+        return $this->_sendResponse([
+            'cart',
+            'coupon',
+            'shipping',
+            'shipping_method',
+            'messages',
+            'svea'
+        ], true, true);
     }
 
     /**
@@ -105,9 +74,28 @@ class Confirmshipping implements HttpPostActionInterface
     {
         return $this->jsonResultFactory->create()->setData(
             [
-                'success' => false,
-                'messages' => __('This shipping method is unavailable. Please try a different one.')
+                'reload' => true,
+                'messages' => __('We couln\'t save the shipping information. Checkout will now reload.')
             ]
         );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getServiceContainerName(): string
+    {
+        return self::SERVICE_CONTAINER_NAME;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function assignServices(): void
+    {
+        $serviceContainer = $this->sveaCheckoutContext->getServiceContainer($this->getServiceContainerName());
+        $this->shipInfoFactory = $serviceContainer['shipInfoFactory'];
+        $this->shipInfoManagement = $serviceContainer['shipInfoManagement'];
+        $this->shipInfoService = $serviceContainer['shipInfoService'];
     }
 }

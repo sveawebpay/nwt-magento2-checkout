@@ -77,6 +77,13 @@
     <type name="Svea\Checkout\Model\CheckoutContext">
         <arguments>
             <argument name="sveaRecurringInfo" xsi:type="object">Svea\Checkout\Service\SveaRecurringInfo\Proxy</argument>
+            <argument name="serviceContainers" xsi:type="array">
+                <item name="controller:order:confirmshipping" xsi:type="array">
+                    <item name="shipInfoFactory" xsi:type="object">Magento\Checkout\Model\ShippingInformationFactory</item>
+                    <item name="shipInfoManagement" xsi:type="object">Magento\Checkout\Model\ShippingInformationManagement\Proxy</item>
+                    <item name="shipInfoService" xsi:type="object">Svea\Checkout\Service\SveaShippingInfo\Proxy</item>
+                </item>
+            </argument>
         </arguments>
     </type>
     <type name="Svea\Checkout\Service\SveaRecurringInfo">
