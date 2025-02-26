@@ -11,7 +11,7 @@ define([
     'mage/url',
     "Svea_Checkout/js/model/bind-select-shipping",
     "Svea_Checkout/js/action/reload-shipping-methods",
-    "jquery/ui",
+    'jquery-ui-modules/widget',
     "mage/translate",
     "mage/mage",
     "mage/validation",

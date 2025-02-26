@@ -325,7 +325,15 @@ class Items
         $appliedTaxes = $address->getAppliedTaxes();
         $vatPercent = 0;
         if ($shippingTaxAmount > 0 && !empty($appliedTaxes)) {
-            $vatPercent = reset($appliedTaxes)['percent'];
+            foreach ($appliedTaxes as $tax) {
+                if ($tax['item_type'] == 'shipping') {
+                    $vatPercent = $tax['percent'];
+                    break;
+                }
+            }
+            if($vatPercent == 0) {
+                $vatPercent = reset($appliedTaxes)['percent'];
+            }
         }
         if ($vatPercent > $this->_maxvat) {
             $this->_maxvat = $vatPercent;
