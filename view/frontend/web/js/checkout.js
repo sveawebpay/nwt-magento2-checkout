@@ -271,39 +271,9 @@ define([
                 return;
             }
 
-            const self = this;
             document.addEventListener('sveaCheckout:shippingConfirmed', function (data) {
-                jQuery.ajax({
-                    type: "POST",
-                    url: mageurl.build('sveacheckout/order/confirmshipping'),
-                    data: jQuery.param(data.detail),
-                    success: function (response) {
-                        if (!response.success) {
-                            if (response.messages) {
-                                let alertConfig = {
-                                    content: response.messages
-                                };
-                                if (response.redirect) {
-                                    alertConfig.actions = {
-                                        always: function () {
-                                            window.location = mageurl.build(response.redirect);
-                                        }
-                                    };
-                                }
-
-                                alert(alertConfig);
-                            }
-                            return;
-                        }
-                        self._ajaxSubmit(mageurl.build('sveacheckout/order/cart'));
-                    },
-                    error: function () {
-                        alert({
-                            content: 'Unable to save shipping choice. Please try again. If the problem persists, contact an administrator.'
-                        });
-                    }
-                });
-            });
+                this._ajaxSubmit(mageurl.build('sveacheckout/order/confirmshipping'), jQuery.param(data.detail));
+            }.bind(this));
         },
 
         checkValueOfInputs: function (form) {

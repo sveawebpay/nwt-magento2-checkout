@@ -93,6 +93,11 @@ class CheckoutContext
      */
     private SessionResourceFactory $sessionResourceFactory;
 
+    /**
+     * @var array
+     */
+    private array $serviceContainers = [];
+
     private ?SessionResource $sessionResource = null;
 
     /**
@@ -131,7 +136,8 @@ class CheckoutContext
         ShippingAssignmentProcessor $shippingAssignmentProcessor,
         SveaRecurringInfo $sveaRecurringInfo,
         SessionFactory $sessionFactory,
-        SessionResourceFactory $sessionResourceFactory
+        SessionResourceFactory $sessionResourceFactory,
+        array $serviceContainers = []
     ) {
         $this->helper        = $helper;
         $this->logger = $logger;
@@ -150,6 +156,7 @@ class CheckoutContext
         $this->sveaRecurringInfo = $sveaRecurringInfo;
         $this->sessionFactory = $sessionFactory;
         $this->sessionResourceFactory = $sessionResourceFactory;
+        $this->serviceContainers = $serviceContainers;
     }
 
     /**
@@ -292,6 +299,17 @@ class CheckoutContext
     {
         $resource = $this->getSessionResource();
         $resource->save($session);
+    }
+
+    /**
+     * Get Service Container by name
+     *
+     * @param string $name
+     * @return array|null
+     */
+    public function getServiceContainer(string $name): ?array
+    {
+        return $this->serviceContainers[$name] ?? null;
     }
 
     /**
