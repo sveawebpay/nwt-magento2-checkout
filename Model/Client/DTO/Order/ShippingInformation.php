@@ -3,7 +3,7 @@
 namespace Svea\Checkout\Model\Client\DTO\Order;
 
 use Magento\Quote\Model\Quote;
-use Magento\Quote\Api\ShippingMethodManagementInterface;
+use Magento\Quote\Api\ShipmentEstimationInterface;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Svea\Checkout\Model\Client\DTO\AbstractRequest;
 use Svea\Checkout\Model\Client\DTO\Order\ShippingInformation\FallbackOptionFactory;
@@ -16,9 +16,9 @@ use Svea\Checkout\Model\Client\DTO\Order\ShippingInformation\TagsFactory;
 class ShippingInformation extends AbstractRequest
 {
     /**
-     * @var ShippingMethodManagementInterface
+     * @var ShipmentEstimationInterface
      */
-    private $shipMethodManagement;
+    private $shipmentEstimation;
 
     /**
      * @var FallbackOptionFactory
@@ -66,13 +66,13 @@ class ShippingInformation extends AbstractRequest
     private $fallbackOptions = [];
 
     public function __construct(
-        ShippingMethodManagementInterface $shipMethodManagement,
+        ShipmentEstimationInterface $shipmentEstimation,
         FallbackOptionFactory $fallbackOptFactory,
         TagsFactory $tagsFactory,
         CollectionFactory $productCollectionFactory,
         Data $helper
     ) {
-        $this->shipMethodManagement = $shipMethodManagement;
+        $this->shipmentEstimation = $shipmentEstimation;
         $this->fallbackOptFactory = $fallbackOptFactory;
         $this->tagsFactory = $tagsFactory;
         $this->productCollectionFactory = $productCollectionFactory;
@@ -235,9 +235,9 @@ class ShippingInformation extends AbstractRequest
     {
         try {
             $fallbackOptions = [];
-            $methods = $this->shipMethodManagement->getList(
-                $quote->getId(),
-                $quote->getShippingAddress()->getId()
+            $methods = $this->shipmentEstimation->estimateByExtendedAddress(
+                (int)$quote->getId(),
+                $quote->getShippingAddress()
             );
     
             foreach ($methods as $method) {
