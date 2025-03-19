@@ -42,14 +42,13 @@ class ProductCampaignPriceProvider
     {
         /** @var Configurable $configurableType */
         $configurableType = $product->getTypeInstance();
-        $childrenProduct = $configurableType->getUsedProducts($product);
+        $childrenProducts = $configurableType->getUsedProducts($product);
 
-        $prices = [];
-        foreach ($childrenProduct as $product) {
-            $prices[] = (float) $product->getFinalPrice();
-        }
-        krsort($prices);
+        $prices = array_map(function ($childProduct) {
+            return (float) $childProduct->getFinalPrice();
+        }, $childrenProducts);
+        asort($prices);
 
-        return $prices;
+        return array_values($prices);
     }
 }

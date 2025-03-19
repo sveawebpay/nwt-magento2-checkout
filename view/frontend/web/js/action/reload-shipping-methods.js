@@ -3,8 +3,7 @@ define([
     "Svea_Checkout/js/model/bind-select-shipping",
     'Magento_Ui/js/modal/alert',
     "mage/translate",
-    'mage/url',
-    "jquery/ui"
+    'mage/url'
 ], function($, bindSelectShipping, magealert, $t, mageUrl) {
     'use strict';
 

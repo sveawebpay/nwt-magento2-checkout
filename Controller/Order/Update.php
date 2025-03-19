@@ -7,8 +7,16 @@ use Svea\Checkout\Model\CheckoutException;
 
 abstract class Update extends \Svea\Checkout\Controller\Checkout
 {
-    //ajax updates
-    protected function _sendResponse($blocks = null, $updateCheckout = true)
+    /**
+     * Generate a response containing updates for the specified blocks.
+     * Can also send an order update to Svea
+     *
+     * @param array|null $blocks
+     * @param bool $updateCheckout
+     * @param bool $unsetQuoteSignatureOnUpdateError
+     * @return void
+     */
+    protected function _sendResponse($blocks = null, $updateCheckout = true, $unsetQuoteSignatureOnUpdateError = false)
     {
         $response = ['reload' => false];
 
@@ -67,6 +75,10 @@ abstract class Update extends \Svea\Checkout\Controller\Checkout
                 } else {
                     $this->messageManager->addErrorMessage($e->getMessage());
                 }
+
+                if ($unsetQuoteSignatureOnUpdateError) {
+                    $this->getSveaCheckout()->getRefHelper()->setQuoteSignature(null);
+                }
             } catch (\Magento\Framework\Exception\LocalizedException $e) {
                 //do nothing, we will just show the message
                 $this->messageManager->addErrorMessage($e->getMessage() ? $e->getMessage() : __('Cannot update checkout (%1)', get_class($e)));
@@ -83,14 +95,6 @@ abstract class Update extends \Svea\Checkout\Controller\Checkout
                 }
                 return;
             }
-
-            /*
-            if($shouldUpdateSvea &&  (empty($updatedSveaPaymentId) || $updatedSveaPaymentId != $sveaPaymentId)) {
-                //another svea order was created, add svea block (need to be reloaded)
-                $blocks[] = 'svea';
-                //if svea have same location, we will use svea api resume
-            }
-            */
         }
 
         if (!$this->getRequest()->isXmlHttpRequest()) {

@@ -62,7 +62,7 @@ class CampaignInfo extends AbstractModel implements CampaignInfoInterface
      */
     public function getCampaignCode(): int
     {
-        return $this->getData('campaign_code');
+        return (int)$this->getData('campaign_code');
     }
 
     /**
