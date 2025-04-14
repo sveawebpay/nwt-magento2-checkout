@@ -37,7 +37,11 @@
             <container name="svea_checkoutSidebar" as="svea_checkoutSidebar" label="SveacCheckout Sidebar" htmlTag="div"
                        htmlId="svea_checkoutSidebar">
                 <block class="Svea\Checkout\Block\Success" name="svea_checkout_success" template="success.phtml"
-                       cacheable="false"/>
+                       cacheable="false">
+                    <arguments>
+                        <argument name="nonce_provider" xsi:type="object">Svea\Checkout\ViewModel\Checkout\NonceProvider</argument>
+                    </arguments>
+                </block>
                 <block class="Magento\GoogleAdwords\Block\Code" name="google.adwords.code" template="code.phtml"/>
             </container>
         </referenceContainer>
