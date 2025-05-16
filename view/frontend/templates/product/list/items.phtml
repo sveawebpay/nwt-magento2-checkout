@@ -134,7 +134,7 @@ switch ($type = $block->getType()) {
         </div>
     </div>
 </div>
-<script <?php echo $nonce ? 'nonce="' . $nonce . '"' : ''; ?>>
+<script <?= $nonce ? 'nonce="' . $nonce . '"' : ''; ?>>
     require([
         'jquery',
         'slick'

@@ -120,7 +120,7 @@ $nonce = $nonceProvider->generateNonce();
         </div>
     </div>
 </div>
-<script <?php echo $nonce ? 'nonce="' . $nonce . '"' : ''; ?>>
+<script <?= $nonce ? 'nonce="' . $nonce . '"' : ''; ?>>
     require([
         'jquery',
         'Magento_Customer/js/customer-data'
