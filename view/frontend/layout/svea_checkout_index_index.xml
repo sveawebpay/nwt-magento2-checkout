@@ -181,13 +181,14 @@
                            ifconfig="checkout/cart/crosssell_enabled">
                         <arguments>
                             <argument name="type" xsi:type="string">crosssell</argument>
+                            <argument name="nonce_provider" xsi:type="object">Svea\Checkout\ViewModel\Checkout\NonceProvider</argument>
                         </arguments>
                     </block>
                 </container>
                 <!-- IFRAME -->
                 <container name="svea_checkout.main" as="svea_checkoutMain" label="Main svea_checkout Container"
                            htmlTag="div" htmlId="svea_checkoutMain">
-                    <block 
+                    <block
                         name="svea_checkout.svea.international"
                         ifconfig="svea_checkout/settings/international_flows/international_flow_active"
                         template="Svea_Checkout::checkout/international.phtml"
