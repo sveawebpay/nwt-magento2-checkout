@@ -2,9 +2,13 @@
 // @codingStandardsIgnoreFile
 
 ?>
-<?php /** @var \Svea\Checkout\Block\Success $block */
+<?php
+/** @var \Svea\Checkout\Block\Success $block */
+/** @var \Svea\Checkout\ViewModel\Checkout\NonceProvider $nonceProvider */
 $orderId = $block->getOrderId();
 $realId = $block->getRealOrderId();
+$nonceProvider = $block->getNonceProvider();
+$nonce = $nonceProvider->generateNonce();
 ?>
 <div class="checkout-success" id="svea-checkout-success">
     <?php if ($block->getOrderId()): ?>
@@ -116,7 +120,7 @@ $realId = $block->getRealOrderId();
         </div>
     </div>
 </div>
-<script>
+<script <?= $nonce ? 'nonce="' . $nonce . '"' : ''; ?>>
     require([
         'jquery',
         'Magento_Customer/js/customer-data'

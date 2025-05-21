@@ -6,8 +6,13 @@
 
 // @codingStandardsIgnoreFile
 
-/* @var $block \Svea\Checkout\Block\Checkout\Cart\Crosssell */
+/** @var \Svea\Checkout\Block\Checkout\Cart\Crosssell $block */
+/** @var \Svea\Checkout\ViewModel\Checkout\NonceProvider $nonceProvider */
+
 use Magento\Framework\App\Action\Action;
+
+$nonceProvider = $block->getNonceProvider();
+$nonce = $nonceProvider->generateNonce();
 ?>
 
 <?php
@@ -129,7 +134,7 @@ switch ($type = $block->getType()) {
         </div>
     </div>
 </div>
-<script>
+<script <?= $nonce ? 'nonce="' . $nonce . '"' : ''; ?>>
     require([
         'jquery',
         'slick'

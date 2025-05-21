@@ -7,6 +7,7 @@ use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order\Creditmemo;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
+use Magento\Csp\Helper\CspNonceProvider;
 use Svea\Checkout\Model\Client\Api\Checkout;
 use Svea\Checkout\Model\Client\ClientException;
 use Svea\Checkout\Model\Client\DTO\CancelOrder;
@@ -87,6 +88,11 @@ class Order
     private OrderValidationFactory $orderValidationFactory;
 
     /**
+     * @var CspNonceProvider
+     */
+    private CspNonceProvider $cspNonceProvider;
+
+    /**
      * Order constructor.
      *
      * @param \Svea\Checkout\Model\Client\Api\OrderManagement $orderManagementApi
@@ -100,6 +106,7 @@ class Order
      * @param ShippingInformationFactory $shippingInfoFactory
      * @param ProductRepositoryInterface $productRepo
      * @param OrderValidationFactory $orderValidationFactory
+     * @param CspNonceProvider $cspNonceProvider
      */
     public function __construct(
         \Svea\Checkout\Model\Client\Api\OrderManagement $orderManagementApi,
@@ -112,7 +119,8 @@ class Order
         Locale $locale,
         ShippingInformationFactory $shippingInfoFactory,
         ProductCollectionFactory $productCollectionFactory,
-        OrderValidationFactory $orderValidationFactory
+        OrderValidationFactory $orderValidationFactory,
+        CspNonceProvider $cspNonceProvider
     ) {
         $this->helper = $helper;
         $this->items = $itemsHandler;
@@ -125,6 +133,7 @@ class Order
         $this->shippingInfoFactory = $shippingInfoFactory;
         $this->productCollectionFactory = $productCollectionFactory;
         $this->orderValidationFactory = $orderValidationFactory;
+        $this->cspNonceProvider = $cspNonceProvider;
     }
 
     /** @var $_quote Quote */
@@ -910,6 +919,15 @@ class Order
 
     public function setIframeSnippet($snippet)
     {
+        // Set nonce attribute on any inline script in the snippet
+        $generatedNonce = $this->cspNonceProvider->generateNonce();
+        $snippet = preg_replace_callback('/<script(.*?)>/si', function ($matches) use ($generatedNonce) {
+            if (strpos($matches[1], 'nonce=') === false && strpos($matches[1], 'src=') === false) {
+                return '<script' . $matches[1] . ' nonce="' . $generatedNonce . '">';
+            }
+            return $matches[0];
+        }, $snippet);
+
         $this->iframeSnippet = $snippet;
     }
 
