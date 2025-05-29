@@ -818,6 +818,9 @@ class Items
             if ($sveaItem->getQuantity() < $magentoOrderItem->getQuantity()) {
                 return false;
             }
+            if ($sveaItem->getUnitPrice() != $magentoOrderItem->getUnitPrice()) {
+                return false;
+            }
         }
 
         return true;

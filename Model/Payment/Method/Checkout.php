@@ -213,25 +213,25 @@ class Checkout extends AbstractMethod
         $orderState = \Magento\Sales\Model\Order::STATE_NEW;
         $orderStatus = $this->getConfigData('order_status');
 
-        $stateObject->setState($orderState);
+        // Determine if the custom status is valid for the NEW state
+        $statuses = $order->getConfig()->getStateStatuses($orderState);
+
         if (!$orderStatus) {
             $orderStatus = $order->getConfig()->getStateDefaultStatus($orderState);
-        } else {
-
-            //check which state we have (NEW or PROCESSING)
-
+        } elseif (!isset($statuses[$orderStatus])) {
+            // Fallback to PROCESSING state if the status isn't valid for NEW
+            $orderState = \Magento\Sales\Model\Order::STATE_PROCESSING;
             $statuses = $order->getConfig()->getStateStatuses($orderState);
-            if(!isset($statuses[$orderState])) {
-                //check if we have  "processing" status
-                $orderState = \Magento\Sales\Model\Order::STATE_PROCESSING;
-                $statuses = $order->getConfig()->getStateStatuses($orderState);
-                if(isset($statuses[$orderStatus])) {
-                    //set state = processing
-                    $stateObject->setState($orderState);
-                }
+
+            // Only assign PROCESSING state if the status is valid there
+            if (!isset($statuses[$orderStatus])) {
+                // If still not valid, fallback to default status for NEW
+                $orderState = \Magento\Sales\Model\Order::STATE_NEW;
+                $orderStatus = $order->getConfig()->getStateDefaultStatus($orderState);
             }
         }
 
+        $stateObject->setState($orderState);
         $stateObject->setStatus($orderStatus);
         $stateObject->setIsNotified(false);
         
