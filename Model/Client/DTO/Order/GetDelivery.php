@@ -58,13 +58,27 @@ class GetDelivery
     }
 
     /**
+     * @param array|null $intersectArr
      * @return OrderRow[]
      */
-    public function getCreditableItems()
+    public function getCreditableItems(?array $intersectArr = null)
     {
         $items = [];
-        foreach ($this->getCartItems() as $item)
-        {
+        $sourceItems = $this->getCartItems();
+        if (null !== $intersectArr) {
+            $sourceItems = array_uintersect(
+                $sourceItems,
+                $intersectArr,
+                function (OrderRow $sourceItem, OrderRow $intersectItem) {
+                    if ($sourceItem->getArticleNumber() === $intersectItem->getArticleNumber()) {
+                        return 0;
+                    }
+
+                    return -1;
+                }
+            );
+        }
+        foreach ($sourceItems as $item) {
             $actions = $this->getCartActionsByRow($item->getRowNumber());
             if (!in_array("CanCreditRow", $actions)) {
                 continue;
