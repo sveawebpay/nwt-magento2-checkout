@@ -9,15 +9,16 @@ use Magento\Quote\Model\QuoteRepository;
 use Magento\Framework\DataObject\Copy;
 use Magento\Checkout\Model\ShippingInformationFactory;
 use Magento\Checkout\Model\ShippingInformationManagement;
+use Magento\Checkout\Model\Type\Onepage;
 use Magento\Framework\Exception\StateException;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
+use Magento\Customer\Api\CustomerRepositoryInterface;
 use Svea\Checkout\Model\Shipping\Carrier;
 use Svea\Checkout\Service\SveaRecurringInfo;
 use Svea\Checkout\Service\SveaShippingInfo;
 use Svea\Checkout\Model\Client\Api\TokenClient;
 use Svea\Checkout\Model\RecurringInfo as ModelRecurringInfo;
-use Svea\Checkout\Model\Data\PaymentRecurringInfo;
 use \Psr\Log\LoggerInterface;
 
 /**
@@ -32,6 +33,8 @@ class PlaceOrders
     private QuoteManagement $quoteManagement;
 
     private QuoteRepository $quoteRepo;
+
+    private CustomerRepositoryInterface $customerRepo;
 
     private Copy $objectCopyService;
 
@@ -54,6 +57,7 @@ class PlaceOrders
         QuoteFactory $quoteFactory,
         QuoteManagement $quoteManagement,
         QuoteRepository $quoteRepo,
+        CustomerRepositoryInterface $customerRepo,
         Copy $objectCopyService,
         ShippingInformationFactory $shipInfoFactory,
         ShippingInformationManagement $shipInfoManagement,
@@ -65,6 +69,7 @@ class PlaceOrders
         $this->orderCreate = $orderCreate;
         $this->quoteFactory = $quoteFactory;
         $this->quoteManagement = $quoteManagement;
+        $this->customerRepo = $customerRepo;
         $this->quoteRepo = $quoteRepo;
         $this->objectCopyService = $objectCopyService;
         $this->shipInfoFactory = $shipInfoFactory;
@@ -123,9 +128,16 @@ class PlaceOrders
         }
 
         // Populate quote payment with order payment data
+        /** @var Order $order */
         $this->orderCreate->setQuote($this->quoteFactory->create());
         $this->orderCreate->initFromOrder($order);
         $quote = $this->orderCreate->getQuote();
+        $orderCustomerId = $order->getCustomerId();
+        if (!!$orderCustomerId) {
+            $customer = $this->customerRepo->getById($orderCustomerId);
+            $quote->setCustomer($customer);
+            $quote->setCheckoutMethod(Onepage::METHOD_CUSTOMER);
+        }
         $quote->setStoreId($order->getStoreId());
         $quote->reserveOrderId();
         $this->objectCopyService->copyFieldsetToTarget(
