@@ -28,6 +28,7 @@ use Svea\Checkout\Model\Svea\Data\PresetValues\Factory as PresetValuesFactory;
 use Svea\Checkout\Model\Client\DTO\Order\OrderValidationFactory;
 use Svea\Checkout\Api\Data\HasOrderValidationInterface;
 use \Exception as BaseException;
+use Svea\Checkout\Model\Client\DTO\GetOrderInfoResponse;
 
 class Order
 {
@@ -516,7 +517,6 @@ class Order
                 if ($delivery) {
                     // we set the id here so we can refund it later :)
                     $payment->setAdditionalInformation('svea_delivery_id', $delivery->getId());
-                    $payment->setTransactionId($delivery->getId());
                     $invoice->setTransactionId($delivery->getId());
                     return;
                 }
@@ -633,8 +633,13 @@ class Order
      */
     public function refundSveaPayment(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
+
+        // the creditmemo from the payment/invoice
+        /** @var Creditmemo $creditMemo */
+        $creditMemo = $payment->getCreditMemo();
+        $queueId = $creditMemo->getInvoice()->getTransactionId();
         $deliveryId = $payment->getAdditionalInformation('svea_delivery_id');
-        $queueId = $payment->getAdditionalInformation('svea_queue_id');
+
         $sveaOrderId = $payment->getAdditionalInformation('svea_order_id');
 
         if ($sveaOrderId && ($queueId || $deliveryId)) {
@@ -678,10 +683,6 @@ class Order
             if (!$deliveryToRefund) {
                 throw new LocalizedException(__("Found no deliveries to refund on. Please refund offline, and do the rest manually in Svea."));
             }
-
-            // the creditmemo from the payment/invoice
-            /** @var Creditmemo $creditMemo */
-            $creditMemo = $payment->getCreditMemo();
 
             $creditMemoTotal = $creditMemo->getGrandTotal();
             $invoiceFeeRow = $deliveryToRefund->getInvoiceFeeRow();
@@ -769,8 +770,37 @@ class Order
                     return;
                 }
 
+                // Credit individual rows
+                if ($deliveryToRefund->canRefundRows() && $sveaOrder->isCreditablePaymentType()) {
+                    $rowCreditingOptions = [];
+                    $creditAbleSveaRowsFromCandidates = $deliveryToRefund->getCreditableItems($rowsToRefund);
+                    foreach ($creditAbleSveaRowsFromCandidates as $creditableRow) {
+                        $rowCreditingOptions[] = [
+                            'orderRowId' => $creditableRow->getRowNumber(),
+                            'quantity' => $creditableRow->getQuantity()
+                        ];
+                    }
+                    $this->orderManagementApi->refundRows($sveaOrderId, $deliveryToRefund->getId(), $rowCreditingOptions);
+                    return;
+                }
+
+                // Cancel individual rows
+                if ($sveaOrder->canCancelOrderRow()) {
+                    $getRowIds = function (array $orderRows): array {
+                        /** @var OrderRow[] $orderRows */
+                        $rowIds = [];
+                        foreach ($orderRows as $orderRow) {
+                            $rowIds[] = $orderRow->getRowNumber();
+                        }
+
+                        return $rowIds;
+                    };
+                    $this->orderManagementApi->cancelOrderRows($sveaOrderId, $getRowIds($rowsToRefund));
+                    return;
+                }
+
                 if (!$deliveryToRefund->canRefund() && !$sveaOrder->canCancelAmount()) {
-                    throw new BaseException(__("Can't refund this invoice, found o refund or cancel flag. Please refund offline, and do the rest manually in Svea."));
+                    throw new BaseException(__("Can't refund this invoice, found no refund or cancel flag. Please refund offline, and do the rest manually in Svea."));
                 }
 
                 if (!$itemQuantityMatching && !$deliveryToRefund->canDeliveryRefundByAmount()) {
@@ -871,7 +901,7 @@ class Order
             if (!array_key_exists($item->getArticleNumber(), $refs)) {
                 return false;
             }
-            /** @var $creditMemo OrderRow */
+            /** @var OrderRow $creditMemo */
             $creditMemo = $refs[$item->getArticleNumber()];
             if ($creditMemo->getQuantity() != $item->getQuantity()) {
                 return false;

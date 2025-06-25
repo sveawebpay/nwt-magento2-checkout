@@ -8,6 +8,7 @@ use Svea\Checkout\Model\Client\DTO\CancelOrder;
 use Svea\Checkout\Model\Client\DTO\CancelOrderAmount;
 use Svea\Checkout\Model\Client\DTO\DeliverOrder;
 use Svea\Checkout\Model\Client\DTO\CreatePaymentChargeResponse;
+use Svea\Checkout\Model\Client\DTO\CreditRows;
 use Svea\Checkout\Model\Client\DTO\GetOrderInfoResponse;
 use Svea\Checkout\Model\Client\DTO\Order\OrderRow;
 use Svea\Checkout\Model\Client\DTO\RefundNewCreditRow;
@@ -112,6 +113,34 @@ class OrderManagement extends OrderManagementClient
         }
     }
 
+    /**
+     * Cancel rows for given order ID and row IDs
+     *
+     * @param int $orderId
+     * @param int[] $orderRowIds
+     * @return void
+     */
+    public function cancelOrderRows($orderId, array $orderRowIds): void
+    {
+        $request = $this->apiContext->getGenericRequestFactory()->create();
+        $request->setData(['OrderRowIds' => $orderRowIds]);
+        $this->patch(sprintf('/api/v1/orders/%s/rows/cancelOrderRows', $orderId), $request);
+    }
+
+    /**
+     * Cancel row for given order ID and row ID
+     *
+     * @param int $orderId
+     * @param int $rowId
+     * @return void
+     */
+    public function cancelOrderRow($orderId, $rowId): void
+    {
+        $request = $this->apiContext->getGenericRequestFactory()->create();
+        $request->setData(['IsCancelled' => true]);
+        $this->patch(sprintf('/api/v1/orders/%s/rows/%s', $orderId, $rowId), $request);
+    }
+
 
     /**
      * @param DeliverOrder $payment
@@ -188,6 +217,27 @@ class OrderManagement extends OrderManagementClient
             // handle?
             throw $e;
         }
+    }
+
+    /**
+     * @param string $orderId
+     * @param string $deliveryId
+     * @return void
+     */
+    public function refundRows(string $orderId, string $deliveryId, array $rowCreditingOptions): void
+    {
+        $request = new CreditRows();
+        foreach ($rowCreditingOptions as $rowCreditingOption) {
+            $request->addRowCreditingOption((int)$rowCreditingOption['orderRowId'], floatval($rowCreditingOption['quantity']));
+        }
+        $this->post(
+            sprintf(
+                'api/v1/orders/%s/deliveries/%s/credits/credits',
+                $orderId,
+                $deliveryId
+            ),
+            $request
+        );
     }
 
     /**
