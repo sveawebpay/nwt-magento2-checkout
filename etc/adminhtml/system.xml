@@ -83,6 +83,14 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>If NO, no payment operations will be done (Capture/Refund/Void) on Invoice/Creditmemo/Order</comment>
                 </field>
+
+                <field id="auto_capture" translate="label comment" type="select" sortOrder="95" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Auto Capture</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Create and Capture invoice automatically for new orders</comment>
+                    <depends><field id="can_capture">1</field></depends>
+                </field>
+
                 <field id="can_capture_partial" translate="label comment" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Can capture partial </label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

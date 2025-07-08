@@ -219,6 +219,15 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
+     * @param int|null $store
+     * @return boolean
+     */
+    public function autoCapture(?int $store = null): bool
+    {
+        return $this->getStoreConfigFlag(self::XML_PATH_SETTINGS . 'auto_capture', $store);
+    }
+
+    /**
      * @param null $store
      * @return bool
      */

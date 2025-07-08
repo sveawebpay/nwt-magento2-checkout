@@ -8,4 +8,7 @@
         <observer name="svea_mark_cart_as_dirty" instance="Svea\Checkout\Observer\MarkCartDirtyObserver"/>
     </event>
 
+    <event name="checkout_type_onepage_save_order_after">
+        <observer name="svea_auto_capture_handler" instance="Svea\Checkout\Observer\AutoCaptureNewOrder" />
+    </event>
 </config>
