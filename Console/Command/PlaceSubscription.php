@@ -69,5 +69,6 @@ class PlaceSubscription extends Command
         $this->emulation->startEnvironmentEmulation($order->getStoreId(), Area::AREA_FRONTEND, true);
         $this->placeOrders->placeRecurringOrders([$recurringInfo]);
         $this->emulation->stopEnvironmentEmulation();
+        return 0;
     }
 }

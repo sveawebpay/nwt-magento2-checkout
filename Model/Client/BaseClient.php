@@ -14,7 +14,7 @@ use Svea\Checkout\Model\Client\DTO\AbstractRequest;
 abstract class BaseClient
 {
 
-    /** @var $lastResponse ResponseInterface */
+    /** @var ResponseInterface */
     protected $lastResponse;
 
     /**

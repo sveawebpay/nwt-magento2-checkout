@@ -3,8 +3,13 @@
 namespace Svea\Checkout\Model\Svea;
 
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Model\AbstractModel;
 use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\Quote\Item as QuoteItem;
+use Magento\Sales\Model\Order\Creditmemo\Item as CreditmemoItem;
+use Magento\Sales\Model\Order\Invoice\Item as InvoiceItem;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Item as OrderItem;
 use Svea\Checkout\Model\CheckoutException;
 use Svea\Checkout\Model\Client\DTO\Order\OrderRow;
 use Svea\Checkout\Model\Client\DTO\Order\OrderRow\ShippingInformation;
@@ -37,7 +42,7 @@ class Items
      */
     protected $_productConfig;
 
-    /** @var []OrderRow $_cart */
+    /** @var OrderRow[] $_cart */
     protected $_cart     = [];
 
     protected $_discounts = [];
@@ -91,6 +96,8 @@ class Items
     public function addItems($items)
     {
         $isQuote = null;
+
+        $duplicateSkus = $this->getDuplicateSkus($items);
         foreach ($items as $magentoItem) {
             if (is_null($isQuote)) {
                 $isQuote = ($magentoItem instanceof \Magento\Quote\Model\Quote\Item);
@@ -236,14 +243,13 @@ class Items
                     $qty = $qty*$parentQty; //parentQty will be != 1 only for quote, when item qty need to be multiplied with parent qty (for bundle)
                 }
 
+                // If a duplicate SKU, add suffix (sku can be not unique when we have products with options)
                 $sku  = $item->getSku();
-                //make sku unique (sku could not be unique when we have product with options)
-                if (isset($this->_cart[$sku])) {
-                    $sku = $sku . '-' . $item->getId();
+                if (in_array($sku, $duplicateSkus)) {
+                    $sku .= '-' . $this->getSkuSuffix($item);
                 }
 
                 $unitPriceInclTaxes = $addPrices ? $this->addZeroes($item->getPriceInclTax()) : 0;
-                $unitPriceExclTax = $addPrices ? $this->addZeroes($item->getPrice()) : 0;
 
                 //
                 $orderItem = new OrderRow();
@@ -490,8 +496,6 @@ class Items
     {
         $calculatedTotal = 0;
         foreach ($this->_cart as $item) {
-            /** @var $item OrderRow */
-
             $total_price_including_tax = $item->getUnitPrice() * ($item->getQuantity() / 100);
             $calculatedTotal += $total_price_including_tax;
         }
@@ -606,27 +610,6 @@ class Items
         }
 
         return array_values($this->_cart);
-    }
-
-    //generate Svea items from Magento Order
-
-    /**
-     * @param Order $order
-     * @return array
-     * @throws CheckoutException
-     */
-    public function fromOrder(Order $order)
-    {
-        $this->init($order->getStore());
-
-        // we will validate the grand total that we send to svea, since we dont send invocie fee with it, we remove it now
-        $grandTotal = $order->getGrandTotal();
-        $this->addItems($order->getAllItems())
-            ->addShipping($order)
-            ->addDiscounts($order->getCouponCode())
-            ->validateTotals($grandTotal);
-
-        return $this->_cart;
     }
 
     /**
@@ -747,17 +730,17 @@ class Items
 
         /** @var OrderRow[] $matchingItems */
         $matchingItems = [];
-        foreach ($magentoOrderItems as $magentoOrderItem) {
+        foreach ($magentoOrderItems as $skuKey => $magentoOrderItem) {
             /** @var $magentoOrderItem OrderRow */
 
-            if (!array_key_exists($magentoOrderItem->getArticleNumber(), $rowRef)) {
+            if (!array_key_exists($skuKey, $rowRef)) {
                 if (!$throwException) {
                     continue;
                 }
                 throw new LocalizedException(__("Could not match Magento and Svea for article: %1", $magentoOrderItem->getArticleNumber()));
             }
 
-            $matchingItem = $rowRef[$magentoOrderItem->getArticleNumber()];
+            $matchingItem = $rowRef[$skuKey];
 
             // Get quantity and full delivery status from the Magento item,
             // since this might be a partial capture or refund
@@ -872,7 +855,7 @@ class Items
     }
 
     /**
-     * @param $items
+     * @param OrderRow[] $items
      * @param bool $addNegative
      * @return int
      */
@@ -883,7 +866,6 @@ class Items
             if (!$addNegative && $item->getUnitPrice() < 0) {
                 continue;
             }
-            /** @var $item OrderRow */
 
             $amount = $item->getUnitPrice() * ($item->getQuantity() / 100); // we fix quantity, since 300 = 3, and so on
             $price += $amount;
@@ -950,5 +932,53 @@ class Items
         }
 
         return $cart;
+    }
+
+    /**
+     * Finds all SKUs that are duplicated in Quote or Order
+     * Can have multiple lines with same SKU if the product has customizable options
+     *
+     * @param array $items
+     * @return array
+     */
+    private function getDuplicateSkus(array $items): array
+    {
+        $firstItem = reset($items);
+        if (!!$firstItem->getData('order_item_id')) {
+            /** @var CreditmemoItem|InvoiceItem $firstItem  */
+            $items = $firstItem->getOrderItem()->getOrder()->getItems();
+        }
+        $skuCounts = array_reduce($items, function ($carry, $item) {
+            /** @var QuoteItem|OrderItem $item */
+            $sku = $item->getSku();
+
+            // Start count at -1 to simplify use of array_filter after
+            $currentCount = $carry[$sku] ?? -1;
+            $carry[$sku] = ++$currentCount;
+            return $carry;
+        }, []);
+
+        return array_keys(array_filter($skuCounts));
+    }
+
+    /**
+     * Get suffix for SKU, for when different items have same SKU but different product options
+     *
+     * @param AbstractModel|QuoteItem|InvoiceItem|CreditmemoItem $item
+     * @return string
+     */
+    private function getSkuSuffix(AbstractModel $item): string
+    {
+        // Using quote item ID
+        if ($item instanceof QuoteItem) {
+            return (string)$item->getId();
+        }
+
+        // If not a quote item, find the quote item ID so that final SKU value will match
+        if ($item instanceof InvoiceItem || $item instanceof CreditmemoItem) {
+            return (string)$item->getOrderItem()->getQuoteItemId();
+        }
+
+        return '';
     }
 }
