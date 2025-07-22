@@ -15,6 +15,11 @@ use Svea\Checkout\Logger\Logger;
  */
 class AutoCaptureNewOrder implements ObserverInterface
 {
+    const PAYMENT_TYPE_CARD = "Card";
+    const PAYMENT_TYPE_SWISH = "Swish";
+    const PAYMENT_TYPE_VIPPS = "Vipps";
+    const PAYMENT_TYPE_MOBILEPAY = "MobilePay";
+
     public function __construct(
         Data $config,
         InvoiceService $invoiceService,
@@ -71,6 +76,11 @@ class AutoCaptureNewOrder implements ObserverInterface
 
         $storeId = (int)$order->getStoreId();
         if (!$this->config->canCapture($storeId) || !$this->config->autoCapture($storeId)) {
+            return;
+        }
+
+        $paymentMethodType = $order->getPayment()->getAdditionalInformation('svea_payment_method_type');
+        if (!$paymentMethodType || !in_array($paymentMethodType, [self::PAYMENT_TYPE_CARD, self::PAYMENT_TYPE_SWISH, self::PAYMENT_TYPE_VIPPS, self::PAYMENT_TYPE_MOBILEPAY])) {
             return;
         }
 

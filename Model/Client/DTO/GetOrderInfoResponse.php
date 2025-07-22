@@ -71,6 +71,9 @@ class GetOrderInfoResponse
     /** @var string */
     protected $paymentType;
 
+    /** @var string */
+    protected $PaymentMethodType;
+
     protected $actions = [];
 
     /** @var $deliveries GetDeliveryResponse[] */
@@ -109,6 +112,10 @@ class GetOrderInfoResponse
         $this->setOrderAmount($this->get("OrderAmount"));
         $this->setOrderStatus($this->get("OrderStatus"));
         $this->setPaymentType($this->get("PaymentType"));
+        $payment = $this->get("Payment");
+        if ($payment && isset($payment['PaymentMethodType'])) {
+            $this->setPaymentMethodType($payment['PaymentMethodType']);
+        }
         $this->setPaymentCreditStatus($this->get("PaymentCreditStatus"));
         $this->setActions($actions);
 
@@ -245,6 +252,24 @@ class GetOrderInfoResponse
     public function setPaymentType($paymentType)
     {
         $this->paymentType = $paymentType;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPaymentMethodType()
+    {
+        return $this->PaymentMethodType;
+    }
+
+    /**
+     * @param string $PaymentMethodType
+     * @return GetOrder
+     */
+    public function setPaymentMethodType($PaymentMethodType)
+    {
+        $this->PaymentMethodType = $PaymentMethodType;
         return $this;
     }
 

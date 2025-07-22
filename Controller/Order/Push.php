@@ -181,6 +181,7 @@ class Push extends Checkout
         
         // here we create the magento order
         $quote->getPayment()->setAdditionalInformation('svea_payment_method', $sveaOrder->getPaymentType());
+        $quote->getPayment()->setAdditionalInformation('svea_payment_method_type', $sveaOrder->getPaymentMethodType());
         try {
             // we try to create the order now ;)
             $order = $this->placeOrder($sveaOrder, $quote);

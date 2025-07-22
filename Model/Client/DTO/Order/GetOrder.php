@@ -20,6 +20,8 @@ class GetOrder
      */
     protected $PaymentType;
 
+    protected $PaymentMethodType;
+
     /** @var $OrderId int */
     protected $OrderId;
 
@@ -124,6 +126,24 @@ class GetOrder
     public function setPaymentType($PaymentType)
     {
         $this->PaymentType = $PaymentType;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPaymentMethodType()
+    {
+        return $this->PaymentMethodType;
+    }
+
+    /**
+     * @param string $PaymentMethodType
+     * @return GetOrder
+     */
+    public function setPaymentMethodType($PaymentMethodType)
+    {
+        $this->PaymentMethodType = $PaymentMethodType;
         return $this;
     }
 
