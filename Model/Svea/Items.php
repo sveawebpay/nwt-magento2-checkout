@@ -946,7 +946,7 @@ class Items
         $firstItem = reset($items);
         if (!!$firstItem->getData('order_item_id')) {
             /** @var CreditmemoItem|InvoiceItem $firstItem  */
-            $items = $firstItem->getOrderItem()->getOrder()->getItems();
+            $items = $firstItem->getOrderItem()->getOrder()->getAllVisibleItems();
         }
         $skuCounts = array_reduce($items, function ($carry, $item) {
             /** @var QuoteItem|OrderItem $item */
