@@ -232,7 +232,7 @@ class OrderManagement extends OrderManagementClient
         }
         $this->post(
             sprintf(
-                'api/v1/orders/%s/deliveries/%s/credits/credits',
+                'api/v1/orders/%s/deliveries/%s/credits',
                 $orderId,
                 $deliveryId
             ),
