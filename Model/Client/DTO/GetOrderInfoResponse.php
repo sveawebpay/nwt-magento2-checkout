@@ -49,6 +49,7 @@ class GetOrderInfoResponse
     const ACTION_CAN_DELIVER_ORDER_PARTIALLY = "CanDeliverPartially";
     const ACTION_CAN_CANCEL_ORDER = "CanCancelOrder";
     const ACTION_CAN_CANCEL_ORDER_AMOUNT = "CanCancelAmount";
+    const ACTION_CAN_CANCEL_ORDER_ROW = "CanCancelOrderRow";
 
 
     private $_data;
@@ -69,6 +70,9 @@ class GetOrderInfoResponse
 
     /** @var string */
     protected $paymentType;
+
+    /** @var string */
+    protected $PaymentMethodType;
 
     protected $actions = [];
 
@@ -108,6 +112,10 @@ class GetOrderInfoResponse
         $this->setOrderAmount($this->get("OrderAmount"));
         $this->setOrderStatus($this->get("OrderStatus"));
         $this->setPaymentType($this->get("PaymentType"));
+        $payment = $this->get("Payment");
+        if ($payment && isset($payment['PaymentMethodType'])) {
+            $this->setPaymentMethodType($payment['PaymentMethodType']);
+        }
         $this->setPaymentCreditStatus($this->get("PaymentCreditStatus"));
         $this->setActions($actions);
 
@@ -127,7 +135,8 @@ class GetOrderInfoResponse
                     ->setUnit($item['Unit'])
                     ->setDiscountPercent($item['DiscountPercent'])
                     ->setVatPercent($item['VatPercent'])
-                    ->setRowNumber($item['OrderRowId']);
+                    ->setRowNumber($item['OrderRowId'])
+                    ->setActions($item['Actions'] ?? []);
 
                 // add to array
                 $orderRows[] = $orderRow;
@@ -247,6 +256,24 @@ class GetOrderInfoResponse
     }
 
     /**
+     * @return string
+     */
+    public function getPaymentMethodType()
+    {
+        return $this->PaymentMethodType;
+    }
+
+    /**
+     * @param string $PaymentMethodType
+     * @return GetOrder
+     */
+    public function setPaymentMethodType($PaymentMethodType)
+    {
+        $this->PaymentMethodType = $PaymentMethodType;
+        return $this;
+    }
+
+    /**
      * @return array
      */
     public function getActions()
@@ -295,6 +322,24 @@ class GetOrderInfoResponse
         return in_array(self::ACTION_CAN_CANCEL_ORDER_AMOUNT, $this->getActions());
     }
 
+    /**
+     * @return bool
+     */
+    public function canCancelOrderRow(): bool
+    {
+        return in_array(self::ACTION_CAN_CANCEL_ORDER_ROW, $this->getActions());
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCreditablePaymentType(): bool
+    {
+        return in_array(
+            $this->getPaymentType(),
+            [self::PAYMENT_TYPE_INVOICE, self::PAYMENT_TYPE_ACCOUNT_CREDIT, self::PAYMENT_TYPE_PAYMENT_PLAN]
+        );
+    }
 
     public function canDeliver()
     {

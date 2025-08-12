@@ -57,6 +57,10 @@ class GetOrderResponse extends GetOrder
         $this->setEmailAddress($this->get('EmailAddress'));
         $this->setPhoneNumber($this->get('PhoneNumber'));
         $this->setPaymentType($this->get('PaymentType'));
+        $payment = $this->get('Payment');
+        if ($payment && isset($payment['PaymentMethodType'])) {
+            $this->setPaymentMethodType($payment['PaymentMethodType']);
+        }
         $this->setCustomerReference($this->get('CustomerReference'));
         $this->setSveaWillBuyOrder($this->get('SveaWillBuyOrder'));
 

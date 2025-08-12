@@ -8,6 +8,7 @@ class OrderRow extends AbstractRequest
 {
     const ROW_TYPE_STANDARD = 'Row';
     const ROW_TYPE_SHIPPINGFEE = 'ShippingFee';
+    const ACTION_CAN_CANCEL_ROW = 'CanCancelRow';
 
     /**
      * Articlenumber as a string, can contain letters and numbers. ,
@@ -102,6 +103,11 @@ class OrderRow extends AbstractRequest
      * @var ShippingInformation
      */
     protected $ShippingInformation;
+
+    /**
+     * @var array
+     */
+    protected array $actions;
 
     /**
      * Used to determine if all items of row should be delivered or refunded
@@ -358,6 +364,29 @@ class OrderRow extends AbstractRequest
     {
         $this->ShippingInformation = $shippingInformation;
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getActions(): array
+    {
+        return $this->actions;
+    }
+
+    /**
+     * @param array $actions
+     * @return GetOrderInfoResponse
+     */
+    public function setActions($actions): self
+    {
+        $this->actions = $actions;
+        return $this;
+    }
+
+    public function canCancelRow(): bool
+    {
+        return in_array(self::ACTION_CAN_CANCEL_ROW, $this->getActions());
     }
 
     public function toJSON()
