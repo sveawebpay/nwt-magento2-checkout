@@ -32,6 +32,8 @@ class SveaRecurringInfo
 
     private ModelFactory $recurringInfoModelFactory;
 
+    private ?string $storedChangePaymentSnippet = null;
+
     public function __construct(
         PaymentRecurringInfoFactory $paymentRecurringInfoFactory,
         TokenClient $tokenClient,
@@ -193,6 +195,23 @@ class SveaRecurringInfo
         $recurringInfoModel->setNextOrderDate($recurringInfoData->getNextOrderDate());
         $recurringInfoModel->setFrequencyOption($recurringInfoData->getFrequencyOption());
         $this->recurringInfoRepo->save($recurringInfoModel);
+    }
+
+    /**
+     * @param string $snippet
+     * @return void
+     */
+    public function setStoredChangePaymentSnippet(string $snippet): void
+    {
+        $this->storedChangePaymentSnippet = $snippet;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getStoredChangePaymentSnippet(): ?string
+    {
+        return $this->storedChangePaymentSnippet;
     }
 
     /**

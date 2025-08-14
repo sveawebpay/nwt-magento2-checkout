@@ -21,7 +21,8 @@ $formAction = $block->getUrl(
     $urlParams
 );
 
-$buttonTitle = __('Cancel Subscription');
+$cancelButtonTitle = __('Cancel Subscription');
+$paymentChangeUrl = $block->getUrl($block->getUrl('sveacheckout/recurring/changepaymentmethod', $urlParams));
 
 ?>
 
@@ -49,6 +50,13 @@ $buttonTitle = __('Cancel Subscription');
                     <?= $escaper->escapeHtml(__('Next order date')) ?>:
                     <?= $escaper->escapeHtml($recurringInfo->getNextOrderDate()) ?>
                 </div>
+
+                <div>
+                    <a href=" <?= $escaper->escapeUrl($paymentChangeUrl) ?> ">
+                        <?= $escaper->escapeHtml(__('Change Payment Method')) ?>
+                    </a>
+                </div>
+
                 <form
                     action="<?= $escaper->escapeHtmlAttr($formAction) ?>"
                     method="post"
@@ -60,10 +68,10 @@ $buttonTitle = __('Cancel Subscription');
                 >
                     <div class="actions">
                         <button
-                            title="<?= $escaper->escapeHtmlAttr($buttonTitle) ?>"
+                            title="<?= $escaper->escapeHtmlAttr($cancelButtonTitle) ?>"
                             class="action primary"
                             id="cancel-subscription-button">
-                            <span><?= $escaper->escapeHtml($buttonTitle) ?></span>
+                            <span><?= $escaper->escapeHtml($cancelButtonTitle) ?></span>
                         </button>
                     </div>
                 </form>

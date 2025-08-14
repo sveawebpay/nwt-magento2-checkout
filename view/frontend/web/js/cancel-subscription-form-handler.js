@@ -8,7 +8,7 @@ define([
     return function (config, element) {
         const button = $(config.buttonSelector);
         const confirmButtons = [{
-            text: $.mage.__('No, don\'t cancel'),
+            text: $.mage.__('No, do not cancel'),
             class: 'action-secondary action-dismiss',
 
             /**
