@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * @var Magento\Framework\View\Element\Template $block
+ * @var Magento\Framework\Escaper $escaper
+ * @var Svea\Checkout\ViewModel\Order\View\RecurringInfo\ChangePaymentMethod $viewModel
+ */
+
+$viewModel = $block->getViewModel();
+?>
+
+<?= /* @noEscape */ $viewModel->getSnippet() ?>
