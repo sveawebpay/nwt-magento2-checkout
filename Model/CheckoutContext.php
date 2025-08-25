@@ -6,6 +6,7 @@ use Magento\Customer\Api\Data\AddressInterfaceFactory;
 use Magento\Quote\Api\Data\CartExtensionFactory;
 use Magento\Quote\Model\Quote\ShippingAssignment\ShippingAssignmentProcessor;
 use Magento\Quote\Model\Quote;
+use Magento\Quote\Api\ShipmentEstimationInterface;
 use Svea\Checkout\Service\SveaShippingInfo;
 use Svea\Checkout\Service\SveaRecurringInfo;
 use Svea\Checkout\Model\Session;
@@ -94,6 +95,11 @@ class CheckoutContext
     private SessionResourceFactory $sessionResourceFactory;
 
     /**
+     * @var ShipmentEstimationInterface
+     */
+    private ShipmentEstimationInterface $shipmentEstimation;
+
+    /**
      * @var array
      */
     private array $serviceContainers = [];
@@ -118,6 +124,7 @@ class CheckoutContext
      * @param SveaRecurringInfo $sveaRecurringInfo
      * @param SessionFactory $sessionFactory
      * @param SessionResourceFactory $sessionResourceFactory
+     * @param ShipmentEstimationInterface $shipmentEstimationInterface
      */
     public function __construct(
         \Svea\Checkout\Helper\Data $helper,
@@ -137,6 +144,7 @@ class CheckoutContext
         SveaRecurringInfo $sveaRecurringInfo,
         SessionFactory $sessionFactory,
         SessionResourceFactory $sessionResourceFactory,
+        ShipmentEstimationInterface $shipmentEstimation,
         array $serviceContainers = []
     ) {
         $this->helper        = $helper;
@@ -156,6 +164,7 @@ class CheckoutContext
         $this->sveaRecurringInfo = $sveaRecurringInfo;
         $this->sessionFactory = $sessionFactory;
         $this->sessionResourceFactory = $sessionResourceFactory;
+        $this->shipmentEstimation = $shipmentEstimation;
         $this->serviceContainers = $serviceContainers;
     }
 
@@ -310,6 +319,14 @@ class CheckoutContext
     public function getServiceContainer(string $name): ?array
     {
         return $this->serviceContainers[$name] ?? null;
+    }
+
+    /**
+     * @return ShipmentEstimationInterface
+     */
+    public function getShipmentEstimation(): ShipmentEstimationInterface
+    {
+        return $this->shipmentEstimation;
     }
 
     /**
