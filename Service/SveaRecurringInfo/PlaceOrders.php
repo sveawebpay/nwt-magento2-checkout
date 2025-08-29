@@ -14,11 +14,15 @@ use Magento\Framework\Exception\StateException;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Framework\App\Area;
+use Magento\Framework\Mail\Template\TransportBuilder;
+use Magento\Framework\UrlInterface;
 use Svea\Checkout\Model\Shipping\Carrier;
 use Svea\Checkout\Service\SveaRecurringInfo;
 use Svea\Checkout\Service\SveaShippingInfo;
 use Svea\Checkout\Model\Client\Api\TokenClient;
 use Svea\Checkout\Model\RecurringInfo as ModelRecurringInfo;
+use Svea\Checkout\Helper\Data;
 use \Psr\Log\LoggerInterface;
 
 /**
@@ -50,6 +54,12 @@ class PlaceOrders
 
     private LoggerInterface $logger;
 
+    private Data $config;
+
+    private UrlInterface $urlBuilder;
+
+    private TransportBuilder $transportBuilder;
+
     private array $results = [];
 
     public function __construct(
@@ -64,7 +74,10 @@ class PlaceOrders
         SveaRecurringInfo $sveaRecurringInfo,
         SveaShippingInfo $sveaShippingInfo,
         TokenClient $tokenClient,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        Data $config,
+        UrlInterface $urlBuilder,
+        TransportBuilder $transportBuilder
     ) {
         $this->orderCreate = $orderCreate;
         $this->quoteFactory = $quoteFactory;
@@ -78,6 +91,9 @@ class PlaceOrders
         $this->sveaShippingInfo = $sveaShippingInfo;
         $this->tokenClient = $tokenClient;
         $this->logger = $logger;
+        $this->config = $config;
+        $this->urlBuilder = $urlBuilder;
+        $this->transportBuilder = $transportBuilder;
     }
 
     /**
@@ -155,12 +171,29 @@ class PlaceOrders
         $this->sveaRecurringInfo->quoteSetter($quote, $quoteRecurringInfo);
         $this->quoteRepo->save($quote);
 
+        // 1. Create recurring order in Svea
+        try {
+            $this->tokenClient->createRecurringOrder($recurringToken, $quote);
+        } catch (\Exception $e) {
+            $this->handleFailedPayAttempts($recurringInfo, $order);
+            $this->logError(
+                $recurringToken,
+                [$e->getMessage()]
+            );
+            $this->results[$recurringToken] = [
+                'success' => false,
+                'message' => $e->getMessage()
+            ];
+            return;
+        }
+
+        // 2. Create order in Magento
         try {
             $this->saveQuoteShippingInfo($quote, $order);
-            $this->tokenClient->createRecurringOrder($recurringToken, $quote);
             $this->quoteRepo->save($quote);
             $orderId = $this->quoteManagement->placeOrder($quote->getId());
             $recurringInfo->setNextOrderDate($quoteRecurringInfo->getNextOrderDate());
+            $recurringInfo->setFailedPayAttempts(0);
         } catch (\Exception $e) {
             $this->logError(
                 $recurringToken,
@@ -233,5 +266,87 @@ class PlaceOrders
             $this->logger->error($message);
         }
         $this->logger->error(sprintf('[RecurringPayment Error End. Token: %s]', $token));
+    }
+
+    /**
+     * Check max failed pay attempts for how to handle the order
+     *
+     * @param ModelRecurringInfo $recurringInfo
+     * @param Order $order
+     * @return void
+     */
+    private function handleFailedPayAttempts(ModelRecurringInfo $recurringInfo, Order $order): void
+    {
+        $storeId = (int)$order->getStoreId();
+        // Skip if not configured
+        $failedPayEscalation = $this->config->getRecurringFailedPayEscalation($storeId);
+        if ($failedPayEscalation < 1) {
+            return;
+        }
+
+        // If less than max allowed attempts re-schedule for the next day
+        $newFailedPayAttempts = $recurringInfo->getFailedPayAttempts() + 1;
+        $recurringInfo->setFailedPayAttempts($newFailedPayAttempts);
+        $recurringInfo->setNextOrderDate(date('Y-m-d', strtotime('+ 1 day')));
+        if ($newFailedPayAttempts < $failedPayEscalation) {
+            return;
+        }
+
+        $atEscalationlevel = (int)floor($newFailedPayAttempts / $failedPayEscalation);
+        $atExactEscalationLevel = $atEscalationlevel === ($newFailedPayAttempts / $failedPayEscalation);
+        $autoCancel = $this->config->getRecurringCancelAfterSecondEscalation($storeId);
+
+        if ($atEscalationlevel === 3 && $atExactEscalationLevel && $autoCancel) {
+            $this->sveaRecurringInfo->cancel($recurringInfo);
+            return;
+        }
+
+        // If escalation at this point is over 2 (which means auto cancel is off), do nothing
+        if ($atEscalationlevel > 2) {
+            return;
+        }
+
+        if (!$atExactEscalationLevel) {
+            return;
+        }
+
+        // When escalation level is at 1 or 2 we send email
+        $senderEmail = $this->config->getRecurringFailedSenderEmail($storeId);
+        $senderName  = $this->config->getRecurringFailedSenderName($storeId);
+        $this->transportBuilder->addTo($order->getCustomerEmail());
+        $templateVars = [
+            'order' => $order,
+            'store' => $order->getStore(),
+            'order_data' => [
+                'customer_name' => $order->getCustomerName(),
+                'increment_id' => $order->getIncrementId(),
+                'order_url' => $this->urlBuilder->getUrl(
+                    'sales/order/view',
+                    [
+                        'order_id' => $order->getId(),
+                        '_secure' => true
+                    ]
+                )
+            ]
+        ];
+        $templateOptions = [
+            'area' => Area::AREA_FRONTEND,
+            'store' => $storeId,
+        ];
+        $this->transportBuilder->setFromByScope(['email' => $senderEmail, 'name' => $senderName], $storeId);
+        $this->transportBuilder->setTemplateOptions($templateOptions);
+
+        if ($atEscalationlevel === 2 && $autoCancel) {
+            $templateVars['auto_cancel'] = 1;
+        }
+
+        // If max attempts have been reached, send email to customer
+        $this->transportBuilder->setTemplateIdentifier($this->config->getRecurringFailedEmailTemplate($storeId));
+        $this->transportBuilder->setTemplateVars($templateVars);
+        try {
+            $this->transportBuilder->getTransport()->sendMessage();
+        } catch (\Exception $e) {
+            return;
+        }
     }
 }

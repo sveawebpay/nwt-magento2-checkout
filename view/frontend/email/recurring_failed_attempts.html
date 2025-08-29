@@ -1,0 +1,29 @@
+<!--@subject {{trans "Action required regarding your subscription purchased from %store_name" store_name=$store.frontend_name}} @-->
+<!--@vars {
+"var store.frontend_name":"Store Frontend Name",
+"var order_data.customer_name"; "Customer name",
+"var order_data.increment_id"; "Order Increment ID",
+"var order_id": "Order DB Id",
+"var order_data.order_url": "Order URL",
+"var auto_cancel": "Subscription will be auto cancelled"
+}-->
+{{template config_path="design/email/header_template"}}
+
+<table>
+    <tr class="email-intro">
+        <td>
+            <p class="greeting">{{trans "%customer_name," customer_name=$order_data.customer_name}}</p>
+            <p>
+                {{trans 'We were unable to process payment for your subscription order <span class="no-link">#%increment_id</span>' increment_id=$order_data.increment_id |raw}}.
+            </p>
+            <p>
+                {{trans 'Please log in to your account and review the stored payment information. <a href="%order_url">Login link</a>.' order_url=$order_data.order_url |raw}}
+            </p>
+            {{depend auto_cancel}}
+                <p>{{trans 'Your subscription will soon be cancelled if valid payment method is not added.'}}</p>
+            {{/depend}}
+        </td>
+    </tr>
+</table>
+
+{{template config_path="design/email/footer_template"}}
