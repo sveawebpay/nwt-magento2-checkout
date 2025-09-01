@@ -468,8 +468,16 @@ class Items
         return $this;
     }
 
+    /**
+     * @param mixed $giftCardDiscount
+     * @return void
+     */
     public function setGiftCardDiscount($giftCardDiscount)
     {
+        if (!$giftCardDiscount) {
+            return;
+        }
+
         $reference = 'gift-card-discount';
         $amountInclTax = $this->addZeroes($giftCardDiscount);
         $vat = 0;
