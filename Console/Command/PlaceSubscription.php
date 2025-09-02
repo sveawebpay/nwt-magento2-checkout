@@ -68,6 +68,7 @@ class PlaceSubscription extends Command
         $this->appState->setAreaCode(Area::AREA_FRONTEND);
         $this->emulation->startEnvironmentEmulation($order->getStoreId(), Area::AREA_FRONTEND, true);
         $this->placeOrders->placeRecurringOrders([$recurringInfo]);
+        $this->recurringInfoRepo->save($recurringInfo);
         $this->emulation->stopEnvironmentEmulation();
         return 0;
     }

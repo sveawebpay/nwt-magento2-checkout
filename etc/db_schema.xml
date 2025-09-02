@@ -7,6 +7,7 @@
         <column xsi:type="varchar" name="frequency_option" nullable="false" comment="Subscription Frequency" />
         <column xsi:type="date" name="next_order_date" nullable="true" comment="Next Order Date" />
         <column xsi:type="date" name="canceled_date" nullable="true" comment="Canceled Date" />
+        <column xsi:type="int" name="failed_pay_attempts" unsigned="true" nullable="false" default="0" comment="Number of failed pay attempts" />
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="entity_id" />
         </constraint>
