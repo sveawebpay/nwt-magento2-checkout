@@ -577,6 +577,8 @@ class Order
                                 ->setDiscountPercent($item->getDiscountPercent())
                                 ->setUnit($item->getUnit());
 
+                            [$updateRow] = $this->items->fixCartItems([$updateRow]);
+
                             $this->orderManagementApi->updateOrderRow($updateRow, $sveaOrderId, $sveaItem->getRowNumber());
                             $item->setRowNumber($sveaItem->getRowNumber());
                             $rowsToDeliver[$key] = $item;
@@ -599,6 +601,8 @@ class Order
                                 ->setVatPercent($item->getVatPercent())
                                 ->setDiscountPercent($item->getDiscountPercent())
                                 ->setUnit($item->getUnit());
+
+                            [$addRow] = $this->items->fixCartItems([$addRow]);
 
                             $rowId = $this->orderManagementApi->addOrderRow($addRow, $sveaOrderId);
                             $addRow->setRowNumber($rowId);
