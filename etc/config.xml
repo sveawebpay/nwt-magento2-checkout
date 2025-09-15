@@ -7,6 +7,8 @@
             </general>
             <settings>
                 <add_css>0</add_css>
+                <customer_types>B2C</customer_types>
+                <default_customer_type>B2C</default_customer_type>
             </settings>
             <layout>
                 <display_newsletter>1</display_newsletter>
@@ -16,10 +18,6 @@
                 <display_crosssell>1</display_crosssell>
                 <crosssell_limit>8</crosssell_limit>
             </crosssell>
-            <settings>
-                <customer_types>B2C</customer_types>
-                <default_customer_type>B2C</default_customer_type>
-            </settings>
             <recurring_payments>
                 <pay_failed_email_template>sveacheckout_recurring_failed_pay_attempts</pay_failed_email_template>
             </recurring_payments>
