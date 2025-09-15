@@ -12,7 +12,6 @@ use Magento\CatalogInventory\Model\StockState;
 use Magento\CatalogInventory\Model\StockRegistryStorage;
 use Magento\CatalogInventory\Model\Stock\Item as StockItem;
 use Magento\CatalogInventory\Model\StockStateException;
-use Magento\Catalog\Api\ProductRepositoryInterface;
 
 /**
  * Service implementing RegisterProductSaleInterface but using it only for validating items are in stock
@@ -47,25 +46,18 @@ class StockValidator implements RegisterProductSaleInterface
      */
     private StockRegistryStorage $stockRegistryStorage;
 
-    /**
-     * @var ProductRepositoryInterface
-     */
-    private ProductRepositoryInterface $productRepo;
-
     public function __construct(
         ResourceStock $stockResource,
         StockRegistryProviderInterface $stockRegistryProvider,
         StockState $stockState,
         StockConfigurationInterface $stockConfiguration,
-        StockRegistryStorage $stockRegistryStorage,
-        ProductRepositoryInterface $productRepo
+        StockRegistryStorage $stockRegistryStorage
     ) {
         $this->stockRegistryProvider = $stockRegistryProvider;
         $this->stockState = $stockState;
         $this->stockConfiguration = $stockConfiguration;
         $this->resource = $stockResource;
         $this->stockRegistryStorage = $stockRegistryStorage;
-        $this->productRepo = $productRepo;
     }
 
     /**
@@ -84,7 +76,6 @@ class StockValidator implements RegisterProductSaleInterface
         $this->resource->beginTransaction();
         $websiteId = $this->stockConfiguration->getDefaultScopeId();
         $lockedItems = $this->resource->lockProductsStock(array_keys($items), $websiteId);
-        $outOfStock = [];
         foreach ($lockedItems as $lockedItemRecord) {
             $productId = $lockedItemRecord['product_id'];
             $this->stockRegistryStorage->removeStockItem($productId, $websiteId);
@@ -102,17 +93,13 @@ class StockValidator implements RegisterProductSaleInterface
             if (!$this->stockState->checkQty($productId, $orderedQty, $websiteId)
                 || !$this->stockState->verifyStock($productId, $websiteId)
             ) {
-                $outOfStock[] = $this->getProductName((int)$productId);
+                $this->resource->commit();
+                throw new StockStateException(
+                    __('Some of the products are out of stock.')
+                );
             }
         }
         $this->resource->commit();
-        if (empty(array_filter($outOfStock))) {
-            return;
-        }
-
-        throw new StockStateException(
-            __('Some of the products are out of stock.')
-        );
     }
 
     /**
@@ -124,20 +111,5 @@ class StockValidator implements RegisterProductSaleInterface
     private function canSubtractQty(StockItemInterface $stockItem): bool
     {
         return $stockItem->getManageStock() && $this->stockConfiguration->canSubtractQty();
-    }
-
-    /**
-     * @param int $productId
-     * @return string|null
-     */
-    private function getProductName(int $productId): ?string
-    {
-        try {
-            $product = $this->productRepo->getById($productId);
-        } catch (\Exception $e) {
-            return null;
-        }
-
-        return $product->getName();
     }
 }
