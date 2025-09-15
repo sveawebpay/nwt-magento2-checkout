@@ -6,15 +6,25 @@ use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
+use Magento\CatalogInventory\Observer\ProductQty;
+use Svea\Checkout\Api\UsesServiceContainerInterface;
 use Svea\Checkout\Model\CheckoutException;
 use Svea\Checkout\Model\Client\ClientException;
 use Svea\Checkout\Model\Client\DTO\GetOrderResponse;
 use Svea\Checkout\Model\Shipping\Carrier;
+use Svea\Checkout\Service\StockValidator;
 
-class ValidateOrder extends Update
+class ValidateOrder extends Update implements UsesServiceContainerInterface
 {
+    const SERVICE_CONTAINER_NAME = 'controller:order:validateorder';
+
+    private ProductQty $productQty;
+
+    private StockValidator $stockValidator;
+
     public function execute()
     {
+        $this->assignServices();
         $sveaOrderId = $this->getRequest()->getParam('sid');
         $sveaHash = $this->getRequest()->getParam('hash'); // for security!
 
@@ -186,6 +196,15 @@ class ValidateOrder extends Update
     {
         $checkout = $this->getSveaCheckout();
 
+        try {
+            $items = $this->productQty->getProductQty($quote->getAllItems());
+            $this->stockValidator->registerProductsSale($items, $quote->getStore()->getWebsiteId());
+        } catch (\Exception $e) {
+            $messageFormat = 'Validate Order: Svea Order ID %s: items out of stock. Full error: %s';
+            $checkout->getLogger()->error(sprintf($messageFormat, $sveaOrder->getOrderId(), $e->getMessage()));
+            throw new CheckoutException(__('Some products in cart are out of stock'));
+        }
+
         if ($sveaOrder->getShippingAddress() === null) {
             $checkout->getLogger()->error("Validate Order: Consumer has no shipping address.");
             throw new CheckoutException(__("Please add shipping information."));
@@ -272,5 +291,23 @@ class ValidateOrder extends Update
             $logger->error('Validate Order: ' . $message . ' ' . $logContext);
             throw new CheckoutException(__($message));
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getServiceContainerName(): string
+    {
+        return self::SERVICE_CONTAINER_NAME;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function assignServices(): void
+    {
+        $serviceContainer = $this->sveaCheckoutContext->getServiceContainer($this->getServiceContainerName());
+        $this->productQty = $serviceContainer['productQty'];
+        $this->stockValidator = $serviceContainer['stockValidator'];
     }
 }
