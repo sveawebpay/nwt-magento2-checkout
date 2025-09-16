@@ -46,6 +46,9 @@
                 <storefront_svea_checkout_index_index>
                     <report_only>0</report_only>
                 </storefront_svea_checkout_index_index>
+                <storefront_svea_checkout_recurring_changepaymentmethod>
+                    <report_only>0</report_only>
+                </storefront_svea_checkout_recurring_changepaymentmethod>
             </mode>
             <policies>
                 <storefront_svea_checkout_index_index>
@@ -54,6 +57,12 @@
                         <event_handlers>1</event_handlers>
                     </scripts>
                 </storefront_svea_checkout_index_index>
+                <storefront_svea_checkout_recurring_changepaymentmethod>
+                    <scripts>
+                        <inline>0</inline>
+                        <event_handlers>1</event_handlers>
+                    </scripts>
+                </storefront_svea_checkout_recurring_changepaymentmethod>
             </policies>
         </csp>
     </default>
