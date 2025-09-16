@@ -13,6 +13,9 @@ use Svea\Checkout\Model\Svea\Items;
 use Svea\Checkout\Model\Client\ClientException;
 use Svea\Checkout\Model\Client\DTO\Token\GetTokenOrderResponseFactory;
 use Svea\Checkout\Model\Client\DTO\Token\GetTokenOrderResponse;
+use Svea\Checkout\Model\Client\DTO\Token\PaymentMethodsResponseFactory;
+use Svea\Checkout\Model\Client\DTO\Token\PaymentMethodsResponse;
+use Svea\Checkout\Model\Client\DTO\GenericRequestFactory;
 use Magento\Framework\Math\Random;
 
 class TokenClient extends ApiClient
@@ -24,6 +27,10 @@ class TokenClient extends ApiClient
     private MerchantSettingsFactory $merchantSettingsFactory;
 
     private GetTokenOrderResponseFactory $getTokenOrderResponseFactory;
+
+    private GenericRequestFactory $genericRequestFactory;
+
+    private PaymentMethodsResponseFactory $paymentMethodsResponseFactory;
 
     private Data $helper;
 
@@ -37,6 +44,8 @@ class TokenClient extends ApiClient
         CreateRecurringOrderFactory $createRecurringOrderFactory,
         MerchantSettingsFactory $merchantSettingsFactory,
         GetTokenOrderResponseFactory $getTokenOrderResponseFactory,
+        GenericRequestFactory $genericRequestFactory,
+        PaymentMethodsResponseFactory $paymentMethodsResponseFactory,
         Data $helper,
         Items $itemsHelper,
         Random $random
@@ -46,6 +55,8 @@ class TokenClient extends ApiClient
         $this->createRecurringOrderFactory = $createRecurringOrderFactory;
         $this->merchantSettingsFactory = $merchantSettingsFactory;
         $this->getTokenOrderResponseFactory = $getTokenOrderResponseFactory;
+        $this->genericRequestFactory = $genericRequestFactory;
+        $this->paymentMethodsResponseFactory = $paymentMethodsResponseFactory;
         $this->helper = $helper;
         $this->itemsHelper = $itemsHelper;
         $this->random = $random;
@@ -126,5 +137,25 @@ class TokenClient extends ApiClient
         $patchToken = $this->patchTokenFactory->create();
         $patchToken->setStatus('Cancelled');
         $this->patch('/api/tokens/' . $token, $patchToken);
+    }
+
+    /**
+     * Get snippet for customer to change payment method for their recurring order
+     * @see https://docs.payments.svea.com/docs/checkout/recurring-orders/change-payment-method
+     *
+     * @param string $token Active Recurring Token
+     * @param string $termsUrl
+     * @return string
+     * @throws ClientException
+     */
+    public function changePaymentMethod(string $token, string $termsUrl): string
+    {
+        $request = $this->genericRequestFactory->create();
+        $request->setData(['TermsUrl' => $termsUrl]);
+        $response = $this->post(sprintf('/api/tokens/%s/payment-methods', $token), $request);
+        $responseObj = $this->paymentMethodsResponseFactory->create();
+        /** @var PaymentMethodsResponse $responseObj */
+        $responseObj->populateWithJson($response);
+        return $responseObj->getSnippet();
     }
 }

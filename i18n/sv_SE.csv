@@ -183,7 +183,6 @@ Title,Titel
 "Subscription was canceled at","Prenumerationen avslutades den"
 "Are you sure you wish to cancel this subscription? This cannot be undone!","Är du säker på att du vill avsluta prenumerationen? Detta kan inte ångras!"
 "Yes, cancel the subscription","Ja, avbryt prenumerationen"
-"No, don\t cancel","Nej, avbryt inte"
 "Subscribe", "Prenumerera"
 "Your payment session has expired. The checkout will reload.","Din betalningssession har löpt ut. Kassan kommer att laddas om.",
 "Subscription Info","Prenumerationsinformation",
@@ -202,6 +201,8 @@ Title,Titel
 "Subscription was canceled at","Prenumerationen avslutades den"
 "Are you sure you wish to cancel this subscription? This cannot be undone!","Är du säker på att du vill avsluta prenumerationen? Detta kan inte ångras!"
 "Yes, cancel the subscription","Ja, avbryt prenumerationen"
-"No, don\t cancel","Nej, avbryt inte"
-"Subscribe", "Prenumerera",
-"We need to reload the checkout, excuse us just a moment", "Vi behöver ladda om kassan, ursäkta oss ett ögonblick",
+"No, do not cancel","Nej, avbryt inte"
+"Subscribe", "Prenumerera"
+"We need to reload the checkout, excuse us just a moment", "Vi behöver ladda om kassan, ursäkta oss ett ögonblick"
+"Change Payment Method","Byt Betalmetod"
+"Change payment method for your subscription","Byt Betalmetod för din prenumeration"
