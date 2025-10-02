@@ -881,7 +881,7 @@ class Checkout extends Onepage
         $session = $this->context->fetchSveaSession($quote);
         if (!$session->getId()) {
             // Add to sequence if a client order number was previously set
-            if ($this->getRefHelper()->getClientOrderNumber()) {
+            if ($this->getRefHelper()->hasClientOrderNumber()) {
                 $this->getRefHelper()->addToSequence();
             }
             $this->getRefHelper()->unsetSessions();

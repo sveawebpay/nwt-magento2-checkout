@@ -77,9 +77,24 @@ class CheckoutOrderNumberReference
         return $this->getQuote()->getId();
     }
 
+    /**
+     * Checks if client order number is already set
+     *
+     * @return bool
+     */
+    public function hasClientOrderNumber(): bool
+    {
+        return !!$this->getQuote()->getData('svea_client_order_id');
+    }
+
+    /**
+     * Gets client order number / id. Generates it if not yet set.
+     *
+     * @return mixed
+     */
     public function getClientOrderNumber()
     {
-        if (!$this->getQuote()->getData('svea_client_order_id')) {
+        if (!$this->hasClientOrderNumber()) {
             $this->generateClientOrderNumberToQuote();
         }
 
