@@ -587,7 +587,7 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
     protected function splitStringToArray($values)
     {
-        return preg_split("#\s*[ ,;]\s*#", $values, -1, PREG_SPLIT_NO_EMPTY);
+        return preg_split("#\s*[ ,;]\s*#", $values ?? "", -1, PREG_SPLIT_NO_EMPTY);
     }
 
     /**
@@ -647,6 +647,75 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
             self::XML_PATH_SETTINGS . 'recurring_payments/require_account',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
             $store
+        );
+    }
+
+    /**
+     * @param int|null $store
+     * @return int
+     */
+    public function getRecurringFailedPayEscalation(?int $store = null): int
+    {
+        return (int)$this->scopeConfig->getValue(
+            self::XML_PATH_SETTINGS . 'recurring_payments/failed_pay_escalation',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $store
+        );
+    }
+
+    /**
+     * @param int|null $store
+     * @return string
+     */
+    public function getRecurringFailedEmailTemplate(?int $store = null): string
+    {
+        return (string)$this->scopeConfig->getValue(
+            self::XML_PATH_SETTINGS . 'recurring_payments/pay_failed_email_template',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $store
+        );
+    }
+
+    /**
+     * @param int|null $store
+     * @return boolean
+     */
+    public function getRecurringCancelAfterSecondEscalation(?int $store = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_SETTINGS . 'recurring_payments/cancel_subscription_after_second_escalation',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $store
+        );
+    }
+
+    /**
+     * Gets from core sales emails config
+     *
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getRecurringFailedSenderEmail(?int $storeId = null): string
+    {
+        return (string)$this->scopeConfig->getValue(
+            'trans_email/ident_support/email',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    /**
+     * Gets from core sales emails config
+     *
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getRecurringFailedSenderName(?int $storeId = null): string
+    {
+        return (string)$this->scopeConfig->getValue(
+            'trans_email/ident_support/name',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $storeId
         );
     }
 

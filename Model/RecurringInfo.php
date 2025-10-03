@@ -16,6 +16,8 @@ use Svea\Checkout\Api\Data\RecurringInfoInterface;
  * @method string|null getNextOrderDate()
  * @method self setCanceledDate(string $canceledDate)
  * @method string|null getCanceledDate()
+ * @method self setFailedPayAttempts(int $attempts)
+ * @method int getFailedPayAttempts()
  */
 class RecurringInfo extends AbstractModel implements RecurringInfoInterface
 {

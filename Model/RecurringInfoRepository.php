@@ -74,6 +74,7 @@ class RecurringInfoRepository implements RecurringInfoRepositoryInterface
         $todaysDate = date('Y-m-d');
         $collection = $this->collectionFactory->create();
         $collection->addFieldToFilter('next_order_date', ['from' => $todaysDate, 'to' => $todaysDate]);
+        $collection->addFieldToFilter('failed_pay_attempts', ['lteq' => $maxAttempts]);
         $collection->join(
             'sales_order',
             'main_table.original_order_id = sales_order.entity_id',
