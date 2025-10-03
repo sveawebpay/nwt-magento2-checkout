@@ -212,8 +212,8 @@ class Checkout extends Onepage
         }
 
         //this is needed by shipping method with minimum amount
-        $shipping = $quote->getShippingAddress()->setCollectShippingRates(true)->collectShippingRates();
-        $allRates = $shipping->getAllShippingRates();
+        $shipping = $quote->getShippingAddress();
+        $allRates = $this->context->getShipmentEstimation()->estimateByExtendedAddress($quote->getId(), $shipping);
 
         if (!count($allRates)) {
             return false;
@@ -222,18 +222,18 @@ class Checkout extends Onepage
         $rates = [];
         foreach ($allRates as $rate) {
             /** @var $rate Quote\Address\Rate  **/
-            $rates[$rate->getCode()] = $rate->getCode();
-        }
-
-        // check if selected shipping method exists
-        $method = $shipping->getShippingMethod();
-        if ($method && isset($rates[$method])) {
-            return $method;
+            $method = $rate->getCarrierCode() . '_' . $rate->getMethodCode();
+            if ($method === $shipping->getShippingMethod()) {
+                return $method;
+            }
+            $rates[$method] = $method;
         }
 
         // check if default shipping method exists, use it then! Otherwise use first method in list as fallback
         $defaultMethod = $this->getHelper()->getDefaultShippingMethod();
-        $methodToSet = (isset($rates[$defaultMethod])) ? $rates[$defaultMethod] : $allRates[0]->getCode();
+        $firstRate = reset($allRates);
+        $firstRateCode = $firstRate->getCarrierCode() . '_' . $firstRate->getMethodCode();
+        $methodToSet = (isset($rates[$defaultMethod])) ? $rates[$defaultMethod] : $firstRateCode;
         $shipping->setShippingMethod($methodToSet);
         $quote->setTotalsCollectedFlag(false);
         $quote->collectTotals();
