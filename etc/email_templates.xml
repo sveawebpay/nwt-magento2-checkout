@@ -2,4 +2,5 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
     <template id="svea_checkout_email_order_template" label="New Order with Svea Content" file="order_new.html" type="html" module="Svea_Checkout" area="frontend"/>
     <template id="svea_checkout_order_guest_template" label="New Order with Svea Content for Guest" file="order_new_guest.html" type="html" module="Svea_Checkout" area="frontend"/>
+    <template id="svea_checkout_settings_recurring_payments_pay_failed_email_template" label="Svea Checkout Failed Recurring Payments" file="recurring_failed_attempts.html" type="html" module="Svea_Checkout" area="frontend"/>
 </config>

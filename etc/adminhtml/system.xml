@@ -188,6 +188,20 @@
                         <label>Require Customer Account</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     </field>
+                    <field id="failed_pay_escalation" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Failed payment escalation number</label>
+                        <frontend_class>validate-number validate-greater-than-zero</frontend_class>
+                        <comment>After X failed recurring payment attempts, escalate. First and second escalation sends email to customer.</comment>
+                    </field>
+                    <field id="cancel_subscription_after_second_escalation" translate="label" type="select" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Cancel subscription after 2 escalations</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    </field>
+                    <field id="pay_failed_email_template" translate="label comment" type="select" sortOrder="500" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Email Template</label>
+                        <comment>Notifying customer of failed recurring payment escalation</comment>
+                        <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                    </field>
                 </group>
 
                 <group id="minimum_age_restriction" type="text" sortOrder="700" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">

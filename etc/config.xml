@@ -20,6 +20,9 @@
                 <customer_types>B2C</customer_types>
                 <default_customer_type>B2C</default_customer_type>
             </settings>
+            <recurring_payments>
+                <pay_failed_email_template>sveacheckout_recurring_failed_pay_attempts</pay_failed_email_template>
+            </recurring_payments>
         </svea_checkout>
 
         <payment>
