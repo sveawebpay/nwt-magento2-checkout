@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Svea_Checkout::css/svea-hyva.css"/>
+    </head>
+    <body>
+        <referenceBlock name="topmenu_generic">
+            <arguments>
+                <!-- The nonce attribute will be cached for scripts in the menu on Svea if we don't set this to 0 -->
+                <argument name="cache_lifetime" xsi:type="string">0</argument>
+            </arguments>
+        </referenceBlock>
+        <referenceBlock name="svea_checkout.sidebar" template="Svea_Checkout::hyva_compatibility/sidebar.phtml" />
+
+        <referenceBlock name="checkout.cart.item.renderers.configurable" template="Svea_Checkout::hyva_compatibility/checkout/cart/item/item.phtml" />
+        <referenceBlock name="checkout.cart.item.renderers.simple" template="Svea_Checkout::hyva_compatibility/checkout/cart/item/item.phtml" />
+        <referenceBlock name="checkout.cart.item.renderers.bundle" template="Svea_Checkout::hyva_compatibility/checkout/cart/item/item.phtml" />
+        <referenceBlock name="checkout.cart.item.renderers.giftcard" template="Svea_Checkout::hyva_compatibility/checkout/cart/item/item.phtml" />
+        <referenceBlock name="checkout.cart.item.renderers.downloadable" template="Svea_Checkout::hyva_compatibility/checkout/cart/item/item.phtml" />
+        <referenceBlock name="checkout.cart.item.renderers.virtual" template="Svea_Checkout::hyva_compatibility/checkout/cart/item/item.phtml" />
+        <referenceBlock name="checkout.cart.item.renderers.grouped" template="Svea_Checkout::hyva_compatibility/checkout/cart/item/item.phtml" />
+
+        <referenceBlock name="svea.checkout.comment" template="Svea_Checkout::hyva_compatibility/checkout/comment.phtml" />
+        <referenceBlock name="svea_checkout.shipping_method" template="Svea_Checkout::hyva_compatibility/checkout/shipping/method.phtml" />
+        <referenceBlock name="svea_checkout.cart" template="Svea_Checkout::hyva_compatibility/checkout/cart.phtml" />
+        <referenceBlock name="svea_checkout.newsletter" template="Svea_Checkout::hyva_compatibility/checkout/subscribe.phtml" />
+
+        <referenceBlock name="svea_checkout.svea.recurring_payments">
+            <arguments>
+                <argument name="template" xsi:type="helper" helper="Svea\Checkout\Helper\Layout::getRecurringTemplate">
+                    <param name="template">Svea_Checkout::hyva_compatibility/checkout/recurring.phtml</param>
+                </argument>
+            </arguments>
+        </referenceBlock>
+    </body>
+</page>

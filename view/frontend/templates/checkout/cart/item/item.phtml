@@ -15,7 +15,7 @@ $qtyIncrements = floatval($_item->getData('qty_increments')) ? $_item->getData('
 <tr>
     <td class="svea-checkout-col item-img">
         <div class="product-item-image">
-            <?php if ($block->hasProductUrl()):?>
+            <?php if ($block->hasProductUrl()): ?>
                 <a href="<?= /* @escapeNotVerified */ $block->getProductUrl() ?>"> <?= $block->getImage($block->getProductForThumbnail(), 'cart_page_product_thumbnail')->toHtml() ?></a>
             <?php else: ?>
                 <?= $block->getImage($block->getProductForThumbnail(), 'cart_page_product_thumbnail')->toHtml() ?>
@@ -25,7 +25,7 @@ $qtyIncrements = floatval($_item->getData('qty_increments')) ? $_item->getData('
     <td class="svea-checkout-col item-desc" data-th="<?php echo $block->escapeHtml(__('Product Name')); ?>">
         <div class="product-item-details">
             <div class="product-item-info">
-                <?php if ($block->hasProductUrl()):?>
+                <?php if ($block->hasProductUrl()): ?>
                     <a href="<?= /* @escapeNotVerified */ $block->getProductUrl() ?>"><strong class="product name product-item-name"><?php echo $block->escapeHtml($block->getProductName()) ?></strong></a>
                 <?php else: ?>
                     <?= $block->escapeHtml($block->getProductName()) ?>
@@ -58,7 +58,8 @@ $qtyIncrements = floatval($_item->getData('qty_increments')) ? $_item->getData('
                 <?php endif; ?>
             </div>
     </td>
-    <?php if (0): //maybe a future adminhtml switch will control this? ?>
+    <?php if (0): //maybe a future adminhtml switch will control this? 
+    ?>
         <td class="col price" data-th="<?php echo $block->escapeHtml(__('Price')); ?>">
             <?php if ($this->helper('Magento\Tax\Helper\Data')->displayCartPriceInclTax() || $this->helper('Magento\Tax\Helper\Data')->displayCartBothPrices()): ?>
                 <span class="price-including-tax" data-label="<?php echo $block->escapeHtml(__('Incl. Tax')); ?>">
@@ -80,31 +81,31 @@ $qtyIncrements = floatval($_item->getData('qty_increments')) ? $_item->getData('
             <span class="qty">
                 <span class="input-number-decrement">-</span>
                 <input id="cart-<?php /* @escapeNotVerified */
-                echo $_item->getId() ?>-qty"
-                       name="cart[<?php /* @escapeNotVerified */
-                       echo $_item->getId() ?>][qty]"
-                       data-cart-item-id="<?php /* @escapeNotVerified */
-                       echo $_item->getSku() ?>"
-                       data-cart-product-id="<?php /* @escapeNotVerified */
-                       echo $_item->getId() ?>"
-                       data-cart-form-key="<?php echo $FormKey->getFormKey(); ?>"
-                       data-cart-url-submit="<?= /* @escapeNotVerified */
-                       $block->getUrl('checkout/sidebar/updateItemQty') ?>"
-                       data-cart-url-update="<?= /* @escapeNotVerified */
-                       $block->getUrl('sveacheckout/order/cart') ?>"
-                       data-cart-url-remove="<?= /* @escapeNotVerified */
-                       $block->getUrl('checkout/sidebar/removeItem'); ?>"
-                       value="<?php /* @escapeNotVerified */
-                       echo $_item->getQty() ?>"
-                       type="number"
-                       min="1"
-                       size="4"
-                       title="<?php echo $block->escapeHtml(__('Qty')); ?>"
-                       class="input-text qty ajax-qty-change"
-                       maxlength="12"
-                       data-validate="{required:true,'validate-greater-than-zero':true}"
-                       data-role="cart-item-qty"
-                       data-qty-increments="<?= $escaper->escapeHtmlAttr($qtyIncrements) ?>"/>
+                                echo $_item->getId() ?>-qty"
+                    name="cart[<?php /* @escapeNotVerified */
+                                echo $_item->getId() ?>][qty]"
+                    data-cart-item-id="<?php /* @escapeNotVerified */
+                                        echo $_item->getSku() ?>"
+                    data-cart-product-id="<?php /* @escapeNotVerified */
+                                            echo $_item->getId() ?>"
+                    data-cart-form-key="<?php echo $FormKey->getFormKey(); ?>"
+                    data-cart-url-submit="<?= /* @escapeNotVerified */
+                                            $block->getUrl('checkout/sidebar/updateItemQty') ?>"
+                    data-cart-url-update="<?= /* @escapeNotVerified */
+                                            $block->getUrl('sveacheckout/order/cart') ?>"
+                    data-cart-url-remove="<?= /* @escapeNotVerified */
+                                            $block->getUrl('checkout/sidebar/removeItem'); ?>"
+                    value="<?php /* @escapeNotVerified */
+                            echo $_item->getQty() ?>"
+                    type="number"
+                    min="1"
+                    size="4"
+                    title="<?php echo $block->escapeHtml(__('Qty')); ?>"
+                    class="input-text qty ajax-qty-change"
+                    maxlength="12"
+                    data-validate="{required:true,'validate-greater-than-zero':true}"
+                    data-role="cart-item-qty"
+                    data-qty-increments="<?= $escaper->escapeHtmlAttr($qtyIncrements) ?>" />
 
                 <span class="input-number-increment">+</span>
             </span>
@@ -113,20 +114,20 @@ $qtyIncrements = floatval($_item->getData('qty_increments')) ? $_item->getData('
 
     <td class="svea-checkout-col price" data-th="<?php echo $block->escapeHtml(__('Price')); ?>">
         <span class="price-including-tax" data-label="<?php echo $block->escapeHtml(__('Price')); ?>">
-                    <?php echo $block->getUnitPriceHtml($_item); ?>
-                </span>
+            <?php echo $block->getUnitPriceHtml($_item); ?>
+        </span>
     </td>
 
     <td class="svea-checkout-col subtotal" data-th="<?php echo $block->escapeHtml(__('Subtotal')); ?>">
         <?php if ($this->helper('Magento\Tax\Helper\Data')->displayCartPriceInclTax() || $this->helper('Magento\Tax\Helper\Data')->displayCartBothPrices()): ?>
             <span class="price-including-tax" data-label="<?php echo $block->escapeHtml(__('Incl. Tax')); ?>">
-                    <?php echo $block->getRowTotalInclTaxHtml($_item); ?>
-                </span>
+                <?php echo $block->getRowTotalInclTaxHtml($_item); ?>
+            </span>
         <?php endif; ?>
         <?php if ($this->helper('Magento\Tax\Helper\Data')->displayCartPriceExclTax() || $this->helper('Magento\Tax\Helper\Data')->displayCartBothPrices()): ?>
             <span class="price-excluding-tax" data-label="<?php echo $block->escapeHtml(__('Excl. Tax')); ?>">
-                    <?php echo $block->getRowTotalExclTaxHtml($_item); ?>
-                </span>
+                <?php echo $block->getRowTotalExclTaxHtml($_item); ?>
+            </span>
         <?php endif; ?>
         <span class="remove-product"><span><?= __('Remove') ?></span></span>
     </td>

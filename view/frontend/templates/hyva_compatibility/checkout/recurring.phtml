@@ -1,0 +1,132 @@
+<?php
+
+/**
+ * @var Magento\Framework\View\Element\Template $block
+ * @var Magento\Framework\Escaper $escaper
+ * @var Svea\Checkout\ViewModel\Checkout\Recurring $viewModel
+ */
+
+$viewModel = $block->getViewModel();
+$checked = $viewModel->getMyRecurringStatus();
+$options = $viewModel->getRecurringFrequencyOptions();
+?>
+
+<script>
+    function initSetRecurring() {
+        return {
+            options: {
+                toggleRecurringSelector: '#svea_checkout_set_recurring_recurring_enabled',
+                frequencyOptionSelector: '#svea_checkout_set_recurring_frequency_option',
+            },
+
+            init() {
+                this._bindEvents();
+            },
+
+            _bindEvents() {
+                const recurringToggle = document.querySelector(this.options.toggleRecurringSelector);
+                const frequencyOptionSelector = document.querySelector(this.options.frequencyOptionSelector);
+                const element = document.getElementById('svea_checkout_set_recurring');
+                const action = element.action;
+                var self = this;
+
+                recurringToggle.addEventListener('change', function() {
+                    element.submit();
+                });
+
+                frequencyOptionSelector.addEventListener('change', function() {
+                    const formData = new FormData(element);
+                    formData.append('frequency_only', '1');
+
+                    self.makeRequest({
+                        url: action,
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData,
+                        onSuccess: (result) => {
+                            // Do nothing
+                        },
+                        onError: (error) => {
+                            console.error('Error updating frequency:', error);
+                        }
+                    });
+                });
+            },
+
+            makeRequest: function({
+                url,
+                method = 'GET',
+                headers = {},
+                body = null,
+                onSuccess = () => {},
+                onError = () => {},
+                onRedirect = (redirectUrl) => {
+                    window.location.href = redirectUrl;
+                },
+                onComplete = () => {},
+            }) {
+                fetch(url, {
+                        method,
+                        headers,
+                        body,
+                        credentials: 'include',
+                        mode: 'cors'
+                    })
+                    .then(response => {
+                        if (response.redirected) {
+                            onRedirect(response.url);
+                            return;
+                        }
+                        if (response.ok) {
+                            return response.json();
+                        } else {
+                            throw new Error('Request failed');
+                        }
+                    })
+                    .then(data => {
+                        onSuccess(data);
+                    })
+                    .catch(error => {
+                        console.error('Error in request:', error);
+                        onError(error);
+                    })
+                    .finally(() => {
+                        onComplete();
+                    });
+            }
+        }
+    }
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+
+<form
+    id="svea_checkout_set_recurring"
+    action="<?= $escaper->escapeHtmlAttr($viewModel->getFormAction()) ?>"
+    method="POST"
+    x-data="initSetRecurring()">
+    <div class="control-wrapper">
+        <div class="control-checkbox">
+            <input
+                name="recurring_enabled"
+                id="svea_checkout_set_recurring_recurring_enabled"
+                class="checkbox"
+                type="checkbox"
+                value="enabled"
+                <?= ($checked) ? ' checked="checked"' : '' ?> />
+            <label for="svea_checkout_set_recurring_recurring_enabled"><?= $escaper->escapeHtml(__('Subscribe')) ?></label>
+        </div>
+        <div class="control">
+            <select name="frequency_option" id="svea_checkout_set_recurring_frequency_option">
+                <?php foreach ($viewModel->getRecurringFrequencyOptions() as $option): ?>
+                    <option
+                        value=<?= $escaper->escapeHtmlAttr($option['value']) ?>
+                        <?= ($option['selected']) ? ' selected="selected"' : '' ?>>
+                        <?= $escaper->escapeHtml($option['label']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,572 @@
+<?php
+// @codingStandardsIgnoreFile
+
+/**
+ * @var Svea\Checkout\Block\Checkout $block
+ * @var Magento\Framework\Escaper $escaper
+ */
+
+use Hyva\Theme\ViewModel\SvgIcons;
+use Hyva\Theme\ViewModel\StoreConfig;
+
+$hyvaicons = $viewModels->require(SvgIcons::class);
+$storeConfig = $viewModels->require(StoreConfig::class);
+$cookieDomain = $storeConfig->getStoreConfig('web/cookie/cookie_domain');
+?>
+
+<script>
+    <?php // Functionality copied over from vendor/sveawebpay/nwt-magento2-checkout/view/frontend/web/js/checkout.js which doesn't work with Hyvä theme 
+    ?>
+
+    function initSveaCart() {
+        return {
+            isLoading: false,
+            options: {
+                shippingMethodFormSelector: '#shipping-method-form',
+                shippingMethodsListSelector: '#svea-checkout_shipping_method',
+                newsletterFormSelector: '#svea-checkout-newsletter-form',
+                couponFormSelector: '#discount-coupon-form',
+                couponToggler: '#coupon-toggle',
+                couponFormContainer: '#svea-checkout_coupon',
+                waitLoadingContainer: '#review-please-wait',
+                ctrlkey: '<?= $block->generateHashSignatureByQuote() ?? '' ?>',
+                ctrlcookie: '<?= $block->getCartCtrlKeyCookieName() ?? 'svea-checkoutCartCtrlKey' ?>',
+                ctrkeyCheck: true,
+                cookieDomain: '<?= $cookieDomain ?>',
+                sveaCountryChange: false,
+                sveaShippingChange: false,
+                hasInitFlag: false,
+                shippingAjaxInProgress: false,
+                iframeOverlay: "#iframe-overlay",
+                sveaShippingActive: '<?= $block->isSveaShippingActive() ?? '' ?>',
+                sveaCreatedAt: <?= $escaper->escapeJs($block->getSveaCreatedAt() ?? 0) ?>,
+                sessionLifetimeSeconds: <?= $escaper->escapeJs($block->getSessionLifetimeSeconds() ?? 172800) ?>,
+            },
+
+            init() {
+                document.cookie = `${this.options.ctrlcookie}=${this.options.ctrlkey}; path=/; domain=${this.options.cookieDomain}; expires=Session; SameSite=Lax; Secure`;
+                this._checkIfCartWasUpdated();
+                this._expiryCheck();
+            },
+
+            _checkIfCartWasUpdated: function() {
+                var self = this;
+
+                const checkIfCartWasUpdated = setInterval(() => {
+                    if (!self.options.ctrkeyCheck) {
+                        return true;
+                    }
+
+                    const ctrlkey = document.cookie
+                        .split('; ')
+                        .find(row => row.startsWith(self.options.ctrlcookie + '='))
+                        ?.split('=')[1];
+
+                    if (ctrlkey && ctrlkey !== self.options.ctrlkey) {
+                        clearInterval(checkIfCartWasUpdated);
+
+                        // Display error message and reload the page
+                        const waitLoadingContainer = document.querySelector(self.options.waitLoadingContainer);
+                        if (waitLoadingContainer) {
+                            waitLoadingContainer.innerHTML = '<span class="error">Cart was updated, please wait for the Checkout to reload...</span>';
+                            waitLoadingContainer.style.display = 'block';
+                        }
+
+                        window.location.reload();
+                    }
+                }, 1000);
+            },
+
+            /**
+             * Checks every 5 seconds if the payment session is expired
+             */
+            _expiryCheck: function() {
+                var self = this;
+
+                const expiryCheck = setInterval(() => {
+                    const sveaCreatedAt = new Date(self.options.sveaCreatedAt * 1000);
+                    const expiresAt = new Date(
+                        sveaCreatedAt.getTime() +
+                        self.options.sessionLifetimeSeconds * 1000
+                    );
+
+                    if (new Date().getTime() >= expiresAt.getTime()) {
+                        clearInterval(expiryCheck);
+
+                        alert('<?= $escaper->escapeJs(__("Your payment session has expired. The checkout will reload.")) ?>');
+                        location.reload();
+                    }
+                }, 5000);
+            },
+
+            _ajaxBeforeSend: function() {
+                this.options.ctrkeyCheck = false;
+                this.options.shippingAjaxInProgress = true;
+                this.isLoading = true;
+
+                // Hide Svea Checkout
+                if (window.scoApi) {
+                    try {
+                        window.scoApi.setCheckoutEnabled(false);
+                    } catch (err) {}
+                }
+            },
+
+            _ajaxComplete: function() {
+                // Show Svea Checkout
+                if (window.scoApi) {
+                    try {
+                        window.scoApi.setCheckoutEnabled(true);
+                    } catch (err) {}
+                }
+
+                this.isLoading = false;
+                this.options.ctrkeyCheck = true;
+                this.options.shippingAjaxInProgress = false;
+                this.sveaApiChanges();
+            },
+
+            deleteItemFromCart(itemId) {
+                var self = this;
+
+                this.isLoading = true;
+
+                const formKey = hyva.getFormKey();
+                const postUrl = BASE_URL + 'checkout/sidebar/removeItem/';
+
+                self.makeRequest({
+                    url: postUrl,
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    },
+                    body: `form_key=${formKey}&item_id=${itemId}`,
+                    onSuccess: (result) => {
+                        window.dispatchMessages && window.dispatchMessages([{
+                            type: result.success ? 'success' : 'error',
+                            text: result.success ?
+                                'You removed the item.' : result.error_message,
+                        }], result.success ? 2000 : 0);
+                        window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+                        this.updateSveaCart();
+                    },
+                    onError: () => {
+                        window.dispatchMessages && window.dispatchMessages([{
+                            type: 'warning',
+                            text: 'Could not remove item from quote.',
+                        }]);
+                    },
+                    onComplete: () => {
+                        this.isLoading = false;
+                    }
+                });
+            },
+            updateItemQty(itemId, qty) {
+                this.isLoading = true;
+
+                const formKey = hyva.getFormKey();
+                const postUrl = BASE_URL + 'checkout/sidebar/updateItemQty/';
+
+                if (qty < 1) {
+                    this.deleteItemFromCart(itemId);
+                    return;
+                }
+
+                this.makeRequest({
+                    url: postUrl,
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    },
+                    body: `form_key=${formKey}&item_id=${itemId}&item_qty=${qty}`,
+                    onSuccess: () => {
+                        window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+                        this.updateSveaCart();
+                    },
+                    onError: () => {
+                        window.dispatchMessages && window.dispatchMessages([{
+                            type: 'warning',
+                            text: 'Could not update item.',
+                        }]);
+                    },
+                    onComplete: () => {
+                        this.isLoading = false;
+                    }
+                });
+            },
+
+            updateSveaCart(noMessage = false) {
+                const formKey = hyva.getFormKey();
+                const postUrl = BASE_URL + 'sveacheckout/order/cart';
+                var self = this;
+
+                self._ajaxBeforeSend();
+
+                self.makeRequest({
+                    url: postUrl,
+                    method: 'POST',
+                    headers: {
+                        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: `form_key=${formKey}`,
+                    onSuccess: (result) => {
+                        if (result.ctrlkey) {
+                            self.options.ctrlkey = result.ctrlkey;
+                            document.cookie = `${self.options.ctrlcookie}=${result.ctrlkey}; path=/; domain=${self.options.cookieDomain}; expires=Session; SameSite=Lax; Secure`;
+                        }
+
+                        if (result.updates) {
+                            const blocks = result.updates;
+                            for (const block in blocks) {
+                                if (Object.prototype.hasOwnProperty.call(blocks, block)) {
+                                    const div = document.querySelector(`#svea-checkout_${block}`);
+
+                                    if (div) div.outerHTML = blocks[block];
+
+                                    if (block === 'shipping_method') {
+                                        const shippingMethodsList = document.querySelector(self.options.shippingMethodsListSelector);
+                                        if (shippingMethodsList) shippingMethodsList.style.display = 'block';
+                                    }
+
+                                    if (block === "svea") self.sveaApiChanges();
+                                }
+                            }
+                        }
+
+                        self.reloadShippingMethods(self.options.shippingMethodFormSelector);
+
+                        if (!noMessage) {
+                            window.dispatchMessages && window.dispatchMessages([{
+                                type: result.ok ? 'success' : 'error',
+                                text: result.ok ?
+                                    'You have successfully updated the item.' : 'Something went wrong.',
+                            }], 2000);
+                        }
+                    },
+                    onError: () => {
+                        window.dispatchMessages && window.dispatchMessages([{
+                            type: 'warning',
+                            text: 'Could not update cart.',
+                        }]);
+                    },
+                    onComplete: () => {
+                        self._ajaxComplete();
+                    }
+                });
+            },
+
+            reloadShippingMethods(formSelector) {
+                const url = BASE_URL + 'sveacheckout/order/ReloadShippingMethods';
+
+                this.makeRequest({
+                    url,
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    onSuccess: (data) => {
+                        if (data.requiredShippingAction === 2) {
+                            window.scoApi.setCheckoutEnabled(false);
+                            window.alert('Please choose a shipping method.');
+                        } else if (data.requiredShippingAction === 1) {
+                            window.scoApi.setCheckoutEnabled(false);
+                        }
+
+                        const formElement = document.querySelector(formSelector);
+                        if (formElement) formElement.innerHTML = data.output;
+                    },
+                    onError: (error) => {
+                        console.error('Error reloading shipping methods:', error);
+                    }
+                });
+            },
+
+            submitNewsletterAjax() {
+                const form = document.querySelector(this.options.newsletterFormSelector);
+
+                if (!form) {
+                    console.error('Newsletter form not found');
+                    return;
+                }
+
+                const formData = new FormData(form); // To serialize form data
+                const url = form.action;
+
+                this.isLoading = true;
+
+                this.makeRequest({
+                    url,
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData,
+                    onSuccess: (response) => {
+                        window.dispatchMessages && window.dispatchMessages([{
+                            type: response.ok ? 'success' : 'error',
+                            text: response.ok ?
+                                'Newsletter subscription saved successfully.' : 'Something went wrong.',
+                        }], 2000);
+                    },
+                    onError: (error) => {
+                        console.error('Error submitting newsletter:', error);
+                    },
+                    onComplete: () => {
+                        this.isLoading = false;
+                    }
+                });
+            },
+
+            submitShippingMethodAjax() {
+                var self = this;
+                const form = document.querySelector(this.options.shippingMethodFormSelector);
+
+                if (!form) {
+                    console.error('Shipping method form not found');
+                    return;
+                }
+
+                const formData = new FormData(form); // To serialize form data
+                const url = form.action;
+
+                this._ajaxBeforeSend();
+
+                self.makeRequest({
+                    url,
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData,
+                    onSuccess: (result) => {
+                        if (result.ctrlkey) {
+                            self.options.ctrlkey = result.ctrlkey;
+                            document.cookie = `${self.options.ctrlcookie}=${result.ctrlkey}; path=/; domain=${self.options.cookieDomain}; expires=Session; SameSite=Lax; Secure`;
+                        }
+
+                        self.updateSveaCart(true);
+                        window.dispatchMessages && window.dispatchMessages([{
+                            type: result.ok ? 'success' : 'error',
+                            text: result.ok ?
+                                'Shipping method saved successfully.' : 'Something went wrong.',
+                        }], 2000);
+                    },
+                    onError: (error) => {
+                        console.error('Error submitting shipping method:', error);
+                    },
+                    onComplete: () => {
+                        this.isLoading = false;
+                    }
+                });
+            },
+
+            submitCouponAjax() {
+                var self = this;
+                const form = document.querySelector(this.options.couponFormSelector);
+
+                if (!form) {
+                    console.error('Coupon form not found');
+                    return;
+                }
+
+                const formData = new FormData(form);
+                const url = form.action;
+
+                if (!formData.get('coupon_code')) {
+                    window.dispatchMessages && window.dispatchMessages([{
+                        type: 'warning',
+                        text: '<?= $escaper->escapeJs(__('Please enter a discount code.')) ?>'
+                    }], 2000);
+                    return;
+                }
+
+                self._ajaxBeforeSend();
+
+                self.makeRequest({
+                    url,
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData,
+                    onSuccess: (result) => {
+                        if (result.ctrlkey) {
+                            self.options.ctrlkey = result.ctrlkey;
+                            document.cookie = `${self.options.ctrlcookie}=${result.ctrlkey}; path=/; domain=${self.options.cookieDomain}; expires=Session; SameSite=Lax; Secure`;
+                        }
+
+                        if (!self.options.sveaShippingActive) {
+                            self.reloadShippingMethods(self.options.shippingMethodFormSelector);
+                        }
+
+                        self.updateSveaCart(true);
+
+                        if (result.updates.messages) {
+                            const messageText = self.extractMessageText(result.updates.messages);
+                            const success = !result.updates.messages.includes('error');
+
+                            if (messageText) {
+                                window.dispatchMessages && window.dispatchMessages([{
+                                    type: success ? 'success' : 'error',
+                                    text: messageText
+                                }], 2000);
+                            }
+                        } else {
+                            window.dispatchMessages && window.dispatchMessages([{
+                                type: 'error',
+                                text: 'Something went wrong.',
+                            }], 2000);
+                        }
+                    },
+                    onError: (error) => {
+                        console.error('Error submitting discount code:', error);
+                    },
+                    onComplete: () => {
+                        this.isLoading = false;
+                    }
+                });
+            },
+
+            extractMessageText(htmlString) {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = htmlString;
+
+                const messageElement = tempDiv.querySelector('[data-ui-id]');
+
+                return messageElement ? messageElement.textContent.trim() : null;
+            },
+
+            toggleCouponContainer: function() {
+                var target = this.options.couponFormContainer,
+                    toggler = this.options.couponToggler;
+
+                document.addEventListener('change', function(e) {
+                    if (e.target.matches(toggler)) {
+                        document.querySelector(target).classList.toggle('visible', e.target.checked);
+                    }
+                });
+            },
+
+            sveaApiChanges: function() {
+                var self = this;
+
+                if (!window.scoApi) {
+                    return;
+                }
+
+                window.scoApi.observeEvent(
+                    "identity.postalCode",
+                    function(data) {
+                        // Will check for updated Tax and Totals due to changed postal code
+                        self.makeRequest({
+                            url: `${BASE_URL}sveacheckout/order/updatePostcode`,
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({
+                                postcode: data.value
+                            }),
+                            onSuccess: (result) => {
+                                if (result.ctrlkey) {
+                                    self.options.ctrlkey = result.ctrlkey;
+                                    document.cookie = `${self.options.ctrlcookie}=${result.ctrlkey}; path=/; domain=${self.options.cookieDomain}; expires=Session; SameSite=Lax; Secure`;
+                                }
+
+                                self.updateSveaCart(true);
+                            },
+                            onError: (error) => {
+                                console.error('Error updating postcode:', error);
+                            },
+                            onComplete: () => {
+                                this.isLoading = false;
+                            }
+                        });
+                    }.bind(this),
+                );
+            },
+
+            makeRequest: function({
+                url,
+                method = 'GET',
+                headers = {},
+                body = null,
+                onSuccess = () => {},
+                onError = () => {},
+                onRedirect = (redirectUrl) => {
+                    window.location.href = redirectUrl;
+                },
+                onComplete = () => {},
+            }) {
+                fetch(url, {
+                        method,
+                        headers,
+                        body,
+                        credentials: 'include',
+                        mode: 'cors'
+                    })
+                    .then(response => {
+                        if (response.redirected) {
+                            onRedirect(response.url);
+                            return;
+                        }
+                        if (response.ok) {
+                            return response.json();
+                        } else {
+                            throw new Error('Request failed');
+                        }
+                    })
+                    .then(data => {
+                        onSuccess(data);
+                    })
+                    .catch(error => {
+                        console.error('Error in request:', error);
+                        onError(error);
+                    })
+                    .finally(() => {
+                        onComplete();
+                    });
+            }
+        }
+    }
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+
+<div class="svea-checkout-review" id="svea-checkout-review"
+    x-data="initSveaCart()">
+    <div class="svea-checkout-cart svea-checkout-section" id="svea-checkout-cart">
+        <div class="svea-checkout-section-content" data-role="content"
+            aria-labelledby="svea-checkout-cart-heading">
+            <?= $block->getChildHtml('cart'); ?>
+        </div>
+    </div>
+    <div class="svea-checkout-extra">
+        <div class="svea-checkout-extra__right">
+            <?php echo $block->getChildHtml('coupon'); ?>
+            <?php echo $block->getChildHtml('giftcard'); ?>
+        </div>
+    </div>
+    <?= $block->getChildHtml('shipping'); ?>
+    <?= $block->getChildHtml('comment'); ?>
+    <div class="flex flex-row justify-center items-center w-full h-full fixed select-none z-50"
+        style="left: 50%;top: 50%;transform: translateX(-50%) translateY(-50%);background: rgba(255,255,255,0.7);"
+        x-show="isLoading"
+        x-cloak
+        x-transition:enter="ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0">
+        <?= $hyvaicons->loaderHtml('text-primary', 57, 57); ?>
+        <div class="ml-10 text-primary text-xl">
+            <?= $escaper->escapeHtml(__('Loading...')) ?>
+        </div>
+    </div>
+</div>
+
+<span class="please-wait load indicator" id="review-please-wait" style="display: none;"
+    data-text="<?= $escaper->escapeHtml(__('Submitting order information...')); ?>">
+    <span><?= $escaper->escapeHtml(__('Submitting order information...')); ?></span>
+</span>

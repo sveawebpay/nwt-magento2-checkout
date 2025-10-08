@@ -1,16 +1,14 @@
 <?php
 
-
-// @codingStandardsIgnoreFile
 /** @var $block \Svea\Checkout\Block\Checkout */
 
 //id  #svea-checkout_shipping_method is mandatory
-
 ?>
 <div id="svea-checkout_shipping_method">
-    <div class="shipping-method-holder">
-
-
+    <fieldset class="shipping-method-holder">
+        <legend class="sr-only">
+            <?= __('Shipping Method') ?>
+        </legend>
         <?php if ($groups = $block->getShippingRateGroups()): ?>
             <?php $currentRate = $block->getCurrentShippingRate(); ?>
             <?php foreach ($groups as $code => $rates): ?>
@@ -20,15 +18,13 @@
                     $checked = $currentRate === $rate->getCode() ? 'checked' : '';
                 ?>
                     <div class="svea-checkout-radio-row">
-                        <span>
-                            <input type="radio"
-                                name="shipping_method" <?php echo $checked; ?> value="<?php echo $value; ?>"
-                                id="<?php echo $value; ?>">
-                            <label for="<?php echo $value; ?>">
-                                <?php /* @noEscape */
-                                echo $block->renderShippingRateOption($rate); ?>
-                            </label>
-                        </span>
+                        <input type="radio"
+                            name="shipping_method" <?php echo $checked; ?> value="<?php echo $value; ?>"
+                            id="<?php echo $value; ?>"
+                            @change="submitShippingMethodAjax" />
+                        <label for="<?php echo $value; ?>" class="relative">
+                            <?= $block->renderShippingRateOption($rate); ?>
+                        </label>
                     </div>
                 <?php endforeach; ?>
             <?php endforeach; ?>
@@ -40,5 +36,5 @@
                 </strong>
             </p>
         <?php endif; ?>
-    </div>
+    </fieldset>
 </div>
