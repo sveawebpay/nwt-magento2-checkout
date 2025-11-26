@@ -1,21 +1,24 @@
 <?php
 
 namespace Svea\Checkout\Controller\Order;
+
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\View\Result\PageFactory;
 use Magento\Quote\Model\Quote;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\Module\Manager;
+use Svea\Checkout\Model\Checkout as SveaCheckout;
 
 class ReloadShippingMethods extends Action
 {
- 
+
     /**
      * @var PageFactory
      */
     protected $_resultPageFactory;
- 
+
     /**
      * @var JsonFactory
      */
@@ -25,24 +28,40 @@ class ReloadShippingMethods extends Action
      * @var Session
      */
     private Session $checkoutSession;
- 
+
+    /**
+     * @var Manager
+     */
+    private Manager $moduleManager;
+
+    /**
+     * @var SveaCheckout
+     */
+    private SveaCheckout $sveaCheckout;
+
     /**
      * View constructor.
      * @param Context $context
      * @param PageFactory $resultPageFactory
      * @param JsonFactory $resultJsonFactory
+     * @param Session $checkoutSession
+     * @param Manager $moduleManager
+     * @param SveaCheckout $sveaCheckout
      */
     public function __construct(
         Context $context,
         PageFactory $resultPageFactory,
         JsonFactory $resultJsonFactory,
-        Session $checkoutSession
+        Session $checkoutSession,
+        Manager $moduleManager,
+        SveaCheckout $sveaCheckout
     ) {
- 
         $this->_resultPageFactory = $resultPageFactory;
         $this->_resultJsonFactory = $resultJsonFactory;
         $this->checkoutSession = $checkoutSession;
- 
+        $this->moduleManager = $moduleManager;
+        $this->sveaCheckout = $sveaCheckout;
+
         parent::__construct($context);
     }
 
@@ -55,10 +74,26 @@ class ReloadShippingMethods extends Action
         $resultPage = $this->_resultPageFactory->create();
         $block = $resultPage->getLayout()
             ->createBlock(\Svea\Checkout\Block\Checkout::class);
-        /** @var \Svea\Checkout\Block\Checkout $block */
+
         $block->setTemplate('Svea_Checkout::checkout/shipping/method.phtml');
+
+        if ($this->moduleManager->isEnabled('Hyva_Theme')) {
+            try {
+                // Using object manager here instead of DI since we can't be sure if Hyva theme is installed and the class exists
+                $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+                $hyvaThemeService = $objectManager->get(\Hyva\Theme\Service\CurrentTheme::class);
+
+                if ($hyvaThemeService && $hyvaThemeService->isHyva()) {
+                    $block->setTemplate('Svea_Checkout::hyva_compatibility/checkout/shipping/method.phtml');
+                    $this->getResponse()->setNoCacheHeaders(); // Disable the cache here, block should not be cached
+                }
+            } catch (\Exception) {
+                $this->sveaCheckout->getLogger()->error(__('Hyva Theme class is missing.'));
+            }
+        }
+
         $output = $block->toHtml();
- 
+
         $quote = $block->getQuote();
         $result->setData([
             'output' => $output,

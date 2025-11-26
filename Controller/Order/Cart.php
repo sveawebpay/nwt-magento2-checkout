@@ -1,4 +1,5 @@
 <?php
+
 namespace Svea\Checkout\Controller\Order;
 
 class Cart extends Update
@@ -14,7 +15,8 @@ class Cart extends Update
             'shipping',
             'shipping_method',
             'messages',
-            'svea'
+            'svea',
+            'newsletter'
         ], true);
     }
 }

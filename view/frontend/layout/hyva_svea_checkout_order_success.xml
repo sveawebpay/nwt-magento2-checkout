@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Svea_Checkout::css/svea-hyva.css"/>
+    </head>
+    <body>
+        <referenceBlock name="topmenu_generic">
+            <arguments>
+                <!-- The nonce attribute is cached for the scripts in the menu on Svea if we don't set this to 0 -->
+                <argument name="cache_lifetime" xsi:type="string">0</argument>
+            </arguments>
+        </referenceBlock>
+        <referenceBlock name="svea_checkout_success" template="hyva_compatibility/success.phtml" />
+    </body>
+</page>

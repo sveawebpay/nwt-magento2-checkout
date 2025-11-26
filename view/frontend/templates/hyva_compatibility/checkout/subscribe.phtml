@@ -1,0 +1,33 @@
+<?php
+// @codingStandardsIgnoreFile
+$subscribe = $block->subscribeNewsletter();
+//get Svea\Checkout\Helper\Data
+$helper = $this->helper('\Svea\Checkout\Helper\Data');
+?>
+<?php $customerComment = $block->getQuote()->getCustomerNote(); ?>
+<form method="post" action="<?= $block->getNewsletterSubmitUrl(); ?>"
+    id="svea-checkout-newsletter-form">
+    <div class="fieldset comment max-lg:border-b max-lg:border-primary max-lg:pb-4 max-lg:mb-4">
+        <div class="flex" x-data="{ 
+                    newsletter: <?= $subscribe ? '1' : '0'; ?>,
+                    updateValue() {
+                        const checkbox = document.getElementById('newsletter');
+                        checkbox.value = this.newsletter == '1' ? '1' : '0';
+                        submitNewsletterAjax();
+                    }
+                }">
+            <input
+                type="checkbox"
+                name="newsletter"
+                x-model="newsletter"
+                id="newsletter"
+                title="<?= __('Sign Up for Our Newsletter') ?>"
+                class="checkbox"
+                <?php if ($subscribe): ?>
+                checked="checked"
+                <?php endif; ?>
+                @change="updateValue" />
+            <label for="newsletter"><span class="tick"></span> <?= __('Sign Up for Our Newsletter') ?></label>
+        </div>
+    </div>
+</form>

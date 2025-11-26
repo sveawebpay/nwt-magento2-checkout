@@ -1,0 +1,79 @@
+<?php
+
+/**
+ * Copyright © 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// @codingStandardsIgnoreFile
+/**
+ * @see \Magento\Paypal\Block\Express\Review\Details
+ * @var \Svea\Checkout\Block\Checkout\Cart $block
+ */
+// svea-checkout_cart id is mandatory (it's used into ajax update blocks part)
+
+?>
+<div id="svea-checkout_cart" class="table-wrapper order-items">
+    <table id="details-table" class="svea-checkout-review" cellspacing="0" cellpadding="0" border="0">
+        <thead>
+            <tr>
+                <th class="col item-img" scope="col">
+                    <span><?= __('Item') ?></span>
+                </th>
+                <th class="col item-desc text-left" scope="col">
+                    <span><?= __('Description') ?></span>
+                </th>
+                <th class="col qty" scope="col">
+                    <span><?= __('Quantity') ?></span>
+                </th>
+                <th class="col price text-right" scope="col">
+                    <span><?= __('Price') ?></span>
+                </th>
+                <th class="col price text-right" scope="col">
+                    <span><?= __('Subtotal') ?></span>
+                </th>
+            </tr>
+        </thead>
+        <tbody class="svea-checkout-cart svea-checkout-item">
+            <?php foreach ($block->getItems() as $item): ?>
+                <?php echo $block->getItemHtml($item) ?>
+            <?php endforeach ?>
+        </tbody>
+    </table>
+    <div id="svea_cart_extra">
+        <div id="svea_coupon_toggle">
+            <?php if ($block->showCouponCode()): ?>
+
+                <div class="fieldset comment">
+                    <input type="checkbox" name="coupon-toggle" value="1" id="coupon-toggle"
+                        title="<?php echo __('Use coupon'); ?>" class="checkbox"
+                        @change="toggleCouponContainer" />
+                    <label for="coupon-toggle"><?php echo __('Do you have a coupon code?'); ?>
+                        <span><?= __('Click here to enter code') ?> </span></label>
+                </div>
+            <?php endif; ?>
+
+        </div>
+        <div id="svea_giftcard_toggle">
+            <?php if ($block->showGiftCardCode()): ?>
+                <div class="fieldset comment">
+                    <input type="checkbox" name="giftcard-toggle" value="1" id="giftcard-toggle"
+                        title="<?php echo __('Use giftcard'); ?>" class="checkbox">
+                    <label for="giftcard-toggle"><?php echo __('Do you have a giftcard code?'); ?>
+                        <span><?= __('Click here to enter code') ?> </span></label>
+                </div>
+            <?php endif; ?>
+
+        </div>
+        <div id="svea-checkout_newsletter" class="svea-checkout-block newsletter">
+            <?php echo $block->getChildHtml('newsletter'); ?>
+        </div>
+    </div>
+    <div id="svea-checkout_cart_totals">
+        <table cellspacing="0" cellpadding="0" border="0">
+            <tfoot>
+                <?php echo $block->getChildHtml('totals'); ?>
+            </tfoot>
+        </table>
+    </div>
+</div>
