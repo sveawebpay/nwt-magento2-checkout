@@ -148,12 +148,9 @@ class Checkout extends Onepage
             $this->throwRedirectToCartException($error);
         }
 
-        /**
-        // SF1-1089 - Disabled
         if (!$this->getHelper()->showGiftCardLayout() && $quote->getGrandTotal() <= 0) {
             $this->throwRedirectToCartException("Subtotal cannot be 0. Please choose another payment method.");
         }
-         */
 
         return true;
     }
