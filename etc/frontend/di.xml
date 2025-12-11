@@ -34,4 +34,7 @@
             <argument name="helper" xsi:type="object">Svea\Checkout\Helper\Data\Proxy</argument>
         </arguments>
     </type>
+    <type name="Magento\Store\Controller\Store\SwitchAction">
+        <plugin name="nwt_store_switch_action_plugin" type="Svea\Checkout\Plugin\Store\SwitchActionPlugin" sortOrder="10" />
+    </type>
 </config>
