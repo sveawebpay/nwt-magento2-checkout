@@ -641,7 +641,7 @@ class Order
         // the creditmemo from the payment/invoice
         /** @var Creditmemo $creditMemo */
         $creditMemo = $payment->getCreditMemo();
-        $queueId = $creditMemo->getInvoice()->getTransactionId();
+        $queueId = $payment->getAdditionalInformation('svea_queue_id');
         $deliveryId = $payment->getAdditionalInformation('svea_delivery_id');
 
         $sveaOrderId = $payment->getAdditionalInformation('svea_order_id');
