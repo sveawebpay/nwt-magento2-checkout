@@ -28,6 +28,10 @@
         <plugin name="svea_shipping_include" type="Svea\Checkout\Plugin\Checkout\Controller\Sidebar\RemoveItem" />
     </type>
 
+    <type name="Magento\Store\Model\StoreSwitcher">
+        <plugin name="svea_store_switcher_actions" type="Svea\Checkout\Plugin\Store\StoreSwitcher" />
+    </type>
+
     <type name="Svea\Checkout\Plugin\Checkout\Controller\Sidebar\SveaShippingIncluder">
         <arguments>
             <argument name="shipInfoService" xsi:type="object">Svea\Checkout\Service\SveaShippingInfo\Proxy</argument>

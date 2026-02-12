@@ -127,7 +127,7 @@ class CheckoutOrderNumberReference
     public function unsetClientOrderNumber()
     {
         $quote = $this->getQuote();
-        $quote->unsSveaClientOrderId();
+        $quote->setSveaClientOrderId(null);
     }
 
     /**
