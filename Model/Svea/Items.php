@@ -963,6 +963,16 @@ class Items
             // Start count at -1 to simplify use of array_filter after
             $currentCount = $carry[$sku] ?? -1;
             $carry[$sku] = ++$currentCount;
+
+            if ($item->getProductType() === 'bundle' && $item->isChildrenCalculated()) {
+                $childItems = $item->getChildren() ?? $item->getChildrenItems() ?? [];
+                foreach ($childItems as $childItem) {
+                    /** @var QuoteItem|OrderItem $childItem */
+                    $childSku = $childItem->getSku() ?? $childItem->getProduct()->getSku() ?? '';
+                    $childCurrentCount = $carry[$childSku] ?? -1;
+                    $carry[$childSku] = ++$childCurrentCount;
+                }
+            }
             return $carry;
         }, []);
 
