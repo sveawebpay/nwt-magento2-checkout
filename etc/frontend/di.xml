@@ -8,10 +8,6 @@
         <plugin name="svea_redirect_back" type="\Svea\Checkout\Plugin\Reward\Controller\Cart\Remove\RedirectBack" />
     </type>
 
-    <type name="Svea\Checkout\Controller\Index\Index">
-        <plugin name="svea_redirect_on_zero_cart" type="Svea\Checkout\Plugin\Controller\AroundIndex" />
-    </type>
-
     <type name="Magento\Checkout\Model\CompositeConfigProvider">
         <arguments>
             <argument name="configProviders" xsi:type="array">
