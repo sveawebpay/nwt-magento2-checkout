@@ -53,4 +53,19 @@ class Session extends AbstractDb
 
         $this->load($session, $data['entity_id']);
     }
+
+    /**
+     * @param \Svea\Checkout\Model\Session $session
+     * @param int $sveaOrderId
+     * @return void
+     */
+    public function deleteBySveaOrderId(\Svea\Checkout\Model\Session $session, int $sveaOrderId): void
+    {
+        $this->load($session, $sveaOrderId, 'svea_order_id');
+        if (!$session->getId()) {
+            return;
+        }
+
+        $this->delete($session);
+    }
 }
