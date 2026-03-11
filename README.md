@@ -85,3 +85,24 @@ For production credentials you need to contact Svea.
 *Display Crossell Products:* Simple "Yes/No", Yes to show crossell products.
 
 *Number of products:* The amount of products shown in the slider.
+
+### Apple Pay
+![Apple Pay](docs/apple-pay.png "Apple Pay")
+
+*Enable / Disable Domain File:* Click to Enable or Disable the Apple Pay domain association file.
+
+#### Next step after enabling:
+
+If you are using Adobe Commerce Cloud, follow the instructions [Here](https://experienceleague.adobe.com/en/docs/experience-cloud-kcs/kbarticles/ka-27609# "Cloud Instructions")
+
+If not using Cloud, and using nginx, add this snippet to your root nginx.conf:
+
+    location ^~ /.well-known/ {
+        alias $MAGE_ROOT/pub/media/.well-known/;
+        allow all;
+        default_type text/plain;
+    }
+
+If using Apache, add this snippet to your root .htaccess:
+
+    RewriteRule ^\.well-known/(.*)$ pub/media/.well-known/$1 [L,T=text/plain]
