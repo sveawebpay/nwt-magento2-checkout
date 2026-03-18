@@ -8,5 +8,10 @@
             parent="Svea_Checkout::svea" action="adminhtml/system_config/edit/section/svea_checkout" resource="Svea_Checkout::system_config"/>
         <add id="Svea_Checkout::recurring_orders" dependsOnConfig="svea_checkout/settings/recurring_payments/active" title="Place Today's Recurring Orders" module="Svea_Checkout" sortOrder="200"
             parent="Svea_Checkout::svea" action="svea/recurring/place" resource="Svea_Checkout::place_recurring"/>
+        <add id="Svea_Checkout::manage_apple_pay" title="Apple Pay" sortOrder="300" module="Svea_Checkout" resource="Svea_Checkout::manage_apple_pay" parent="Svea_Checkout::svea" />
+        <add id="Svea_Checkout::manage_apple_pay::enable_domain_file" title="Enable Domain File" sortOrder="100" module="Svea_Checkout" resource="Svea_Checkout::manage_apple_pay" parent="Svea_Checkout::manage_apple_pay" 
+            action="svea/applePay/enableDomainFile" />
+        <add id="Svea_Checkout::manage_apple_pay::disable_domain_file" title="Disable Domain File" sortOrder="200" module="Svea_Checkout" resource="Svea_Checkout::manage_apple_pay" parent="Svea_Checkout::manage_apple_pay" 
+            action="svea/applePay/disableDomainFile" />
     </menu>
 </config>
