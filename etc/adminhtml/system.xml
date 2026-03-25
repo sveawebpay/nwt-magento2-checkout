@@ -138,6 +138,11 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
 
+                <field id="discounts_per_item" type="select" translate="label comment" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="170">
+                    <label>Discounts per Item</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+
                 <group id="svea_shipping_settings" type="text" sortOrder="500" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
                     <label>Svea Shipping Settings</label>
                     <field id="svea_shipping_active" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">

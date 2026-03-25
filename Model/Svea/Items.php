@@ -21,6 +21,7 @@ use Svea\Checkout\Helper\GiftCard;
 
 class Items
 {
+    const PAYMENT_INFO_KEY_DISCOUNTS_PER_ITEM = 'svea_discounts_per_item';
 
     /**
      * @var \Svea\Checkout\Helper\Data
@@ -47,10 +48,10 @@ class Items
 
     protected $_discounts = [];
     protected $_maxvat = 0;
-    protected $_inclTAX = false;
     protected $_toInvoice = false;
-    protected $_store = null;
     protected $_itemsArray = [];
+
+    private bool $discountsPerItem = false;
 
     /**
      * Items constructor.
@@ -68,25 +69,6 @@ class Items
         $this->_productConfig = $productConfig;
         $this->calculationTool = $calculationTool;
         $this->giftCardHelper = $giftCardHelper;
-
-        // resets all values
-        $this->init();
-    }
-
-    /**
-     * @param null $store
-     * @return $this
-     */
-    public function init($store = null)
-    {
-        $this->_store = $store;
-        $this->_cart = [];
-        $this->_discounts = [];
-        $this->_maxvat = 0;
-        $this->_inclTAX = false;
-        $this->_toInvoice = false;
-
-        return $this;
     }
 
     /**
@@ -164,6 +146,7 @@ class Items
 
             // Now we can loop through the items!
             foreach ($allItems as $item) {
+                /** @var InvoiceItem|CreditMemoItem|QuoteItem $item */
                 $oid = $item->getData('order_item_id');
                 $isFullDelivery = null;
                 if ($oid) { //invoice or creditmemo item
@@ -251,7 +234,6 @@ class Items
 
                 $unitPriceInclTaxes = $addPrices ? $this->addZeroes($item->getPriceInclTax()) : 0;
 
-                //
                 $orderItem = new OrderRow();
                 $orderItem
                     ->setArticleNumber($sku)
@@ -260,6 +242,10 @@ class Items
                     ->setQuantity($this->addZeroes($qty, 0))
                     ->setVatPercent($this->addZeroes($vat)) // the tax rate i.e 25% (2500)
                     ->setUnitPrice($unitPriceInclTaxes); // incl. tax price per item
+
+                if ($this->discountsPerItem && $item->getDiscountAmount()) {
+                    $orderItem->setDiscountAmount($this->addZeroes($item->getDiscountAmount()));
+                }
 
                 if (null !== $isFullDelivery) {
                     $orderItem->setFullDelivery($isFullDelivery);
@@ -439,6 +425,10 @@ class Items
      */
     public function addDiscounts($couponCode)
     {
+        if (false === $this->discountsPerItem) {
+            return;
+        }
+
         foreach ($this->_discounts as $vat=> $amountInclTax) {
             if ($amountInclTax==0) {
                 continue;
@@ -448,10 +438,7 @@ class Items
             if ($this->_toInvoice) {
                 $reference = 'discount-toinvoice';
             }
-
-            $taxAmount = $this->getTotalTaxAmount($amountInclTax, $vat);
             $amountInclTax = $this->addZeroes($amountInclTax);
-            $amountExclTax = $amountInclTax - $taxAmount;
 
             $orderItem = new OrderRow();
             $orderItem
@@ -590,8 +577,6 @@ class Items
      */
     public function generateOrderItemsFromQuote(Quote $quote)
     {
-        $this->init($quote->getStore());
-
         $billingAddress = $quote->getBillingAddress();
         if ($quote->isVirtual()) {
             $shippingAddress = $billingAddress;
@@ -602,13 +587,20 @@ class Items
         /*Get all cart items*/
         $cartItems = $quote->getAllVisibleItems(); //getItemParentId is null and !isDeleted
 
+        $this->discountsPerItem = $this->getDiscountsPerItemConfig($quote->getStoreId());
+        $quote->getPayment()->setAdditionalInformation(
+            self::PAYMENT_INFO_KEY_DISCOUNTS_PER_ITEM,
+            $this->discountsPerItem
+        );
         $this->addItems($cartItems);
         if (!$quote->isVirtual()) {
             $this->addShipping($shippingAddress);
         }
 
         $this->addTotalsDiscount($quote->getTotals());
-        $this->addDiscounts($quote->getCouponCode());
+        if (!$this->discountsPerItem) {
+            $this->addDiscounts($quote->getCouponCode());
+        }
         $this->setGiftCardDiscount($quote->getGiftCardsAmountUsed());
 
         try {
@@ -627,10 +619,11 @@ class Items
     public function addSveaItemsByInvoice(Order\Invoice $invoice)
     {
         $order  = $invoice->getOrder();
+        $paymentAdditionalInfo = $order->getPayment()->getAdditionalInformation();
 
-        $this
-            ->init($order->getStore())
-            ->addItems($invoice->getAllItems());
+        $this->discountsPerItem =
+            $paymentAdditionalInfo[self::PAYMENT_INFO_KEY_DISCOUNTS_PER_ITEM] ?? false;;
+        $this->addItems($invoice->getAllItems());
 
         if ($invoice->getShippingAmount() != 0 && $order->getShippingDiscountAmount() !=0 && $invoice->getShippingDiscountAmount() == 0) {
             //copy discount shipping discount amount from order (because is not copied to the invoice)
@@ -650,7 +643,10 @@ class Items
             $this->addShipping($invoice);
         }
 
-        //coupon code is not copied to invoice so we take it from the order!
+        if ($this->discountsPerItem) {
+            return;
+        }
+
         $this->addDiscounts($order->getCouponCode());
     }
 
@@ -668,12 +664,17 @@ class Items
         // no support at svea for adjustments
         // $creditMemo->getAdjustmentPositive();
         // $creditMemo->getAdjustmentNegative();
-
-        $this->init($order->getStore());
+        $paymentAdditionalInfo = $order->getPayment()->getAdditionalInformation();
+        $this->discountsPerItem =
+            $paymentAdditionalInfo[self::PAYMENT_INFO_KEY_DISCOUNTS_PER_ITEM] ?? false;
         $this->addItems($creditMemo->getAllItems());
 
         if ($creditMemo->getShippingAmount() != 0) {
             $this->addShipping($creditMemo);
+        }
+
+        if ($this->discountsPerItem) {
+            return;
         }
 
         $this->addDiscounts($order->getCouponCode()); //coupon code is not copied to invoice
@@ -899,21 +900,6 @@ class Items
     }
 
     /**
-     * @param $price
-     * @param $vat
-     * @param bool $addZeroes
-     * @return float
-     */
-    public function getTotalTaxAmount($price, $vat, $addZeroes = true)
-    {
-        if ($addZeroes) {
-            return $this->addZeroes($this->calculationTool->calcTaxAmount($price, $vat, true));
-        } else {
-            return $this->calculationTool->calcTaxAmount($price, $vat, true);
-        }
-    }
-
-    /**
      * @param $amount
      * @return float
      */
@@ -998,5 +984,14 @@ class Items
         }
 
         return '';
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return boolean
+     */
+    private function getDiscountsPerItemConfig(?int $storeId = null): bool
+    {
+        return $this->_helper->isDiscountsPerItem($storeId);
     }
 }
