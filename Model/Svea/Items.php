@@ -342,9 +342,6 @@ class Items
             ->setUnitPrice($this->addZeroes($inclTax)) // incl. tax price per item
             ->setRowTypeIsShippingFee();
 
-        // add to array!
-        $this->_cart['shipping_fee'] = $orderItem;
-
         //keep discounts grouped by VAT
 
         //if catalog prices include tax, then discount INCLUDE TAX (tax coresponding to that discount is set onto shipping_discount_tax_compensation_amount)
@@ -371,7 +368,13 @@ class Items
 
             // set for later
             $this->_discounts[$vatPercent] += $discountAmount;
+
+            if ($this->discountsPerItem) {
+                $orderItem->setDiscountAmount($this->addZeroes($discountAmount));
+            }
         }
+        // add to array!
+        $this->_cart['shipping_fee'] = $orderItem;
         return $this;
     }
 
