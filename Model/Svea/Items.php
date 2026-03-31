@@ -625,7 +625,7 @@ class Items
         $paymentAdditionalInfo = $order->getPayment()->getAdditionalInformation();
 
         $this->discountsPerItem =
-            $paymentAdditionalInfo[self::PAYMENT_INFO_KEY_DISCOUNTS_PER_ITEM] ?? false;;
+            $paymentAdditionalInfo[self::PAYMENT_INFO_KEY_DISCOUNTS_PER_ITEM] ?? false;
         $this->addItems($invoice->getAllItems());
 
         if ($invoice->getShippingAmount() != 0 && $order->getShippingDiscountAmount() !=0 && $invoice->getShippingDiscountAmount() == 0) {
