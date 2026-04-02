@@ -64,6 +64,8 @@ For production credentials you need to contact Svea.
 
 *Replace checkout url with Svea Checkout:* "Yes/No", "Yes" means that Go to checkout in minicart will lead to Svea.
 
+*Discounts per Item:* "Yes/No", set to "Yes" to have discounts applied to each applicable row sent to Svea. "No" to have discounts as separate negative rows (per applied tax rate).
+
 ![Layout Config](docs/config-layout.png "Layout Config")
 
 *Display Newsletter checkbox*: Simple "Yes/No", yes to display the checkbox, no to hide it.
