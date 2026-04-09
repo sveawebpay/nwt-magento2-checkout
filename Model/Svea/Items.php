@@ -81,6 +81,7 @@ class Items
 
         $duplicateSkus = $this->getDuplicateSkus($items);
         foreach ($items as $magentoItem) {
+            /** @var QuoteItem|InvoiceItem|CreditMemoItem $magentoItem  */
             if (is_null($isQuote)) {
                 $isQuote = ($magentoItem instanceof \Magento\Quote\Model\Quote\Item);
             }
@@ -94,6 +95,7 @@ class Items
                 $mainItem = $magentoItem;
             }
 
+            /** @var QuoteItem|OrderItem $mainItem */
             // ignore these
             if ($mainItem->getParentItemId() || $mainItem->isDeleted()) {
                 continue;
@@ -146,7 +148,7 @@ class Items
 
             // Now we can loop through the items!
             foreach ($allItems as $item) {
-                /** @var InvoiceItem|CreditMemoItem|QuoteItem $item */
+                /** @var QuoteItem|InvoiceItem|CreditMemoItem $item */
                 $oid = $item->getData('order_item_id');
                 $isFullDelivery = null;
                 if ($oid) { //invoice or creditmemo item
@@ -156,6 +158,7 @@ class Items
                     $mainItem = $item;
                 }
 
+                /** @var QuoteItem|OrderItem $mainItem */
                 if ($item instanceof \Magento\Sales\Model\Order\Item) {
                     $qty = $item->getQtyOrdered();
                     if ($this->_toInvoice) {
@@ -199,18 +202,8 @@ class Items
                     $comment = implode('; ', $comment);
                 }
 
-                $vat = $mainItem->getTaxPercent();
-                if ($addPrices && ($item->getTaxAmount() != 0) && ($vat == 0)) {
-                    // if vat is not set, we try to calculate it manually
-                    //calculate vat if not set
-                    $tax = $item->getPriceInclTax() - $item->getPrice();
-                    if ($item->getPrice() != 0 && $tax != 0) {
-                        $vat = $tax / $item->getPrice() * 100;
-                    }
-                }
-
-                // fix the vat
-                $vat = round($vat, 0);
+                $vat = $this->getItemTaxPercent($mainItem, $addPrices);
+                $vat = round($vat, 2);
 
                 // We save the maximum vat rate used. We will use the maximum vat rate on invoice fee and shipping fee.
                 if ($vat > $this->_maxvat) {
@@ -284,15 +277,16 @@ class Items
                             $vat =0;
                         }
 
-                        if (!isset($this->_discounts[$vat])) {
-                            $this->_discounts[$vat] = 0;
+                        $discountKey = 'rate-' . $vat;
+                        if (!isset($this->_discounts[$discountKey])) {
+                            $this->_discounts[$discountKey] = ['rate' => $vat, 'amount' => 0];
                         }
 
                         if ($vat != 0 && $item->getDiscountTaxCompensationAmount() == 0) { //discount without taxes, we want discount INCL taxes
                             $discountAmount += $discountAmount*$vat/100;
                         }
 
-                        $this->_discounts[$vat] +=  $discountAmount; //keep products discount, per tax percent
+                        $this->_discounts[$discountKey]['amount'] +=  $discountAmount; //keep products discount, per tax percent
                     }
                 }
             }
@@ -358,8 +352,9 @@ class Items
                 $vatPercent =0;
             }
 
-            if (!isset($this->_discounts[$vatPercent])) {
-                $this->_discounts[$vatPercent] = 0;
+            $discountKey = 'rate-' . $vatPercent;
+            if (!isset($this->_discounts[$discountKey])) {
+                $this->_discounts[$discountKey] = ['rate' => $vatPercent, 'amount' => 0];
             }
 
             if ($vatPercent != 0 && $address->getShippingDiscountTaxCompensationAmount() == 0) {   //prices (and discount) EXCL taxes,
@@ -367,7 +362,7 @@ class Items
             }
 
             // set for later
-            $this->_discounts[$vatPercent] += $discountAmount;
+            $this->_discounts[$discountKey]['amount'] += $discountAmount;
 
             if ($this->discountsPerItem) {
                 $orderItem->setDiscountAmount($this->addZeroes($discountAmount));
@@ -432,12 +427,15 @@ class Items
             return;
         }
 
-        foreach ($this->_discounts as $vat=> $amountInclTax) {
-            if ($amountInclTax==0) {
+        foreach ($this->_discounts as $discount) {
+            $vat = $discount['rate'];
+            $amountInclTax = $discount['amount'];
+
+            if ($amountInclTax == 0) {
                 continue;
             }
 
-            $reference  = 'discount' . (int)$vat;
+            $reference  = 'discount' . $vat;
             if ($this->_toInvoice) {
                 $reference = 'discount-toinvoice';
             }
@@ -987,6 +985,40 @@ class Items
         }
 
         return '';
+    }
+
+    /**
+     * @param QuoteItem|OrderItem $item
+     * @param bool $addPrices
+     * @return float
+     */
+    private function getItemTaxPercent($item, bool $addPrices = true): float
+    {
+        $vat = (float)$item->getTaxPercent();
+        if ($vat || !$addPrices || !$item->getTaxAmount()) {
+            return $vat;
+        }
+
+        $product = $item->getProduct();
+        $taxClassId = ($product && $product->getId())
+            ? $product->getTaxClassId()
+            : 0;
+
+        if (!$taxClassId) {
+            return 0.0;
+        }
+
+        $rateDataSource = $item->getQuote() ? $item->getQuote() : $item->getOrder();
+        /** @var Quote|Order $rateDataSource */
+        $request = $this->calculationTool->getRateRequest(
+            $rateDataSource->getShippingAddress(),
+            $rateDataSource->getBillingAddress(),
+            $rateDataSource->getCustomerTaxClassId(),
+            $rateDataSource->getStore()
+        );
+        $request->setProductClassId($taxClassId);
+
+        return (float)$this->calculationTool->getRate($request);
     }
 
     /**
