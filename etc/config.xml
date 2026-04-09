@@ -9,6 +9,7 @@
                 <add_css>0</add_css>
                 <customer_types>B2C</customer_types>
                 <default_customer_type>B2C</default_customer_type>
+                <discounts_per_item>1</discounts_per_item>
             </settings>
             <layout>
                 <display_newsletter>1</display_newsletter>
