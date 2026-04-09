@@ -2,7 +2,6 @@
 namespace Svea\Checkout\Model\Client\DTO\Order;
 
 use Svea\Checkout\Model\Client\DTO\AbstractRequest;
-use Svea\Checkout\Model\Client\DTO\Order\OrderRow\ShippingInformation;
 
 class OrderRow extends AbstractRequest
 {
@@ -98,11 +97,6 @@ class OrderRow extends AbstractRequest
      * @var string
      */
     protected $RowType = self::ROW_TYPE_STANDARD;
-
-    /**
-     * @var ShippingInformation
-     */
-    protected $ShippingInformation;
 
     /**
      * @var array
@@ -344,29 +338,6 @@ class OrderRow extends AbstractRequest
     }
 
     /**
-     * Get the value of ShippingInformation
-     *
-     * @return  ShippingInformation
-     */
-    public function getShippingInformation()
-    {
-        return $this->ShippingInformation;
-    }
-
-    /**
-     * Set the value of ShippingInformation
-     *
-     * @param  ShippingInformation  $ShippingInformation
-     *
-     * @return  self
-     */
-    public function setShippingInformation(ShippingInformation $shippingInformation)
-    {
-        $this->ShippingInformation = $shippingInformation;
-        return $this;
-    }
-
-    /**
      * @return array
      */
     public function getActions(): array
@@ -428,10 +399,6 @@ class OrderRow extends AbstractRequest
 
         if ($this->getMerchantData()) {
             $data['MerchantData'] = $this->getMerchantData();
-        }
-
-        if ($this->getShippingInformation()) {
-            $data['ShippingInformation'] = $this->getShippingInformation()->toArray();
         }
 
         return $data;
