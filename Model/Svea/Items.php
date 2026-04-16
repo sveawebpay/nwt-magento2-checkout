@@ -462,7 +462,7 @@ class Items
      */
     public function setGiftCardDiscount($giftCardDiscount)
     {
-        if (!$giftCardDiscount) {
+        if (!(float)$giftCardDiscount) {
             return;
         }
 
