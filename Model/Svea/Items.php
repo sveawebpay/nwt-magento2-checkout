@@ -12,7 +12,6 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Item as OrderItem;
 use Svea\Checkout\Model\CheckoutException;
 use Svea\Checkout\Model\Client\DTO\Order\OrderRow;
-use Svea\Checkout\Model\Client\DTO\Order\OrderRow\ShippingInformation;
 use Svea\Checkout\Helper\GiftCard;
 
 /**
@@ -242,15 +241,6 @@ class Items
 
                 if (null !== $isFullDelivery) {
                     $orderItem->setFullDelivery($isFullDelivery);
-                }
-
-                if ($this->_helper->getSveaShippingActive()) {
-                    $shippingInformation = new ShippingInformation();
-                    $shippingInformation->setWeight(0);
-                    if (null !== $item->getShippingAddress()) {
-                        $shippingInformation->setWeight($item->getShippingAddress()->getWeight());
-                    }
-                    $orderItem->setShippingInformation($shippingInformation);
                 }
 
                 // add to array
