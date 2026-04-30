@@ -133,6 +133,19 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      * @param null|int|string $store
      * @return bool
      */
+    public function isLegacySuccessPageEnabled($store = null)
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_SETTINGS . 'use_legacy_success_page',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $store
+        );
+    }
+
+    /**
+     * @param null|int|string $store
+     * @return bool
+     */
     public function isTestMode($store = null)
     {
         return $this->scopeConfig->isSetFlag(
