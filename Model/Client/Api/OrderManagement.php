@@ -53,9 +53,10 @@ class OrderManagement extends OrderManagementClient
             throw $e;
         }
 
-        $data = json_encode($response, true);
+        $data = json_decode($response, true);
         if (is_array($data) && isset($data['OrderRowId'])) {
-            return $data['OrderRowId'];
+            $rowId = $data['OrderRowId'];
+            return is_array($rowId) ? $rowId[0] : $rowId;
         } else {
             throw new \Exception("Row ID not returned. Something went wrong.");
         }
