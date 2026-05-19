@@ -12,7 +12,6 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Item as OrderItem;
 use Svea\Checkout\Model\CheckoutException;
 use Svea\Checkout\Model\Client\DTO\Order\OrderRow;
-use Svea\Checkout\Model\Client\DTO\Order\OrderRow\ShippingInformation;
 use Svea\Checkout\Helper\GiftCard;
 
 /**
@@ -21,6 +20,7 @@ use Svea\Checkout\Helper\GiftCard;
 
 class Items
 {
+    const PAYMENT_INFO_KEY_DISCOUNTS_PER_ITEM = 'svea_discounts_per_item';
 
     /**
      * @var \Svea\Checkout\Helper\Data
@@ -47,10 +47,10 @@ class Items
 
     protected $_discounts = [];
     protected $_maxvat = 0;
-    protected $_inclTAX = false;
     protected $_toInvoice = false;
-    protected $_store = null;
     protected $_itemsArray = [];
+
+    private bool $discountsPerItem = false;
 
     /**
      * Items constructor.
@@ -68,25 +68,6 @@ class Items
         $this->_productConfig = $productConfig;
         $this->calculationTool = $calculationTool;
         $this->giftCardHelper = $giftCardHelper;
-
-        // resets all values
-        $this->init();
-    }
-
-    /**
-     * @param null $store
-     * @return $this
-     */
-    public function init($store = null)
-    {
-        $this->_store = $store;
-        $this->_cart = [];
-        $this->_discounts = [];
-        $this->_maxvat = 0;
-        $this->_inclTAX = false;
-        $this->_toInvoice = false;
-
-        return $this;
     }
 
     /**
@@ -99,6 +80,7 @@ class Items
 
         $duplicateSkus = $this->getDuplicateSkus($items);
         foreach ($items as $magentoItem) {
+            /** @var QuoteItem|InvoiceItem|CreditMemoItem $magentoItem  */
             if (is_null($isQuote)) {
                 $isQuote = ($magentoItem instanceof \Magento\Quote\Model\Quote\Item);
             }
@@ -112,6 +94,7 @@ class Items
                 $mainItem = $magentoItem;
             }
 
+            /** @var QuoteItem|OrderItem $mainItem */
             // ignore these
             if ($mainItem->getParentItemId() || $mainItem->isDeleted()) {
                 continue;
@@ -164,6 +147,7 @@ class Items
 
             // Now we can loop through the items!
             foreach ($allItems as $item) {
+                /** @var QuoteItem|InvoiceItem|CreditMemoItem $item */
                 $oid = $item->getData('order_item_id');
                 $isFullDelivery = null;
                 if ($oid) { //invoice or creditmemo item
@@ -173,6 +157,7 @@ class Items
                     $mainItem = $item;
                 }
 
+                /** @var QuoteItem|OrderItem $mainItem */
                 if ($item instanceof \Magento\Sales\Model\Order\Item) {
                     $qty = $item->getQtyOrdered();
                     if ($this->_toInvoice) {
@@ -216,18 +201,8 @@ class Items
                     $comment = implode('; ', $comment);
                 }
 
-                $vat = $mainItem->getTaxPercent();
-                if ($addPrices && ($item->getTaxAmount() != 0) && ($vat == 0)) {
-                    // if vat is not set, we try to calculate it manually
-                    //calculate vat if not set
-                    $tax = $item->getPriceInclTax() - $item->getPrice();
-                    if ($item->getPrice() != 0 && $tax != 0) {
-                        $vat = $tax / $item->getPrice() * 100;
-                    }
-                }
-
-                // fix the vat
-                $vat = round($vat, 0);
+                $vat = $this->getItemTaxPercent($mainItem, $addPrices);
+                $vat = round($vat, 2);
 
                 // We save the maximum vat rate used. We will use the maximum vat rate on invoice fee and shipping fee.
                 if ($vat > $this->_maxvat) {
@@ -251,7 +226,6 @@ class Items
 
                 $unitPriceInclTaxes = $addPrices ? $this->addZeroes($item->getPriceInclTax()) : 0;
 
-                //
                 $orderItem = new OrderRow();
                 $orderItem
                     ->setArticleNumber($sku)
@@ -261,17 +235,12 @@ class Items
                     ->setVatPercent($this->addZeroes($vat)) // the tax rate i.e 25% (2500)
                     ->setUnitPrice($unitPriceInclTaxes); // incl. tax price per item
 
-                if (null !== $isFullDelivery) {
-                    $orderItem->setFullDelivery($isFullDelivery);
+                if ($this->discountsPerItem && $item->getDiscountAmount()) {
+                    $orderItem->setDiscountAmount($this->addZeroes($item->getDiscountAmount()));
                 }
 
-                if ($this->_helper->getSveaShippingActive()) {
-                    $shippingInformation = new ShippingInformation();
-                    $shippingInformation->setWeight(0);
-                    if (null !== $item->getShippingAddress()) {
-                        $shippingInformation->setWeight($item->getShippingAddress()->getWeight());
-                    }
-                    $orderItem->setShippingInformation($shippingInformation);
+                if (null !== $isFullDelivery) {
+                    $orderItem->setFullDelivery($isFullDelivery);
                 }
 
                 // add to array
@@ -298,15 +267,16 @@ class Items
                             $vat =0;
                         }
 
-                        if (!isset($this->_discounts[$vat])) {
-                            $this->_discounts[$vat] = 0;
+                        $discountKey = 'rate-' . $vat;
+                        if (!isset($this->_discounts[$discountKey])) {
+                            $this->_discounts[$discountKey] = ['rate' => $vat, 'amount' => 0];
                         }
 
                         if ($vat != 0 && $item->getDiscountTaxCompensationAmount() == 0) { //discount without taxes, we want discount INCL taxes
                             $discountAmount += $discountAmount*$vat/100;
                         }
 
-                        $this->_discounts[$vat] +=  $discountAmount; //keep products discount, per tax percent
+                        $this->_discounts[$discountKey]['amount'] +=  $discountAmount; //keep products discount, per tax percent
                     }
                 }
             }
@@ -356,9 +326,6 @@ class Items
             ->setUnitPrice($this->addZeroes($inclTax)) // incl. tax price per item
             ->setRowTypeIsShippingFee();
 
-        // add to array!
-        $this->_cart['shipping_fee'] = $orderItem;
-
         //keep discounts grouped by VAT
 
         //if catalog prices include tax, then discount INCLUDE TAX (tax coresponding to that discount is set onto shipping_discount_tax_compensation_amount)
@@ -375,8 +342,9 @@ class Items
                 $vatPercent =0;
             }
 
-            if (!isset($this->_discounts[$vatPercent])) {
-                $this->_discounts[$vatPercent] = 0;
+            $discountKey = 'rate-' . $vatPercent;
+            if (!isset($this->_discounts[$discountKey])) {
+                $this->_discounts[$discountKey] = ['rate' => $vatPercent, 'amount' => 0];
             }
 
             if ($vatPercent != 0 && $address->getShippingDiscountTaxCompensationAmount() == 0) {   //prices (and discount) EXCL taxes,
@@ -384,8 +352,14 @@ class Items
             }
 
             // set for later
-            $this->_discounts[$vatPercent] += $discountAmount;
+            $this->_discounts[$discountKey]['amount'] += $discountAmount;
+
+            if ($this->discountsPerItem) {
+                $orderItem->setDiscountAmount($this->addZeroes($discountAmount));
+            }
         }
+        // add to array!
+        $this->_cart['shipping_fee'] = $orderItem;
         return $this;
     }
 
@@ -439,19 +413,23 @@ class Items
      */
     public function addDiscounts($couponCode)
     {
-        foreach ($this->_discounts as $vat=> $amountInclTax) {
-            if ($amountInclTax==0) {
+        if (false === $this->discountsPerItem) {
+            return;
+        }
+
+        foreach ($this->_discounts as $discount) {
+            $vat = $discount['rate'];
+            $amountInclTax = $discount['amount'];
+
+            if ($amountInclTax == 0) {
                 continue;
             }
 
-            $reference  = 'discount' . (int)$vat;
+            $reference  = 'discount' . $vat;
             if ($this->_toInvoice) {
                 $reference = 'discount-toinvoice';
             }
-
-            $taxAmount = $this->getTotalTaxAmount($amountInclTax, $vat);
             $amountInclTax = $this->addZeroes($amountInclTax);
-            $amountExclTax = $amountInclTax - $taxAmount;
 
             $orderItem = new OrderRow();
             $orderItem
@@ -474,7 +452,7 @@ class Items
      */
     public function setGiftCardDiscount($giftCardDiscount)
     {
-        if (!$giftCardDiscount) {
+        if (!(float)$giftCardDiscount) {
             return;
         }
 
@@ -590,8 +568,6 @@ class Items
      */
     public function generateOrderItemsFromQuote(Quote $quote)
     {
-        $this->init($quote->getStore());
-
         $billingAddress = $quote->getBillingAddress();
         if ($quote->isVirtual()) {
             $shippingAddress = $billingAddress;
@@ -602,13 +578,20 @@ class Items
         /*Get all cart items*/
         $cartItems = $quote->getAllVisibleItems(); //getItemParentId is null and !isDeleted
 
+        $this->discountsPerItem = $this->getDiscountsPerItemConfig($quote->getStoreId());
+        $quote->getPayment()->setAdditionalInformation(
+            self::PAYMENT_INFO_KEY_DISCOUNTS_PER_ITEM,
+            $this->discountsPerItem
+        );
         $this->addItems($cartItems);
         if (!$quote->isVirtual()) {
             $this->addShipping($shippingAddress);
         }
 
         $this->addTotalsDiscount($quote->getTotals());
-        $this->addDiscounts($quote->getCouponCode());
+        if (!$this->discountsPerItem) {
+            $this->addDiscounts($quote->getCouponCode());
+        }
         $this->setGiftCardDiscount($quote->getGiftCardsAmountUsed());
 
         try {
@@ -627,10 +610,11 @@ class Items
     public function addSveaItemsByInvoice(Order\Invoice $invoice)
     {
         $order  = $invoice->getOrder();
+        $paymentAdditionalInfo = $order->getPayment()->getAdditionalInformation();
 
-        $this
-            ->init($order->getStore())
-            ->addItems($invoice->getAllItems());
+        $this->discountsPerItem =
+            $paymentAdditionalInfo[self::PAYMENT_INFO_KEY_DISCOUNTS_PER_ITEM] ?? false;
+        $this->addItems($invoice->getAllItems());
 
         if ($invoice->getShippingAmount() != 0 && $order->getShippingDiscountAmount() !=0 && $invoice->getShippingDiscountAmount() == 0) {
             //copy discount shipping discount amount from order (because is not copied to the invoice)
@@ -650,7 +634,10 @@ class Items
             $this->addShipping($invoice);
         }
 
-        //coupon code is not copied to invoice so we take it from the order!
+        if ($this->discountsPerItem) {
+            return;
+        }
+
         $this->addDiscounts($order->getCouponCode());
     }
 
@@ -668,12 +655,17 @@ class Items
         // no support at svea for adjustments
         // $creditMemo->getAdjustmentPositive();
         // $creditMemo->getAdjustmentNegative();
-
-        $this->init($order->getStore());
+        $paymentAdditionalInfo = $order->getPayment()->getAdditionalInformation();
+        $this->discountsPerItem =
+            $paymentAdditionalInfo[self::PAYMENT_INFO_KEY_DISCOUNTS_PER_ITEM] ?? false;
         $this->addItems($creditMemo->getAllItems());
 
         if ($creditMemo->getShippingAmount() != 0) {
             $this->addShipping($creditMemo);
+        }
+
+        if ($this->discountsPerItem) {
+            return;
         }
 
         $this->addDiscounts($order->getCouponCode()); //coupon code is not copied to invoice
@@ -899,21 +891,6 @@ class Items
     }
 
     /**
-     * @param $price
-     * @param $vat
-     * @param bool $addZeroes
-     * @return float
-     */
-    public function getTotalTaxAmount($price, $vat, $addZeroes = true)
-    {
-        if ($addZeroes) {
-            return $this->addZeroes($this->calculationTool->calcTaxAmount($price, $vat, true));
-        } else {
-            return $this->calculationTool->calcTaxAmount($price, $vat, true);
-        }
-    }
-
-    /**
      * @param $amount
      * @return float
      */
@@ -998,5 +975,48 @@ class Items
         }
 
         return '';
+    }
+
+    /**
+     * @param QuoteItem|OrderItem $item
+     * @param bool $addPrices
+     * @return float
+     */
+    private function getItemTaxPercent($item, bool $addPrices = true): float
+    {
+        $vat = (float)$item->getTaxPercent();
+        if ($vat || !$addPrices || !$item->getTaxAmount()) {
+            return $vat;
+        }
+
+        $product = $item->getProduct();
+        $taxClassId = ($product && $product->getId())
+            ? $product->getTaxClassId()
+            : 0;
+
+        if (!$taxClassId) {
+            return 0.0;
+        }
+
+        $rateDataSource = $item->getQuote() ? $item->getQuote() : $item->getOrder();
+        /** @var Quote|Order $rateDataSource */
+        $request = $this->calculationTool->getRateRequest(
+            $rateDataSource->getShippingAddress(),
+            $rateDataSource->getBillingAddress(),
+            $rateDataSource->getCustomerTaxClassId(),
+            $rateDataSource->getStore()
+        );
+        $request->setProductClassId($taxClassId);
+
+        return (float)$this->calculationTool->getRate($request);
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return boolean
+     */
+    private function getDiscountsPerItemConfig(?int $storeId = null): bool
+    {
+        return $this->_helper->isDiscountsPerItem($storeId);
     }
 }

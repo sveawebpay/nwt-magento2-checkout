@@ -604,6 +604,23 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         );
     }
 
+    /**
+     * Discount handling in Svea order rows
+     * false = discounts are separate rows
+     * true = discounts are included in items
+     *
+     * @param null|int $storeId
+     * @return bool
+     */
+    public function isDiscountsPerItem(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_SETTINGS . 'discounts_per_item',
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
     public function getPartnerKey(): string
     {
         return self::PARTNER_KEY;
