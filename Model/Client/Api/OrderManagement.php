@@ -115,6 +115,33 @@ class OrderManagement extends OrderManagementClient
     }
 
     /**
+     * Adds multiple order rows to a Svea order in a single request.
+     *
+     * @param OrderRow[] $rows
+     * @param string $paymentId
+     * @return int[] Row IDs indexed identically to $rows
+     * @throws ClientException
+     */
+    public function addOrderRows(array $rows, string $paymentId): array
+    {
+        $request = $this->apiContext->getGenericRequestFactory()->create();
+        $request->setData(['OrderRows' => array_map(static fn(OrderRow $row) => $row->toArray(), $rows)]);
+
+        try {
+            $response = $this->post('/api/v1/orders/' . $paymentId . '/rows/addOrderRows/', $request);
+        } catch (ClientException $e) {
+            throw $e;
+        }
+
+        $data = json_decode($response, true);
+        if (!is_array($data) || !isset($data['OrderRowId'])) {
+            throw new \Exception('Row IDs not returned. Something went wrong.');
+        }
+
+        return array_map('intval', (array)$data['OrderRowId']);
+    }
+
+    /**
      * Cancel rows for given order ID and row IDs
      *
      * @param int $orderId
