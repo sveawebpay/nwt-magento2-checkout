@@ -27,7 +27,7 @@ class ClientException extends Exception
     protected $url;
 
 
-    public function __construct($request = null, $response = null, $message = "", $code = 0, Throwable $previous = null) {
+    public function __construct($request = null, $response = null, $message = "", $code = 0, ?Throwable $previous = null) {
         $this->request = $request;
         $this->response = $response;
 
