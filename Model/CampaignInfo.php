@@ -188,7 +188,11 @@ class CampaignInfo extends AbstractModel implements CampaignInfoInterface
         $monthlyAnnuallyFactor = $this->getMonthlyAnnuityFactor();
         $initialFee = $this->getInitialFee();
         $contractLengthInMonths = $this->getContractLengthInMonths();
-        $finalPrice = round(($this->productPrice * $monthlyAnnuallyFactor) + $notificationFee + ($initialFee/$contractLengthInMonths));
+        $finalPrice = round(
+            ($this->productPrice * (float)$monthlyAnnuallyFactor)
+            + (float)$notificationFee
+            + ((float)$initialFee / $contractLengthInMonths)
+        );
 
         return $this->priceCurrency->format($finalPrice);
     }
@@ -203,7 +207,11 @@ class CampaignInfo extends AbstractModel implements CampaignInfoInterface
         $monthlyAnnuallyFactor = $this->getMonthlyAnnuityFactor();
         $initialFee = $this->getInitialFee();
         $contractLengthInMonths = $this->getContractLengthInMonths();
-        $finalPrice = round(($this->productPrice * $monthlyAnnuallyFactor) + $notificationFee + ($initialFee/$contractLengthInMonths));
+        $finalPrice = round(
+            ($this->productPrice * (float)$monthlyAnnuallyFactor)
+            + (float)$notificationFee
+            + ((float)$initialFee / $contractLengthInMonths)
+        );
 
         return $finalPrice;
     }
