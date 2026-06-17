@@ -10,11 +10,14 @@
         <referenceContainer name="content">
             <block
                 name="svea_checkout_success"
-                template="Svea_Checkout::onepage/success.phtml"
                 before="checkout.success"
                 cacheable="false"
+                ifconfig="svea_checkout/connection/enabled"
             >
                 <arguments>
+                    <argument name="template" xsi:type="helper" helper="Svea\Checkout\Helper\Layout::getSuccessTemplateForStandardSuccessPage">
+                        <param name="template">Svea_Checkout::onepage/success.phtml</param>
+                    </argument>
                     <argument name="view_model" xsi:type="object">Svea\Checkout\ViewModel\Order\Success</argument>
                 </arguments>
             </block>
