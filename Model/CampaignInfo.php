@@ -33,8 +33,8 @@ class CampaignInfo extends AbstractModel implements CampaignInfoInterface
         \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
         PriceCurrencyInterface $priceCurrency,
-        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        ?\Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        ?\Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->priceCurrency = $priceCurrency;
@@ -188,7 +188,11 @@ class CampaignInfo extends AbstractModel implements CampaignInfoInterface
         $monthlyAnnuallyFactor = $this->getMonthlyAnnuityFactor();
         $initialFee = $this->getInitialFee();
         $contractLengthInMonths = $this->getContractLengthInMonths();
-        $finalPrice = round(($this->productPrice * $monthlyAnnuallyFactor) + $notificationFee + ($initialFee/$contractLengthInMonths));
+        $finalPrice = round(
+            ($this->productPrice * (float)$monthlyAnnuallyFactor)
+            + (float)$notificationFee
+            + ((float)$initialFee / $contractLengthInMonths)
+        );
 
         return $this->priceCurrency->format($finalPrice);
     }
@@ -203,7 +207,11 @@ class CampaignInfo extends AbstractModel implements CampaignInfoInterface
         $monthlyAnnuallyFactor = $this->getMonthlyAnnuityFactor();
         $initialFee = $this->getInitialFee();
         $contractLengthInMonths = $this->getContractLengthInMonths();
-        $finalPrice = round(($this->productPrice * $monthlyAnnuallyFactor) + $notificationFee + ($initialFee/$contractLengthInMonths));
+        $finalPrice = round(
+            ($this->productPrice * (float)$monthlyAnnuallyFactor)
+            + (float)$notificationFee
+            + ((float)$initialFee / $contractLengthInMonths)
+        );
 
         return $finalPrice;
     }

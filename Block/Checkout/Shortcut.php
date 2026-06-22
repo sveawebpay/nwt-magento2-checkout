@@ -44,7 +44,7 @@ class Shortcut extends \Magento\Framework\View\Element\Template implements Catal
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Framework\Math\Random $mathRandom,
         \Svea\Checkout\Helper\Data $helper,
-        \Magento\Checkout\Model\Session $checkoutSession = null,
+        ?\Magento\Checkout\Model\Session $checkoutSession = null,
         array $data = []
     ) {
 

@@ -5,6 +5,8 @@ namespace Svea\Checkout\Model\Payment\Method;
 use Svea\Checkout\Model\Client\ClientException;
 use Svea\Checkout\Model\Client\DTO\CancelPayment;
 use Magento\Sales\Model\Order\Payment\Transaction;
+use \Magento\Quote\Api\Data\CartInterface;
+use \Magento\Quote\Model\Quote;
 use Magento\Framework\Exception\LocalizedException;
 
 /**
@@ -57,7 +59,7 @@ class Checkout extends AbstractMethod
      * @param \Magento\Quote\Api\Data\CartInterface|Quote|null $quote
      * @return bool
      */
-    public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
+    public function isAvailable(?CartInterface $quote = null)
     {
         $this->_quote = $quote;
         return $this->_helper->isEnabled() && parent::isAvailable($quote);

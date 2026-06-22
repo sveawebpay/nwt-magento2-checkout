@@ -14,7 +14,7 @@ class CheckoutException extends \Magento\Framework\Exception\LocalizedException 
      * @param \Magento\Framework\Phrase $phrase
      * @param \Exception $cause
      */
-    public function __construct(\Magento\Framework\Phrase $phrase, $redirect = null, \Exception $cause = null)
+    public function __construct(\Magento\Framework\Phrase $phrase, $redirect = null, ?\Exception $cause = null)
     {
         $this->_redirect = $redirect;
         parent::__construct($phrase, $cause);
