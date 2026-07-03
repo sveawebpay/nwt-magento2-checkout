@@ -502,7 +502,7 @@ class Items
 
             // 50 * 10 = 500 (i.e 0.5 cent allowed)
             // 5 * 10 = 50 (i.e 0.05 difference)
-            if (($allowedDifference * 10) >= $difference) {
+            if (($allowedDifference * 10) >= abs($difference)) {
                 return $this;
             }
         }
