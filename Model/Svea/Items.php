@@ -483,7 +483,7 @@ class Items
         $calculatedTotal = 0;
         foreach ($this->_cart as $item) {
             $total_price_including_tax = $item->getUnitPrice() * ($item->getQuantity() / 100);
-            $calculatedTotal += $total_price_including_tax;
+            $calculatedTotal += $total_price_including_tax - $item->getDiscountAmount();
         }
 
         //quote/order/invoice/creditmemo total taxes
