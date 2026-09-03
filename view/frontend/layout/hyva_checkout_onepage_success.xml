@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Svea_Checkout::css/svea-hyva.css"/>
+    </head>
+    <body>
+        <attribute name="class" value="svea_checkout-order-success"/>
+        <referenceBlock name="svea_checkout_success"
+            template="Svea_Checkout::hyva_compatibility/onepage/success.phtml"/>
+    </body>
+</page>

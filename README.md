@@ -66,6 +66,8 @@ For production credentials you need to contact Svea.
 
 *Discounts per Item:* "Yes/No", set to "Yes" to have discounts applied to each applicable row sent to Svea. "No" to have discounts as separate negative rows (per applied tax rate).
 
+*Use legacy custom success page:* "Yes/No", set to "Yes" to use the legacy Order Success page at path sveacheckout/order/success. "No" to use the standard path checkout/onepage/success.
+
 ![Layout Config](docs/config-layout.png "Layout Config")
 
 *Display Newsletter checkbox*: Simple "Yes/No", yes to display the checkbox, no to hide it.
