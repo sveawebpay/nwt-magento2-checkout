@@ -41,7 +41,7 @@ class FetchCampaigns extends Command
     /**
      * @inheritDoc
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $output->writeln('<comment>Starting fetching of campaigns.</comment>');
         $this->fetchCampaignsCron->execute();

@@ -595,6 +595,7 @@ class Items
         $this->setGiftCardDiscount($quote->getGiftCardsAmountUsed());
 
         try {
+            $quote->collectTotals();
             $this->validateTotals($quote->getGrandTotal());
         } catch (\Exception $e) {
             throw $e;

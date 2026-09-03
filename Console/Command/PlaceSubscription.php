@@ -58,7 +58,7 @@ class PlaceSubscription extends Command
         parent::configure();
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $token = $input->getArgument('token');
         $recurringInfo = $this->recurringInfoRepo->getByRecurringToken($token);

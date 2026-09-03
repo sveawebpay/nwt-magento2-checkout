@@ -278,9 +278,9 @@ class ShippingInformation extends AbstractRequest
         if (count($quote->getItems()) === 1 && (int)$quote->getItemsQty() === 1) {
             $product = $productCollection->getFirstItem();
             $tags = $this->tagsFactory->create();
-            $tags->addTag('height_cm', (int)ceil($product->getHeightCm() ?? 0));
-            $tags->addTag('length_cm', (int)ceil($product->getLengthCm() ?? 0));
-            $tags->addTag('width_cm', (int)ceil($product->getWidthCm() ?? 0));
+            $tags->addTag('height_cm', (int)ceil((float)($product->getHeightCm() ?? 0)));
+            $tags->addTag('length_cm', (int)ceil((float)($product->getLengthCm() ?? 0)));
+            $tags->addTag('width_cm', (int)ceil((float)($product->getWidthCm() ?? 0)));
             $this->setTags($tags);
             return;
         }
@@ -318,9 +318,9 @@ class ShippingInformation extends AbstractRequest
 
         /** @var Tags $tags */
         $tags = $this->tagsFactory->create();
-        $tags->addTag('height_cm', (int)ceil($packageDimensionY));
-        $tags->addTag('length_cm', (int)ceil($packageDimensionX));
-        $tags->addTag('width_cm', (int)ceil($packageDimensionZ));
+        $tags->addTag('height_cm', (int)ceil((float)$packageDimensionY));
+        $tags->addTag('length_cm', (int)ceil((float)$packageDimensionX));
+        $tags->addTag('width_cm', (int)ceil((float)$packageDimensionZ));
         $this->setTags($tags);
     }
 
