@@ -47,6 +47,7 @@ $cookieDomain = $storeConfig->getStoreConfig('web/cookie/cookie_domain');
                 document.cookie = `${this.options.ctrlcookie}=${this.options.ctrlkey}; path=/; domain=${this.options.cookieDomain}; expires=Session; SameSite=Lax; Secure`;
                 this._checkIfCartWasUpdated();
                 this._expiryCheck();
+                this._bindShipping();
             },
 
             _checkIfCartWasUpdated: function() {
@@ -97,6 +98,68 @@ $cookieDomain = $storeConfig->getStoreConfig('web/cookie/cookie_domain');
                         location.reload();
                     }
                 }, 5000);
+            },
+
+            _bindShipping: function() {
+                var self = this;
+
+                if (!this.options.sveaShippingActive) {
+                    return;
+                }
+
+                document.addEventListener('sveaCheckout:shippingConfirmed', function(event) {
+                    self._ajaxBeforeSend();
+
+                    self.makeRequest({
+                        url: `${BASE_URL}sveacheckout/order/confirmshipping`,
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                        },
+                        body: self._serializeFormData(event.detail),
+                        onSuccess: (result) => {
+                            if (result.ctrlkey) {
+                                self.options.ctrlkey = result.ctrlkey;
+                                document.cookie = `${self.options.ctrlcookie}=${result.ctrlkey}; path=/; domain=${self.options.cookieDomain}; expires=Session; SameSite=Lax; Secure`;
+                            }
+
+                            if (result.reload) {
+                                window.location.reload();
+                                return;
+                            }
+
+                            self.updateSveaCart(true);
+                        },
+                        onError: (error) => {
+                            console.error('Error confirming shipping:', error);
+                        },
+                        onComplete: () => {
+                            self.options.shippingAjaxInProgress = false;
+                            this.isLoading = false;
+                        }
+                    });
+                });
+            },
+
+            _serializeFormData: function(obj, prefix) {
+                var parts = [];
+
+                Object.keys(obj || {}).forEach(function(key) {
+                    var name = prefix ? prefix + '[' + key + ']' : key;
+                    var value = obj[key];
+
+                    if (value !== null && typeof value === 'object') {
+                        parts.push(this._serializeFormData(value, name));
+                    } else {
+                        parts.push(
+                            encodeURIComponent(name) + '=' +
+                            encodeURIComponent(value === null || value === undefined ? '' : value)
+                        );
+                    }
+                }, this);
+
+                return parts.filter(Boolean).join('&');
             },
 
             _ajaxBeforeSend: function() {
