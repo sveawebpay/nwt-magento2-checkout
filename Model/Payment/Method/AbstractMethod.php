@@ -55,8 +55,8 @@ abstract class AbstractMethod extends \Magento\Payment\Model\Method\AbstractMeth
         \Svea\Checkout\Model\Svea\Items $itemsHandler,
         \Svea\Checkout\Model\Svea\Order $sveaHandler,
         \Magento\Directory\Model\CurrencyFactory $currencyFactory,
-        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null, //not required params need to be at the end of the list, else Cannot instantiate abstract class Magento\Framework\Model\ResourceModel\AbstractResource
-        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        ?\Magento\Framework\Model\ResourceModel\AbstractResource $resource = null, //not required params need to be at the end of the list, else Cannot instantiate abstract class Magento\Framework\Model\ResourceModel\AbstractResource
+        ?\Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
 
         array $data = []
     ) {

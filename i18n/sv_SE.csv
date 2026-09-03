@@ -206,3 +206,7 @@ Title,Titel
 "We need to reload the checkout, excuse us just a moment", "Vi behöver ladda om kassan, ursäkta oss ett ögonblick"
 "Change Payment Method","Byt Betalmetod"
 "Change payment method for your subscription","Byt Betalmetod för din prenumeration"
+"Thank you for your purchase!","Tack för ditt köp!",
+"Your order number is: %1.","Ditt ordernummer är: %1.",
+"Your order # is: <span>%1</span>.","Ditt ordernummer är: <span>%1</span>.",
+"We'll email you an order confirmation with details and tracking info.","Du får en orderbekräftelse via mail."

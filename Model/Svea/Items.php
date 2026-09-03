@@ -483,7 +483,7 @@ class Items
         $calculatedTotal = 0;
         foreach ($this->_cart as $item) {
             $total_price_including_tax = $item->getUnitPrice() * ($item->getQuantity() / 100);
-            $calculatedTotal += $total_price_including_tax;
+            $calculatedTotal += $total_price_including_tax - $item->getDiscountAmount();
         }
 
         //quote/order/invoice/creditmemo total taxes
@@ -502,7 +502,7 @@ class Items
 
             // 50 * 10 = 500 (i.e 0.5 cent allowed)
             // 5 * 10 = 50 (i.e 0.05 difference)
-            if (($allowedDifference * 10) >= $difference) {
+            if (($allowedDifference * 10) >= abs($difference)) {
                 return $this;
             }
         }
@@ -595,6 +595,7 @@ class Items
         $this->setGiftCardDiscount($quote->getGiftCardsAmountUsed());
 
         try {
+            $quote->collectTotals();
             $this->validateTotals($quote->getGrandTotal());
         } catch (\Exception $e) {
             throw $e;
