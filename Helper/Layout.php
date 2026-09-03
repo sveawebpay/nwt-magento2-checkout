@@ -4,6 +4,7 @@ namespace Svea\Checkout\Helper;
 
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Checkout\Model\Session as CheckoutSession;
 use Svea\Checkout\Helper\Data;
 
 class Layout
@@ -18,19 +19,26 @@ class Layout
      */
     private Data $data;
 
-    /*
+    /**
      * @var CustomerSession
      */
     private CustomerSession $customerSession;
 
+    /**
+     * @var CheckoutSession
+     */
+    private CheckoutSession $checkoutSession;
+
     public function __construct(
         StoreManagerInterface $storeManager,
         Data $data,
-        CustomerSession $customerSession
+        CustomerSession $customerSession,
+        CheckoutSession $checkoutSession
     ) {
         $this->storeManager = $storeManager;
         $this->data = $data;
         $this->customerSession = $customerSession;
+        $this->checkoutSession = $checkoutSession;
     }
 
     /**
@@ -62,6 +70,28 @@ class Layout
             !$this->data->getRecurringPaymentsActive()
             || ($this->data->getRecurringRequireAccount() && !$this->customerSession->isLoggedIn());
         if ($disable) {
+            return null;
+        }
+
+        return $template;
+    }
+
+    /**
+     * Standard success page template – if order didn't use Svea payment method don't render Svea things on success page
+     *
+     * @param string $template Default template, can also be set as function param in layout xml
+     * @return string|null
+     */
+    public function getSuccessTemplateForStandardSuccessPage(
+        string $template = 'Svea_Checkout::onepage/success.phtml'
+    ): ?string {
+        try {
+            $order = $this->checkoutSession->getLastRealOrder();
+        } catch (\Throwable) {
+            return null;
+        }
+
+        if ('sveacheckout' !== $order->getPayment()->getMethod()) {
             return null;
         }
 

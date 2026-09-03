@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <script src="Svea_Checkout::js/action/success-actions.js"/>
+    </head>
+    <body>
+        <attribute name="class" value="svea_checkout-order-success"/>
+        <referenceContainer name="content">
+            <block
+                name="svea_checkout_success"
+                before="checkout.success"
+                cacheable="false"
+                ifconfig="svea_checkout/connection/enabled"
+            >
+                <arguments>
+                    <argument name="template" xsi:type="helper" helper="Svea\Checkout\Helper\Layout::getSuccessTemplateForStandardSuccessPage">
+                        <param name="template">Svea_Checkout::onepage/success.phtml</param>
+                    </argument>
+                    <argument name="view_model" xsi:type="object">Svea\Checkout\ViewModel\Order\Success</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

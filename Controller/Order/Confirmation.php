@@ -120,7 +120,11 @@ class Confirmation extends Push
             ->setLastQuoteId($order->getQuoteId()) // we need this in the success page
             ->setLastSuccessQuoteId($order->getQuoteId());
 
-        return $this->_redirect('*/*/success');
+        if ($this->sveaCheckoutContext->getHelper()->isLegacySuccessPageEnabled()) {
+            return $this->_redirect('*/*/success');
+        }
+
+        return $this->_redirect('checkout/onepage/success');
     }
 
     /**

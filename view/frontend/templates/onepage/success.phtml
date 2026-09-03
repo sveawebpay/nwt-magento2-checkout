@@ -1,0 +1,86 @@
+<?php
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Magento\Framework\Escaper $escaper */
+/** @var \Svea\Checkout\ViewModel\Order\Success $viewModel */
+$viewModel = $block->getData('view_model');
+$order = $viewModel->getOrder();
+$iframeSnippet = $viewModel->getIframeSnippet();
+?>
+<div class="checkout-success" id="svea-checkout-success">
+    <?php if ($iframeSnippet): ?>
+        <div id="sveaIframeSnippet">
+            <?= /* @noEscape */ $iframeSnippet ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($order):
+        $orderItems = $viewModel->getOrderItems();
+        $giftCards = $viewModel->getGiftCards();
+        ?>
+        <?php if ($orderItems): ?>
+            <div class="svea-checkout-order__items">
+                <strong><?= $escaper->escapeHtml(__('Order Details')) ?></strong>
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-item"><?= $escaper->escapeHtml(__('Product')) ?></th>
+                            <th class="col-subtotal"><?= $escaper->escapeHtml(__('Subtotal')) ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($orderItems as $orderItem): ?>
+                            <tr>
+                                <td class="col-item">
+                                    <?= $escaper->escapeHtml($orderItem->getData('name')) ?>
+                                    <span class="count"> X <?= $escaper->escapeHtml($viewModel->formatQty($orderItem->getData('qty_ordered'))) ?> </span>
+                                </td>
+                                <td class="col-amount"><?= /* @noEscape */ $order->formatPrice($orderItem->getData('row_total_incl_tax')) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        <?php if ($order->getData('discount_amount') < 0): ?>
+                            <tr>
+                                <td class="col-item"><?= $escaper->escapeHtml(__('Discount:')) ?></td>
+                                <td class="col-amount"><?= /* @noEscape */ $order->formatPrice($order->getData('discount_amount')) ?></td>
+                            </tr>
+                        <?php endif; ?>
+                        <?php if ($order->getData('gift_cards_amount') > 0): ?>
+                            <?php foreach ($giftCards as $giftCard): ?>
+                                <tr>
+                                    <td class="col-item"><?= $escaper->escapeHtml(__('Gift card (%1):', $giftCard->getCode())) ?></td>
+                                    <td class="col-amount"><?= /* @noEscape */ $order->formatPrice($giftCard->getAmount()) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                        <tr>
+                            <td class="col-item"><?= $escaper->escapeHtml(__('Shipping:')) ?></td>
+                            <td class="col-amount">
+                                <?= /* @noEscape */ $order->formatPrice($order->getShippingInclTax()) ?>
+                                <span class="count"> (<?= $escaper->escapeHtml($order->getData('shipping_description')) ?>)</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="col-item"><?= $escaper->escapeHtml(__('Payment Method:')) ?></td>
+                            <td class="col-amount"><?= $escaper->escapeHtml(__('Svea Checkout')) ?></td>
+                        </tr>
+                        <?php if ($order->getData('svea_invoice_fee') > 0): ?>
+                            <tr>
+                                <td class="col-item"><?= $escaper->escapeHtml(__('Invoice fee:')) ?></td>
+                                <td class="col-amount"><?= /* @noEscape */ $order->formatPrice($order->getData('svea_invoice_fee')) ?></td>
+                            </tr>
+                        <?php endif; ?>
+                        <?php if ($order->getData('tax_amount') > 0): ?>
+                            <tr>
+                                <td class="col-item"><?= $escaper->escapeHtml(__('Tax:')) ?></td>
+                                <td class="col-amount"><?= /* @noEscape */ $order->formatPrice($order->getData('tax_amount')) ?></td>
+                            </tr>
+                        <?php endif; ?>
+                        <tr>
+                            <td class="col-item"><?= $escaper->escapeHtml(__('Total:')) ?></td>
+                            <td class="col-amount"><?= /* @noEscape */ $order->formatPrice($order->getData('grand_total')) ?></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    <?php endif; ?>
+</div>

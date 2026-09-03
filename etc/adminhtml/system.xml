@@ -144,6 +144,12 @@
                     <comment>"No" is a legacy handling with some complications with partial invoicing. Use at your own risk.</comment>
                 </field>
 
+                <field id="use_legacy_success_page" translate="label comment" type="select" sortOrder="180" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Use legacy custom success page</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Deprecated. When enabled, the order confirmation redirects to the custom <code>sveacheckout/order/success</code> page (<code>svea_checkout_order_success</code> layout handle). Disabled by default; the standard <code>checkout/onepage/success</code> page is used instead. Will be removed in a future major version.]]></comment>
+                </field>
+
                 <group id="svea_shipping_settings" type="text" sortOrder="500" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
                     <label>Svea Shipping Settings</label>
                     <field id="svea_shipping_active" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
