@@ -13,6 +13,11 @@ use Svea\Checkout\Model\Client\DTO\AbstractRequest;
  */
 abstract class BaseClient
 {
+    private const SDK_PACKAGE_HEADER = 'X-SVEA-SDK-PACKAGE';
+
+    private const SDK_PACKAGE_PLATFORM_NAME = 'Magento';
+
+    private const SDK_PACKAGE_MODULE_NAME = 'Svea_Checkout';
 
     /** @var ResponseInterface */
     protected $lastResponse;
@@ -230,9 +235,26 @@ abstract class BaseClient
             'Content-Type' => 'application/json',
             'Timestamp' => $timestamp,
             'Authorization' => $this->createAuthorizationToken($timestamp, $body),
+            self::SDK_PACKAGE_HEADER => $this->getSdkPackageHeaderValue(),
         ];
 
         return $options;
+    }
+
+    /**
+     * Get SDK package header value, e.g. "Magento: 2.4.9 CE, Svea_Checkout: 1.6.0"
+     *
+     * @return string
+     */
+    private function getSdkPackageHeaderValue(): string
+    {
+        return sprintf(
+            '%s: %s, %s: %s',
+            self::SDK_PACKAGE_PLATFORM_NAME,
+            $this->apiContext->getMagentoVersion(),
+            self::SDK_PACKAGE_MODULE_NAME,
+            $this->apiContext->getModuleVersion()
+        );
     }
 
     private function createAuthorizationToken($timestamp, $body) {
