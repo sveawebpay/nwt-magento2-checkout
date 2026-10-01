@@ -206,6 +206,7 @@ class Checkout extends AbstractMethod
     {
         //$paymentAction not used, we will "authorize" by default
         $payment = $this->getInfoInstance();
+        $this->validateSveaOrderId($payment->getAdditionalInformation('svea_order_id'));
         $order   = $payment->getOrder();
 
         //import quote data
@@ -253,6 +254,23 @@ class Checkout extends AbstractMethod
 
         return $this;
 
+    }
+
+    /**
+     * Ensure the payment references a Svea order before it is authorized
+     *
+     * @param mixed $sveaOrderId
+     * @return void
+     * @throws LocalizedException
+     */
+    private function validateSveaOrderId($sveaOrderId): void
+    {
+        $isScalarId = is_int($sveaOrderId) || is_string($sveaOrderId);
+        if ($isScalarId && ctype_digit((string)$sveaOrderId) && (int)$sveaOrderId > 0) {
+            return;
+        }
+
+        throw new LocalizedException(__('The order could not be placed: the Svea order reference is missing.'));
     }
 
     public function authorize(\Magento\Payment\Model\InfoInterface $payment, $amount)
