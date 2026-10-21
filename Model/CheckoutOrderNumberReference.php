@@ -156,7 +156,9 @@ class CheckoutOrderNumberReference
     public function getSveaHash()
     {
         if (!$this->getQuote()->getSveaHash()) {
-            $hash = hash("sha1", $this->getClientOrderNumber());
+            // Random, not derived from the sequential order number: the
+            // confirmation fallback relies on this value being unguessable.
+            $hash = bin2hex(random_bytes(20));
             $this->getQuote()->setSveaHash($hash);
         }
 

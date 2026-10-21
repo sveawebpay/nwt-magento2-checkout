@@ -109,14 +109,15 @@ class CheckoutOrderNumberReferenceTest extends TestCase
         $this->assertSame('200000001', $result);
     }
 
-    public function testGetSveaHashReturnsSha1OfClientOrderNumber(): void
+    public function testGetSveaHashIsRandomNotDerivedFromOrderNumber(): void
     {
         $quote = $this->makeQuoteWithReservedOrderId('100000003');
         $this->reference->setQuote($quote);
 
         $hash = $this->reference->getSveaHash();
 
-        $this->assertSame(hash('sha1', '100000003'), $hash);
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{40}$/', $hash);
+        $this->assertNotSame(hash('sha1', '100000003'), $hash);
     }
 
     public function testGetSveaHashCachesHashOnQuote(): void
