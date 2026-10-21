@@ -39,7 +39,9 @@ class Confirmation extends Push
 
             // Without a session, the quote hash is the only proof that the
             // requester is the customer Svea redirected here.
-            if (!$sveaHash || !hash_equals((string)$quote->getSveaHash(), (string)$sveaHash)) {
+            if (!is_string($sveaHash) || $sveaHash === ''
+                || !hash_equals((string)$quote->getSveaHash(), $sveaHash)
+            ) {
                 return $this->returnMissingIdError(null, $quoteId);
             }
 
