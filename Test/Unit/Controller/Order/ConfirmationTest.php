@@ -217,7 +217,6 @@ class ConfirmationTest extends TestCase
             $class = $class->getParentClass();
         }
         $property = $class->getProperty($name);
-        $property->setAccessible(true);
         $property->setValue($this->controller, $value);
     }
 }
