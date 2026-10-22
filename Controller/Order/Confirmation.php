@@ -46,8 +46,11 @@ class Confirmation extends Push
             }
 
             // Quotes hashed before getSveaHash() became random still carry
-            // sha1(client order number), which can be guessed.
-            if ($this->isLegacySveaHash($quote)) {
+            // sha1(client order number), which can be guessed. They are only
+            // accepted while their Svea session is alive, so the exposure ends
+            // one session lifetime after the random hash was introduced.
+            // TODO: Remove the legacy branch and isLegacySveaHash() in 1.7.
+            if ($this->isLegacySveaHash($quote) && $this->isSveaSessionExpired($quote)) {
                 return $this->returnMissingIdError(null, $quoteId);
             }
 
@@ -157,8 +160,23 @@ class Confirmation extends Push
     }
 
     /**
-     * True when the quote hash is sha1() of its client order number, the
-     * predictable format used before getSveaHash() generated random values.
+     * True when the Svea payment session started on the quote has expired.
+     *
+     * @param \Magento\Quote\Model\Quote $quote
+     * @return bool
+     */
+    private function isSveaSessionExpired($quote): bool
+    {
+        $refHelper = $this->getSveaCheckout()->getRefHelper();
+        $refHelper->setQuote($quote);
+
+        return $refHelper->paymentIsExpired();
+    }
+
+    /**
+     * True when the quote hash is sha1() of its client order number
+     *
+     * This is the predictable format used before getSveaHash() generated random values.
      *
      * @param \Magento\Quote\Model\Quote $quote
      * @return bool

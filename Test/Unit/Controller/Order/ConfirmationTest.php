@@ -42,6 +42,7 @@ class ConfirmationTest extends TestCase
     private ManagerInterface&MockObject $messageManager;
     private Quote&MockObject $quote;
     private ResponseInterface&Stub $response;
+    private CheckoutOrderNumberReference&MockObject $refHelper;
 
     protected function setUp(): void
     {
@@ -50,11 +51,11 @@ class ConfirmationTest extends TestCase
         $this->messageManager = $this->createMock(ManagerInterface::class);
 
         // No Svea order id in the session, so execute() always takes the quote_id fallback.
-        $refHelper = $this->createStub(CheckoutOrderNumberReference::class);
-        $refHelper->method('getSveaOrderId')->willReturn(null);
+        $this->refHelper = $this->createMock(CheckoutOrderNumberReference::class);
+        $this->refHelper->method('getSveaOrderId')->willReturn(null);
 
         $sveaCheckout = $this->createStub(Checkout::class);
-        $sveaCheckout->method('getRefHelper')->willReturn($refHelper);
+        $sveaCheckout->method('getRefHelper')->willReturn($this->refHelper);
         $sveaCheckout->method('getLogger')->willReturn($this->createStub(LoggerInterface::class));
 
         $this->pushRepo = $this->createMock(PushRepository::class);
@@ -135,28 +136,55 @@ class ConfirmationTest extends TestCase
         $this->assertRejected('');
     }
 
-    public function testRejectsLegacySha1HashEvenWhenItMatches(): void
+    public function testRejectsMatchingLegacySha1HashWhenSveaSessionExpired(): void
     {
         $legacyHash = sha1(self::RESERVED_ORDER_ID);
         $this->quote->setData('svea_hash', $legacyHash);
+        $this->stubSveaSessionExpired(true);
 
         $this->assertRejected($legacyHash);
     }
 
-    public function testRejectsLegacySha1HashOfSequencedClientOrderNumber(): void
+    public function testRejectsLegacySha1HashOfSequencedClientOrderNumberWhenSveaSessionExpired(): void
     {
         // The hash was generated before the client order number got a new sequence.
         $legacyHash = sha1(self::RESERVED_ORDER_ID . '-3');
         $this->quote->setData('svea_hash', $legacyHash);
         $this->quote->setData('svea_client_order_id', self::RESERVED_ORDER_ID . '-4');
+        $this->stubSveaSessionExpired(true);
 
         $this->assertRejected($legacyHash);
+    }
+
+    public function testAcceptsMatchingLegacySha1HashWhileSveaSessionAlive(): void
+    {
+        // Quotes created before the random hash was introduced must still be able to finish.
+        $legacyHash = sha1(self::RESERVED_ORDER_ID);
+        $this->quote->setData('svea_hash', $legacyHash);
+        $this->stubSveaSessionExpired(false);
+
+        $this->assertReachesSuccessPage($legacyHash);
+    }
+
+    public function testRejectsWrongLegacyHashBeforeConsultingSveaSession(): void
+    {
+        $this->quote->setData('svea_hash', sha1(self::RESERVED_ORDER_ID));
+        $this->refHelper->expects($this->never())->method('paymentIsExpired');
+
+        $this->assertRejected(sha1(self::RESERVED_ORDER_ID . '-2'));
     }
 
     public function testValidHashReachesSuccessPage(): void
     {
         $this->quote->setData('svea_hash', self::RANDOM_HASH);
-        $this->stubRequest(self::RANDOM_HASH);
+        $this->refHelper->expects($this->never())->method('paymentIsExpired');
+
+        $this->assertReachesSuccessPage(self::RANDOM_HASH);
+    }
+
+    private function assertReachesSuccessPage(string $hash): void
+    {
+        $this->stubRequest($hash);
 
         $push = $this->createStub(Push::class);
         $push->method('getOrderId')->willReturn(55);
@@ -197,6 +225,12 @@ class ConfirmationTest extends TestCase
             ->willReturn($this->response);
 
         $this->assertSame($this->response, $this->controller->execute());
+    }
+
+    private function stubSveaSessionExpired(bool $isExpired): void
+    {
+        $this->refHelper->expects($this->once())->method('setQuote')->with($this->quote);
+        $this->refHelper->method('paymentIsExpired')->willReturn($isExpired);
     }
 
     /**
