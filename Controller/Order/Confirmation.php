@@ -37,6 +37,23 @@ class Confirmation extends Push
                 return $this->returnMissingIdError(null, $quoteId);
             }
 
+            // Without a session, the quote hash is the only proof that the
+            // requester is the customer Svea redirected here.
+            if (!is_string($sveaHash) || $sveaHash === ''
+                || !hash_equals((string)$quote->getSveaHash(), $sveaHash)
+            ) {
+                return $this->returnMissingIdError(null, $quoteId);
+            }
+
+            // Quotes hashed before getSveaHash() became random still carry
+            // sha1(client order number), which can be guessed. They are only
+            // accepted while their Svea session is alive, so the exposure ends
+            // one session lifetime after the random hash was introduced.
+            // TODO: Remove the legacy branch and isLegacySveaHash() in 1.7.
+            if ($this->isLegacySveaHash($quote) && $this->isSveaSessionExpired($quote)) {
+                return $this->returnMissingIdError(null, $quoteId);
+            }
+
             $sveaOrderId = $quote->getSveaOrderId();
             $orderId = $quote->getReservedOrderId();
         }
@@ -140,6 +157,45 @@ class Confirmation extends Push
             ->load();
 
         return $orderCollection->count() ? $orderCollection->getFirstItem()->getId() : null;
+    }
+
+    /**
+     * True when the Svea payment session started on the quote has expired.
+     *
+     * @param \Magento\Quote\Model\Quote $quote
+     * @return bool
+     */
+    private function isSveaSessionExpired($quote): bool
+    {
+        $refHelper = $this->getSveaCheckout()->getRefHelper();
+        $refHelper->setQuote($quote);
+
+        return $refHelper->paymentIsExpired();
+    }
+
+    /**
+     * True when the quote hash is sha1() of its client order number
+     *
+     * This is the predictable format used before getSveaHash() generated random values.
+     *
+     * @param \Magento\Quote\Model\Quote $quote
+     * @return bool
+     */
+    private function isLegacySveaHash($quote): bool
+    {
+        $hash = (string)$quote->getSveaHash();
+        $reserved = (string)$quote->getReservedOrderId();
+        $candidates = [(string)$quote->getData('svea_client_order_id'), $reserved];
+        for ($i = 2; $reserved !== '' && $i <= 50; $i++) {
+            $candidates[] = $reserved . '-' . $i;
+        }
+        foreach ($candidates as $candidate) {
+            if ($candidate !== '' && hash_equals(sha1(substr($candidate, 0, 31)), $hash)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
