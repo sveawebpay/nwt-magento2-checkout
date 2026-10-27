@@ -2,6 +2,7 @@
 
 namespace Svea\Checkout\Controller\Order;
 
+use Magento\Framework\Lock\LockManagerInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 use Svea\Checkout\Controller\Checkout;
@@ -12,6 +13,10 @@ use Svea\Checkout\Model\PushRepository;
 
 class Push extends Checkout
 {
+    /**
+     * Seconds to wait for another request that is creating the same order
+     */
+    private const ORDER_LOCK_TIMEOUT = 30;
 
     /**
      * @var $pushRepo PushRepository
@@ -56,6 +61,28 @@ class Push extends Checkout
 
     /**
      * @param $sveaOrderId
+     * @return int|null
+     */
+    private function getMagentoOrderIdBySveaId($sveaOrderId)
+    {
+        $orderCollection = $this->sveaCheckoutContext->getOrderCollectionFactory()->create();
+        $orderCollection
+            ->addFieldToFilter('svea_order_id', ['eq' => $sveaOrderId])
+            ->load();
+
+        return $orderCollection->count() ? $orderCollection->getFirstItem()->getId() : null;
+    }
+
+    /**
+     * @return LockManagerInterface
+     */
+    private function getLockManager(): LockManagerInterface
+    {
+        return $this->sveaCheckoutContext->getServiceContainer('controller:order:push')['lockManager'];
+    }
+
+    /**
+     * @param $sveaOrderId
      *
      * @return bool
      */
@@ -86,6 +113,31 @@ class Push extends Checkout
             throw $e;
         }
 
+        // Svea's push and the customer's confirmation run in different sessions and can both get here
+        // for the same payment. The lock makes sure only one of them creates the order.
+        $lockManager = $this->getLockManager();
+        $lockName = 'svea_checkout_create_order_' . $sveaOrder->getOrderId();
+        if (!$lockManager->lock($lockName, self::ORDER_LOCK_TIMEOUT)) {
+            throw new \Exception(sprintf('Could not get the order lock for Svea order %s', $sveaOrder->getOrderId()));
+        }
+
+        try {
+            return $this->createOrderOnce($sveaOrder, $sveaHash);
+        } finally {
+            $lockManager->unlock($lockName);
+        }
+    }
+
+    /**
+     * Creates the Magento order unless it already exists. Only call while holding the order lock.
+     *
+     * @param GetOrderResponse $sveaOrder
+     * @param $sveaHash
+     * @return bool|mixed
+     * @throws \Exception
+     */
+    private function createOrderOnce(GetOrderResponse $sveaOrder, $sveaHash)
+    {
         // the push is created request in PushOrder
         try  {
             $push = $this->pushRepo->get($sveaOrder->getOrderId());
@@ -94,6 +146,14 @@ class Push extends Checkout
             // ignore
 
             return true;
+        }
+
+        // the other request may have created the order without saving it on the push
+        if (!$orderIdExists) {
+            $existingOrderId = $this->getMagentoOrderIdBySveaId($sveaOrder->getOrderId());
+            if ($existingOrderId) {
+                return $existingOrderId;
+            }
         }
 
         // we are already done, stop it!
