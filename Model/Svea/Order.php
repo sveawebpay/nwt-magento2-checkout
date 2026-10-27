@@ -254,6 +254,9 @@ class Order
             throw new BaseException("The country is not supported.");
         }
 
+        // Quotes from before 1.6.2 can still carry a guessable hash. A new Svea order
+        // gets new callback URLs, so this is the safe moment to replace it.
+        $this->getRefHelper()->replaceLegacySveaHash();
         $sveaHash = $this->getRefHelper()->getSveaHash();
 
         $isTestMode = $this->helper->isTestMode();
