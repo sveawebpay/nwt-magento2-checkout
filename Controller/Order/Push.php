@@ -2,6 +2,9 @@
 
 namespace Svea\Checkout\Controller\Order;
 
+use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\App\Request\InvalidRequestException;
+use Magento\Framework\App\RequestInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 use Svea\Checkout\Controller\Checkout;
@@ -10,7 +13,7 @@ use Svea\Checkout\Model\Client\ClientException;
 use Svea\Checkout\Model\Client\DTO\GetOrderResponse;
 use Svea\Checkout\Model\PushRepository;
 
-class Push extends Checkout
+class Push extends Checkout implements CsrfAwareActionInterface
 {
 
     /**
@@ -170,7 +173,7 @@ class Push extends Checkout
             $quote = $this->loadQuote($sveaOrder->getMerchantData()->getQuoteId());
 
             // compare the hashes, so no one tries to create an order without our permission
-            if ($quote->getSveaHash() !== $sveaHash) {
+            if (!is_string($sveaHash) || $sveaHash === '' || !hash_equals((string)$quote->getSveaHash(), $sveaHash)) {
                 throw new \Exception("invalid svea hash, order might have been updated");
             }
 
@@ -249,15 +252,23 @@ class Push extends Checkout
     }
 
     /**
-     * Only works for >= 2.3.0
+     * Svea calls this server to server, without a form key. The request is
+     * authenticated by the Svea order lookup and the quote hash instead.
+     *
+     * @param RequestInterface $request
+     * @return InvalidRequestException|null
+     */
     public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
     {
         return null;
     }
 
+    /**
+     * @param RequestInterface $request
+     * @return bool|null
+     */
     public function validateForCsrf(RequestInterface $request): ?bool
     {
         return true;
     }
-    */
 }

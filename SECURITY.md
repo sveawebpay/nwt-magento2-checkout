@@ -22,4 +22,4 @@ Please include:
 - steps to reproduce it, or a proof of concept
 - a suggested fix, if you have one
 
-We will acknowledge your report within 5 business days and keep you updated while we work on a fix. When a fix is released, we publish a security advisory in this repository and credit you, unless you prefer to stay anonymous.
+We will acknowledge your report within 5 business days and keep you updated while we work on a fix. When a fix is released, it is described in the release notes. Let us know if you want to be credited.
