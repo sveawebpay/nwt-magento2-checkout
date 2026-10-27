@@ -66,6 +66,7 @@ $paymentChangeUrl = $block->getUrl($block->getUrl('sveacheckout/recurring/change
                         }
                     }'
                 >
+                    <?= $block->getBlockHtml('formkey') ?>
                     <div class="actions">
                         <button
                             title="<?= $escaper->escapeHtmlAttr($cancelButtonTitle) ?>"
