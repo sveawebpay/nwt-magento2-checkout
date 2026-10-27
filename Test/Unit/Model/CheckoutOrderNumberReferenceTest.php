@@ -133,6 +133,58 @@ class CheckoutOrderNumberReferenceTest extends TestCase
         $this->assertSame($hash1, $quote->getSveaHash());
     }
 
+    public function testIsLegacySveaHashDetectsSha1OfReservedOrderId(): void
+    {
+        $quote = $this->makeQuoteWithReservedOrderId('100000005');
+        $quote->setSveaHash(sha1('100000005'));
+        $this->reference->setQuote($quote);
+
+        $this->assertTrue($this->reference->isLegacySveaHash());
+    }
+
+    public function testIsLegacySveaHashDetectsSha1OfEarlierSequence(): void
+    {
+        // The hash was generated before the client order number got a new sequence.
+        $quote = $this->makeQuoteWithReservedOrderId('100000006');
+        $quote->setData('svea_client_order_id', '100000006-4');
+        $quote->setSveaHash(sha1('100000006-3'));
+
+        $this->assertTrue($this->reference->isLegacySveaHash($quote));
+    }
+
+    public function testIsLegacySveaHashIsFalseForRandomHash(): void
+    {
+        $quote = $this->makeQuoteWithReservedOrderId('100000007');
+        $this->reference->setQuote($quote);
+        $this->reference->getSveaHash();
+
+        $this->assertFalse($this->reference->isLegacySveaHash());
+    }
+
+    public function testReplaceLegacySveaHashReplacesGuessableHash(): void
+    {
+        $quote = $this->makeQuoteWithReservedOrderId('100000008');
+        $quote->setSveaHash(sha1('100000008'));
+        $this->reference->setQuote($quote);
+
+        $this->reference->replaceLegacySveaHash();
+
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{40}$/', $quote->getSveaHash());
+        $this->assertNotSame(sha1('100000008'), $quote->getSveaHash());
+        $this->assertFalse($this->reference->isLegacySveaHash());
+    }
+
+    public function testReplaceLegacySveaHashKeepsRandomHash(): void
+    {
+        $quote = $this->makeQuoteWithReservedOrderId('100000009');
+        $this->reference->setQuote($quote);
+        $hash = $this->reference->getSveaHash();
+
+        $this->reference->replaceLegacySveaHash();
+
+        $this->assertSame($hash, $quote->getSveaHash());
+    }
+
     public function testPaymentIsExpiredReturnsTrueWhenCreatedAtIsZero(): void
     {
         $payment = $this->makePaymentWithCreatedAt(0);
