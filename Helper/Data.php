@@ -74,19 +74,25 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     /** @var \Svea\Checkout\Model\Svea\Locale $sveaLocale */
     protected $sveaLocale;
 
+    /** @var \Magento\Framework\Encryption\EncryptorInterface */
+    private $encryptor;
+
     /**
      * Data constructor.
      * @param \Magento\Framework\App\Helper\Context $context
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Svea\Checkout\Model\Svea\Locale $locale
+     * @param \Magento\Framework\Encryption\EncryptorInterface $encryptor
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Svea\Checkout\Model\Svea\Locale $locale
+        \Svea\Checkout\Model\Svea\Locale $locale,
+        \Magento\Framework\Encryption\EncryptorInterface $encryptor
     ) {
         $this->sveaLocale = $locale;
         $this->storeManager = $storeManager;
+        $this->encryptor = $encryptor;
         parent::__construct($context);
     }
 
@@ -96,11 +102,16 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function getSharedSecret($store = null)
     {
-        return $this->scopeConfig->getValue(
+        $value = (string)$this->scopeConfig->getValue(
             self::XML_PATH_CONNECTION . 'shared_secret',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
             $store
         );
+
+        // Saved encrypted from the admin. A value set in app/etc/env.php or config.php may be plaintext.
+        return \Svea\Checkout\Model\Config\EncryptedValue::isEncrypted($value)
+            ? $this->encryptor->decrypt($value)
+            : $value;
     }
 
     /**
