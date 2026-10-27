@@ -54,26 +54,6 @@ class ValidateOrder extends Update implements UsesServiceContainerInterface
 
         $this->getSveaCheckout()->getLogger()->info(sprintf("Validate Order: Loaded Svea order. ID: %d Status: %s Payment Type: %s ", $sveaOrder->getOrderId(), $sveaOrder->getStatus(), $sveaOrder->getPaymentType()));
 
-        // check if there is a push! we will save the mapping in database, svea order id and magento order id
-        $pushRepo = $this->pushRepositoryFactory->create();
-        $push = null;
-        try {
-            $push = $pushRepo->get($sveaOrderId);
-            if ($push->getOrderId()) {
-                try {
-                    $order = $this->loadOrder($push->getOrderId());
-                    if ($order->getIncrementId()) {
-                        $checkout->getLogger()->error(sprintf("Validate Order: A push already exists for svea order id (%s). Respond with Valid=true and ClientOrderNumber=%s", $sveaOrderId, $order->getIncrementId()));
-                        return $result->setData(['Valid' => true, 'ClientOrderNumber' => $order->getIncrementId()]);
-                    }
-                } catch (\Exception $e2) {
-                    // do nothing
-                }
-            }
-        } catch (NoSuchEntityException $e) {
-            // ignore we will create a new push entity below after validation!
-        }
-
         try {
             // load quote if it exists
             $quote = $this->loadQuote($sveaOrder->getMerchantData()->getQuoteId());
@@ -82,6 +62,27 @@ class ValidateOrder extends Update implements UsesServiceContainerInterface
             if ($quote->getSveaHash() !== $sveaHash) {
                 $checkout->getLogger()->error(sprintf("Validate Order: The quote hash (%s) does not match the request hash (%s).", $quote->getSveaHash(), $sveaHash));
                 throw new CheckoutException(__("Invalid Quote hash"));
+            }
+
+            // Only after the hash check: the existing-push answer reveals the Magento order number.
+            // check if there is a push! we will save the mapping in database, svea order id and magento order id
+            $pushRepo = $this->pushRepositoryFactory->create();
+            $push = null;
+            try {
+                $push = $pushRepo->get($sveaOrderId);
+                if ($push->getOrderId()) {
+                    try {
+                        $order = $this->loadOrder($push->getOrderId());
+                        if ($order->getIncrementId()) {
+                            $checkout->getLogger()->error(sprintf("Validate Order: A push already exists for svea order id (%s). Respond with Valid=true and ClientOrderNumber=%s", $sveaOrderId, $order->getIncrementId()));
+                            return $result->setData(['Valid' => true, 'ClientOrderNumber' => $order->getIncrementId()]);
+                        }
+                    } catch (\Exception $e2) {
+                        // do nothing
+                    }
+                }
+            } catch (NoSuchEntityException $e) {
+                // ignore we will create a new push entity below after validation!
             }
 
             // check if everything is valid
