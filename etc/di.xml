@@ -18,10 +18,6 @@
         </arguments>
     </type>
 
-    <type name="Magento\Framework\App\Request\CsrfValidator">
-        <plugin name="svea_csrf_validator_skip" type="Svea\Checkout\Plugin\CsrfValidatorSkip" />
-    </type>
-
     <preference for="Magento\Checkout\Block\Cart\Crosssell" type="Svea\Checkout\Block\Checkout\Cart\Crosssell" />
     <type name="Magento\Checkout\Block\Onepage\Link">
         <plugin name="sveacheckout_url" type="Svea\Checkout\Plugin\Url" sortOrder="10" disabled="false"/>

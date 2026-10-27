@@ -2,6 +2,9 @@
 
 namespace Svea\Checkout\Controller\Order;
 
+use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\App\Request\InvalidRequestException;
+use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
@@ -14,9 +17,14 @@ use Svea\Checkout\Model\Client\DTO\GetOrderResponse;
 use Svea\Checkout\Model\Shipping\Carrier;
 use Svea\Checkout\Service\StockValidator;
 
-class ValidateOrder extends Update implements UsesServiceContainerInterface
+class ValidateOrder extends Update implements UsesServiceContainerInterface, CsrfAwareActionInterface
 {
     const SERVICE_CONTAINER_NAME = 'controller:order:validateorder';
+
+    /**
+     * Svea calls this server to server, not through the checkout's AJAX requests.
+     */
+    protected $requiresXmlHttpRequest = false;
 
     private ProductQty $productQty;
 
@@ -309,5 +317,26 @@ class ValidateOrder extends Update implements UsesServiceContainerInterface
         $serviceContainer = $this->sveaCheckoutContext->getServiceContainer($this->getServiceContainerName());
         $this->productQty = $serviceContainer['productQty'];
         $this->stockValidator = $serviceContainer['stockValidator'];
+    }
+
+    /**
+     * Svea calls this server to server, without a form key. The request is
+     * authenticated by the Svea order lookup and the quote hash instead.
+     *
+     * @param RequestInterface $request
+     * @return InvalidRequestException|null
+     */
+    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
+    {
+        return null;
+    }
+
+    /**
+     * @param RequestInterface $request
+     * @return bool|null
+     */
+    public function validateForCsrf(RequestInterface $request): ?bool
+    {
+        return true;
     }
 }
