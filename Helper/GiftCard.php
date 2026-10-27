@@ -9,7 +9,7 @@ use Magento\GiftCardAccount\Api\GiftCardAccountManagementInterface;
 use Magento\GiftCardAccount\Api\GiftCardAccountRepositoryInterface;
 use Magento\GiftCardAccount\Model\GiftCardFactory;
 use Magento\GiftCardAccount\Api\Data\GiftCardAccountInterfaceFactory;
-use Magento\Framework\App\ObjectManager;
+use Magento\Framework\ObjectManagerInterface;
 
 class GiftCard
 {
@@ -20,10 +20,16 @@ class GiftCard
     protected $serializer;
     protected $giftCardFactory;
 
+    /**
+     * Magento_GiftCardAccount only exists on Adobe Commerce, so its services cannot be constructor or di.xml
+     * dependencies: compilation would fail on Open Source. They are created through the injected object
+     * manager, guarded by the module status and interface_exists(), unless passed in.
+     */
     public function __construct(
         \Magento\Framework\Module\Manager $moduleManager,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
         \Magento\Framework\Serialize\Serializer\Json $serializer,
+        ObjectManagerInterface $objectManager,
         $giftCardAccountRepository = null,
         $giftCardAccountFactory = null,
         $giftCardFactory = null,
@@ -31,11 +37,16 @@ class GiftCard
     ) {
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->serializer = $serializer;
-        if($moduleManager->isEnabled('Magento_GiftCardAccount')) {
-            $this->giftCardAccountRepository = ObjectManager::getInstance()->get(GiftCardAccountRepositoryInterface::class);
-            $this->giftCardAccountFactory = ObjectManager::getInstance()->get(GiftCardAccountInterfaceFactory::class);
-            $this->giftCardFactory = ObjectManager::getInstance()->get(GiftCardFactory::class);
-            $this->giftCardAccountManagement = ObjectManager::getInstance()->get(GiftCardAccountManagementInterface::class);
+        if ($moduleManager->isEnabled('Magento_GiftCardAccount')
+            && interface_exists(GiftCardAccountManagementInterface::class)
+        ) {
+            $this->giftCardAccountRepository = $giftCardAccountRepository
+                ?? $objectManager->get(GiftCardAccountRepositoryInterface::class);
+            $this->giftCardAccountFactory = $giftCardAccountFactory
+                ?? $objectManager->get(GiftCardAccountInterfaceFactory::class);
+            $this->giftCardFactory = $giftCardFactory ?? $objectManager->get(GiftCardFactory::class);
+            $this->giftCardAccountManagement = $managementService
+                ?? $objectManager->get(GiftCardAccountManagementInterface::class);
         } else {
             $this->giftCardAccountRepository = null;
             $this->giftCardAccountFactory = null;
