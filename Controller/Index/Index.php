@@ -1,6 +1,7 @@
 <?php
 namespace Svea\Checkout\Controller\Index;
 
+use Magento\Framework\Exception\LocalizedException;
 use Svea\Checkout\Controller\Checkout;
 use Svea\Checkout\Model\CheckoutException;
 
@@ -30,7 +31,12 @@ class Index extends Checkout
                 return;
             }
         } catch (\Exception $e) {
-            $this->messageManager->addErrorMessage($e->getMessage() ? $e->getMessage() : __('Cannot initialize Svea Checkout (%1)', get_class($e)));
+            // Only messages written for shoppers are shown. Others, e.g. from Svea API errors, can leak internals.
+            $this->messageManager->addErrorMessage(
+                $e instanceof LocalizedException && $e->getMessage()
+                    ? $e->getMessage()
+                    : __('Svea Checkout could not be started. Please try again or contact customer service.')
+            );
             $checkout->getLogger()->error("[" . __METHOD__ . "] (" . get_class($e) . ") {$e->getMessage()} ");
             $checkout->getLogger()->critical($e);
 

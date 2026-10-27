@@ -165,3 +165,5 @@
 "Your order number is: %1.","Ditt ordrenummer er: %1."
 "Your order # is: <span>%1</span>.","Ditt ordrenummer er: <span>%1</span>."
 "We'll email you an order confirmation with details and tracking info.","Du får en ordrebekreftelse på e-post."
+"Svea Checkout could not be started. Please try again or contact customer service.","Svea Checkout kunne ikke startes. Prøv igjen eller kontakt kundeservice."
+"The checkout could not be updated. Please try again or contact customer service.","Kassen kunne ikke oppdateres. Prøv igjen eller kontakt kundeservice."
