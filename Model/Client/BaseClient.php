@@ -39,6 +39,9 @@ abstract class BaseClient
     /** @var bool $testMode */
     protected $testMode;
 
+    /** @var LogRedactor|null */
+    private $logRedactor = null;
+
     /** @var \GuzzleHttp\Client $httpClient */
     protected $httpClient;
 
@@ -93,16 +96,8 @@ abstract class BaseClient
 
             $content = $result->getBody()->getContents();
             if ($this->testMode) {
-                $this->getLogger()->info("Got response from Svea: Get $endpoint");
-
-                $decoded = json_decode($content, true);
-                if (is_array($decoded) && isset($decoded['Gui']['Snippet'])) { // Easier to debug without this
-                    $decoded['Gui']['Snippet'] = "Removed.";
-                    $logContent = json_encode($decoded);
-                } else {
-                    $logContent = $content;
-                }
-                $this->getLogger()->info($logContent);
+                $this->getLogger()->info("Got response from Svea: Get " . $this->getLogRedactor()->redactUrls($endpoint));
+                $this->getLogger()->info($this->getLogRedactor()->redact($this->removeSnippetForLogging($content)));
             }
 
             return $content;
@@ -113,11 +108,13 @@ abstract class BaseClient
         }
 
         if ($exception) {
-            $this->getLogger()->error("Failed sending request to svea integration: GET $endpoint");
-            $this->getLogger()->error(json_encode($this->removeAuthForLogging($options)));
-            $this->getLogger()->error($exception->getMessage());
+            $this->getLogger()->error(
+                "Failed sending request to svea integration: GET " . $this->getLogRedactor()->redactUrls($endpoint)
+            );
+            $this->getLogger()->error($this->getLogRedactor()->redact($this->removeAuthForLogging($options)));
+            $this->getLogger()->error($this->getLogRedactor()->redactUrls($exception->getMessage()));
             $this->getLogger()->error($exception->getHttpStatusCode());
-            $this->getLogger()->error($exception->getResponseBody());
+            $this->getLogger()->error($this->getLogRedactor()->redact((string)$exception->getResponseBody()));
             throw $exception;
         }
 
@@ -182,23 +179,15 @@ abstract class BaseClient
             $content =  $result->getBody()->getContents();
 
             if ($this->testMode) {
-                $this->getLogger()->info("Sending request to svea integration: $method $endpoint");
-                $this->getLogger()->info($request->toJSON());
+                $this->getLogger()->info(
+                    "Sending request to svea integration: $method " . $this->getLogRedactor()->redactUrls($endpoint)
+                );
+                $this->getLogger()->info($this->getLogRedactor()->redact($request->toJSON()));
 
                 $this->getLogger()->info("Response Headers from Svea:");
                 $this->getLogger()->info(json_encode($result->getHeaders()));
                 $this->getLogger()->info("Response Body from Svea:");
-
-
-
-                $decoded = json_decode($content, true);
-                if (is_array($decoded) && isset($decoded['Gui']['Snippet'])) { // Easier to debug without this
-                    $decoded['Gui']['Snippet'] = "Removed.";
-                    $logContent = json_encode($decoded);
-                } else {
-                    $logContent = $content;
-                }
-                $this->getLogger()->info($logContent);
+                $this->getLogger()->info($this->getLogRedactor()->redact($this->removeSnippetForLogging($content)));
             }
 
             return $content;
@@ -209,12 +198,13 @@ abstract class BaseClient
         }
 
         if ($exception) {
-            $this->getLogger()->error("Failed sending request to svea integration: $method $endpoint");
-            $this->getLogger()->error(json_encode($this->removeAuthForLogging($options)));
-            $this->getLogger()->error($request->toJSON());
-            $this->getLogger()->error($exception->getMessage());
+            $this->getLogger()->error(
+                "Failed sending request to svea integration: $method " . $this->getLogRedactor()->redactUrls($endpoint)
+            );
+            $this->getLogger()->error($this->getLogRedactor()->redact($this->removeAuthForLogging($options)));
+            $this->getLogger()->error($this->getLogRedactor()->redactUrls($exception->getMessage()));
             $this->getLogger()->error($exception->getHttpStatusCode());
-            $this->getLogger()->error($exception->getResponseBody());
+            $this->getLogger()->error($this->getLogRedactor()->redact((string)$exception->getResponseBody()));
             throw $exception;
         }
     }
@@ -260,6 +250,35 @@ abstract class BaseClient
     private function createAuthorizationToken($timestamp, $body) {
 
         return "Svea " . base64_encode($this->merchantId . ':' . hash('sha512', $body . $this->sharedSecret . $timestamp));
+    }
+
+    /**
+     * @return LogRedactor
+     */
+    private function getLogRedactor(): LogRedactor
+    {
+        if ($this->logRedactor === null) {
+            $this->logRedactor = new LogRedactor();
+        }
+
+        return $this->logRedactor;
+    }
+
+    /**
+     * The iframe snippet is large and easier to debug without
+     *
+     * @param string $content
+     * @return string
+     */
+    private function removeSnippetForLogging(string $content): string
+    {
+        $decoded = json_decode($content, true);
+        if (is_array($decoded) && isset($decoded['Gui']['Snippet'])) {
+            $decoded['Gui']['Snippet'] = "Removed.";
+            return (string)json_encode($decoded);
+        }
+
+        return $content;
     }
 
     private function removeAuthForLogging($options) {
