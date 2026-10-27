@@ -51,13 +51,12 @@ class Cancel implements HttpPostActionInterface
      */
     public function execute()
     {
-        $token = $this->request->getParam('token');
+        $token = (string)$this->request->getParam('token');
         $orderId = $this->request->getParam('order_id');
         $resultRedirect = $this->redirectFactory->create();
 
         try {
             $order = $this->recurringInfoService->loadOrder((int)$orderId);
-            $recurringInfo = $this->recurringInfoRepo->getByRecurringToken($token);
         } catch (\Exception $e) {
             $this->messageManager->addErrorMessage(__('Recurring Info not found'));
             return $resultRedirect->setPath('sales/order/history');
@@ -65,6 +64,13 @@ class Cancel implements HttpPostActionInterface
 
         if (!$this->orderAuthorization->canView($order)) {
             $this->messageManager->addErrorMessage(__('You don\'t have permission do this'));
+            return $resultRedirect->setPath('sales/order/history');
+        }
+
+        // Act on the subscription of the order the customer may view, never on one picked by the token alone
+        $recurringInfo = $this->recurringInfoRepo->getByOriginalOrderId((int)$order->getEntityId());
+        if ($token === '' || !hash_equals((string)$recurringInfo->getRecurringToken(), $token)) {
+            $this->messageManager->addErrorMessage(__('Recurring Info not found'));
             return $resultRedirect->setPath('sales/order/history');
         }
 
