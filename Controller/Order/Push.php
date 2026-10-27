@@ -173,7 +173,7 @@ class Push extends Checkout implements CsrfAwareActionInterface
             $quote = $this->loadQuote($sveaOrder->getMerchantData()->getQuoteId());
 
             // compare the hashes, so no one tries to create an order without our permission
-            if ($quote->getSveaHash() !== $sveaHash) {
+            if (!is_string($sveaHash) || $sveaHash === '' || !hash_equals((string)$quote->getSveaHash(), $sveaHash)) {
                 throw new \Exception("invalid svea hash, order might have been updated");
             }
 
