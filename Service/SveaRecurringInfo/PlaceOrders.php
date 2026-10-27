@@ -261,6 +261,8 @@ class PlaceOrders
      */
     public function logError(string $token, array $messages): void
     {
+        // The token authorizes charges, so only log enough of it to match the subscription
+        $token = '...' . substr($token, -6);
         $this->logger->error(sprintf('[RecurringPayment Error Start. Token: %s]', $token));
         foreach ($messages as $message) {
             $this->logger->error($message);
