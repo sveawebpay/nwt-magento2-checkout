@@ -88,7 +88,8 @@ class ValidateOrder extends Update implements UsesServiceContainerInterface, Csr
 
             // compare the hashes, so no one tries to create an order without our permission
             if ($quote->getSveaHash() !== $sveaHash) {
-                $checkout->getLogger()->error(sprintf("Validate Order: The quote hash (%s) does not match the request hash (%s).", $quote->getSveaHash(), $sveaHash));
+                // Never log the hashes: the quote hash is the secret that authorizes this quote's callbacks
+                $checkout->getLogger()->error(sprintf("Validate Order: The request hash does not match the quote hash. Quote ID: %s Svea order ID: %s", $quote->getId(), $sveaOrderId));
                 throw new CheckoutException(__("Invalid Quote hash"));
             }
 
