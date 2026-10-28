@@ -63,17 +63,17 @@ class Push extends Checkout implements CsrfAwareActionInterface
     }
 
     /**
-     * @param $sveaOrderId
+     * @param int|string $sveaOrderId
      * @return int|null
      */
-    private function getMagentoOrderIdBySveaId($sveaOrderId)
+    private function getMagentoOrderIdBySveaId($sveaOrderId): ?int
     {
         $orderCollection = $this->sveaCheckoutContext->getOrderCollectionFactory()->create();
         $orderCollection
             ->addFieldToFilter('svea_order_id', ['eq' => $sveaOrderId])
             ->load();
 
-        return $orderCollection->count() ? $orderCollection->getFirstItem()->getId() : null;
+        return $orderCollection->count() ? (int)$orderCollection->getFirstItem()->getId() : null;
     }
 
     /**
@@ -81,7 +81,12 @@ class Push extends Checkout implements CsrfAwareActionInterface
      */
     private function getLockManager(): LockManagerInterface
     {
-        return $this->sveaCheckoutContext->getServiceContainer('controller:order:push')['lockManager'];
+        $lockManager = $this->sveaCheckoutContext->getServiceContainer('controller:order:push')['lockManager'] ?? null;
+        if (!$lockManager instanceof LockManagerInterface) {
+            throw new \LogicException('The controller:order:push service container in di.xml has no lockManager.');
+        }
+
+        return $lockManager;
     }
 
     /**
@@ -91,13 +96,7 @@ class Push extends Checkout implements CsrfAwareActionInterface
      */
     private function checkMagentoOrderBySveaId($sveaOrderId)
     {
-        $orderCollection = $this->sveaCheckoutContext->getOrderCollectionFactory()->create();
-        $ordersCount = $orderCollection
-            ->addFieldToFilter('svea_order_id', ['eq' => $sveaOrderId])
-            ->load()
-            ->count();
-
-        return $ordersCount > 0;
+        return $this->getMagentoOrderIdBySveaId($sveaOrderId) !== null;
     }
 
     /**
@@ -121,6 +120,13 @@ class Push extends Checkout implements CsrfAwareActionInterface
         $lockManager = $this->getLockManager();
         $lockName = 'svea_checkout_create_order_' . $sveaOrder->getOrderId();
         if (!$lockManager->lock($lockName, self::ORDER_LOCK_TIMEOUT)) {
+            // The other request may have created the order while we waited. Treat that as success, so the
+            // confirmation page does not tell the customer it failed (and invite a second payment).
+            $existingOrderId = $this->getMagentoOrderIdBySveaId($sveaOrder->getOrderId());
+            if ($existingOrderId) {
+                return $existingOrderId;
+            }
+
             throw new \Exception(sprintf('Could not get the order lock for Svea order %s', $sveaOrder->getOrderId()));
         }
 
@@ -144,28 +150,25 @@ class Push extends Checkout implements CsrfAwareActionInterface
         // the push is created request in PushOrder
         try  {
             $push = $this->pushRepo->get($sveaOrder->getOrderId());
-            $orderIdExists = $push->getOrderId() ? true : false;
         }catch (\Exception $e) {
             // ignore
 
             return true;
         }
 
-        // the other request may have created the order without saving it on the push
-        if (!$orderIdExists) {
-            $existingOrderId = $this->getMagentoOrderIdBySveaId($sveaOrder->getOrderId());
-            if ($existingOrderId) {
-                return $existingOrderId;
-            }
-        }
-
         // we are already done, stop it!
-        if ($orderIdExists) {
+        if ($push->getOrderId()) {
             return $push->getOrderId();
         }
 
+        // the other request may have created the order without saving it on the push
+        $existingOrderId = $this->getMagentoOrderIdBySveaId($sveaOrder->getOrderId());
+        if ($existingOrderId) {
+            return $existingOrderId;
+        }
+
         // try to create order here, when status is final, and we haven't created an order!
-        if ($sveaOrder->getStatus() === "Final" && !$orderIdExists) {
+        if ($sveaOrder->getStatus() === "Final") {
             try {
                 $order = $this->createMagentoOrder($sveaOrder, $sveaHash);
             } catch (\Exception $e) {

@@ -58,6 +58,28 @@ class PushLockTest extends TestCase
         $controller->tryToCreateOrder(self::SVEA_ORDER_ID, self::HASH);
     }
 
+    public function testReturnsOrderCreatedWhileWaitingForLock(): void
+    {
+        // The other request held the lock past the timeout but finished creating the order.
+        $this->existingMagentoOrders = 1;
+        $this->lockManager->method('lock')->willReturn(false);
+        $this->lockManager->expects($this->never())->method('unlock');
+        $controller = $this->makeController();
+        $controller->expects($this->never())->method('createMagentoOrder');
+
+        $this->assertSame(77, $controller->tryToCreateOrder(self::SVEA_ORDER_ID, self::HASH));
+    }
+
+    public function testFailsClearlyWithoutLockManagerConfig(): void
+    {
+        $controller = $this->makeController(null);
+        $controller->expects($this->never())->method('createMagentoOrder');
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('controller:order:push');
+        $controller->tryToCreateOrder(self::SVEA_ORDER_ID, self::HASH);
+    }
+
     public function testReturnsOrderCreatedByOtherRequest(): void
     {
         // The other request held the lock, created the order and saved it on the push.
@@ -90,8 +112,15 @@ class PushLockTest extends TestCase
         $controller->tryToCreateOrder(self::SVEA_ORDER_ID, self::HASH);
     }
 
-    private function makeController(): Push&MockObject
+    /**
+     * @param array|null|false $serviceContainer false: the default container with the lock manager
+     */
+    private function makeController($serviceContainer = false): Push&MockObject
     {
+        if ($serviceContainer === false) {
+            $serviceContainer = ['lockManager' => $this->lockManager];
+        }
+
         $sveaOrder = $this->createStub(GetOrderResponse::class);
         $sveaOrder->method('getOrderId')->willReturn(self::SVEA_ORDER_ID);
         $sveaOrder->method('getStatus')->willReturn('Final');
@@ -110,7 +139,7 @@ class PushLockTest extends TestCase
 
         $context = $this->createStub(CheckoutContext::class);
         $context->method('getServiceContainer')
-            ->willReturnMap([['controller:order:push', ['lockManager' => $this->lockManager]]]);
+            ->willReturnMap([['controller:order:push', $serviceContainer]]);
         $context->method('getOrderCollectionFactory')->willReturn($collectionFactory);
 
         $controller = $this->getMockBuilder(Push::class)
