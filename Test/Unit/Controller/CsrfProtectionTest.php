@@ -21,7 +21,9 @@ use Svea\Checkout\Controller\Order\SaveShippingMethod;
 use Svea\Checkout\Controller\Order\Update;
 use Svea\Checkout\Controller\Order\ValidateOrder;
 use Svea\Checkout\Controller\Recurring\Push as RecurringPush;
+use Svea\Checkout\Api\RecurringInfoRepositoryInterface;
 use Svea\Checkout\Model\Client\Api\TokenClient;
+use Svea\Checkout\Service\SveaRecurringInfo;
 
 /**
  * SC-300: only Svea's server to server callbacks skip Magento's CSRF validation, and the
@@ -94,7 +96,9 @@ class CsrfProtectionTest extends TestCase
             new RecurringPush(
                 $this->createStub(Http::class),
                 $this->createStub(TokenClient::class),
-                $this->createStub(RawFactory::class)
+                $this->createStub(RawFactory::class),
+                $this->createStub(RecurringInfoRepositoryInterface::class),
+                $this->createStub(SveaRecurringInfo::class)
             ),
         ];
 

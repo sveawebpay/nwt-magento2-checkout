@@ -15,6 +15,11 @@ use Svea\Checkout\Service\CollectCampaigns;
  */
 class Collect extends Action
 {
+    /**
+     * The campaign import is a button on the Svea config page, so it needs the same permission
+     */
+    const ADMIN_RESOURCE = 'Svea_Checkout::system_config';
+
     protected JsonFactory $resultJsonFactory;
 
     private Data $sveaConfig;
