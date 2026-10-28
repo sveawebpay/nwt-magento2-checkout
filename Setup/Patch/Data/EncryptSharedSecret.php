@@ -5,18 +5,22 @@ namespace Svea\Checkout\Setup\Patch\Data;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
-use Svea\Checkout\Model\Config\EncryptedValue;
 
 /**
  * Encrypts the Svea shared secret stored in plaintext before the field had the encrypted backend model.
  *
  * Covers every scope in core_config_data. Already encrypted rows are left alone, so applying it again
- * is safe. Values set in app/etc/env.php or config.php are not in the database; the helper still reads
- * those as plaintext.
+ * is safe. Values set in app/etc/env.php or config.php are not in the database and have to be set again
+ * encrypted, with bin/magento config:set --lock-env.
  */
 class EncryptSharedSecret implements DataPatchInterface
 {
     public const CONFIG_PATH = 'svea_checkout/connection/shared_secret';
+
+    /**
+     * Magento's encrypted format: "<key version>:<cipher version>:<base64 data>"
+     */
+    private const ENCRYPTED_PATTERN = '/^\d+:\d+:[A-Za-z0-9+\/=]+$/';
 
     private ResourceConnection $resourceConnection;
 
@@ -43,7 +47,7 @@ class EncryptSharedSecret implements DataPatchInterface
 
         foreach ($rows as $configId => $value) {
             $value = (string)$value;
-            if ($value === '' || EncryptedValue::isEncrypted($value)) {
+            if ($value === '' || preg_match(self::ENCRYPTED_PATTERN, $value)) {
                 continue;
             }
             $connection->update(

@@ -22,11 +22,14 @@ class EncryptSharedSecretTest extends TestCase
             2 => '0:3:QWxyZWFkeUVuY3J5cHRlZA==',
             3 => '',
             4 => 'store-secret',
+            5 => '1:3:Um90YXRlZEtleQ+/=',
+            6 => 'secret:with:colons',
         ]);
 
         $this->assertSame([
             [['value' => 'encrypted(default-secret)'], ['config_id = ?' => 1]],
             [['value' => 'encrypted(store-secret)'], ['config_id = ?' => 4]],
+            [['value' => 'encrypted(secret:with:colons)'], ['config_id = ?' => 6]],
         ], $updates);
     }
 
