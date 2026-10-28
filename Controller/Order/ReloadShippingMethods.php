@@ -82,8 +82,8 @@ class ReloadShippingMethods extends Action
                 $block->setTemplate('Svea_Checkout::hyva_compatibility/checkout/shipping/method.phtml');
                 $this->getResponse()->setNoCacheHeaders(); // Disable the cache here, block should not be cached
             }
-        } catch (\Exception) {
-            $this->sveaCheckout->getLogger()->error(__('Hyva Theme class is missing.'));
+        } catch (\Exception $e) {
+            $this->sveaCheckout->getLogger()->error('Hyvä theme detection failed', ['exception' => $e]);
         }
 
         $output = $block->toHtml();

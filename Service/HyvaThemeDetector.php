@@ -20,10 +20,21 @@ class HyvaThemeDetector
 
     private Manager $moduleManager;
 
-    public function __construct(ObjectManagerInterface $objectManager, Manager $moduleManager)
-    {
+    private string $currentThemeClass;
+
+    /**
+     * @param ObjectManagerInterface $objectManager
+     * @param Manager $moduleManager
+     * @param string $currentThemeClass Hyvä's CurrentTheme service; only replaced in tests
+     */
+    public function __construct(
+        ObjectManagerInterface $objectManager,
+        Manager $moduleManager,
+        string $currentThemeClass = self::CURRENT_THEME_SERVICE
+    ) {
         $this->objectManager = $objectManager;
         $this->moduleManager = $moduleManager;
+        $this->currentThemeClass = $currentThemeClass;
     }
 
     /**
@@ -31,10 +42,10 @@ class HyvaThemeDetector
      */
     public function isHyvaTheme(): bool
     {
-        if (!$this->moduleManager->isEnabled('Hyva_Theme') || !class_exists(self::CURRENT_THEME_SERVICE)) {
+        if (!$this->moduleManager->isEnabled('Hyva_Theme') || !class_exists($this->currentThemeClass)) {
             return false;
         }
 
-        return (bool)$this->objectManager->get(self::CURRENT_THEME_SERVICE)->isHyva();
+        return (bool)$this->objectManager->get($this->currentThemeClass)->isHyva();
     }
 }
