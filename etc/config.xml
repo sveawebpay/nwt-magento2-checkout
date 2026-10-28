@@ -2,6 +2,10 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
         <svea_checkout>
+            <connection>
+                <!-- Core decrypts the value on config load, so scopeConfig returns the plaintext secret -->
+                <shared_secret backend_model="Magento\Config\Model\Config\Backend\Encrypted"/>
+            </connection>
             <general>
                 <enabled>0</enabled>
             </general>

@@ -36,9 +36,10 @@
                     <label>Merchant ID</label>
                     <comment>Merchant ID, you will get this from Svea.</comment>
                 </field>
-                <field id="shared_secret" type="text" translate="label comment" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="50">
+                <field id="shared_secret" type="obscure" translate="label comment" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="50">
                     <label>Shared Secret</label>
                     <comment>The shared secret, you will get this from Svea.</comment>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                 </field>
             </group>
 
