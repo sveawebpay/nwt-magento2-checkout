@@ -33,19 +33,20 @@ class EncryptSharedSecretTest extends TestCase
         ], $updates);
     }
 
-    public function testSecondRunChangesNothing(): void
+    public function testSecondRunLeavesItsOwnOutputAlone(): void
     {
-        $firstRun = $this->apply([1 => 'default-secret']);
+        $firstRun = $this->apply([1 => 'default-secret'], true);
         $encryptedValue = $firstRun[0][0]['value'];
 
-        $this->assertSame([], $this->apply([1 => '0:3:' . base64_encode($encryptedValue)]));
+        $this->assertSame([], $this->apply([1 => $encryptedValue], true));
     }
 
     /**
      * @param array<int, string> $rows config_id => value
+     * @param bool $realFormat encrypt into Magento's "<key version>:<cipher version>:<base64>" format
      * @return array updates as [bind, where]
      */
-    private function apply(array $rows): array
+    private function apply(array $rows, bool $realFormat = false): array
     {
         $updates = [];
         $select = $this->createStub(Select::class);
@@ -65,7 +66,9 @@ class EncryptSharedSecretTest extends TestCase
         $resource->method('getTableName')->willReturn('core_config_data');
 
         $encryptor = $this->createStub(EncryptorInterface::class);
-        $encryptor->method('encrypt')->willReturnCallback(fn ($value) => "encrypted($value)");
+        $encryptor->method('encrypt')->willReturnCallback(
+            fn ($value) => $realFormat ? '0:3:' . base64_encode($value) : "encrypted($value)"
+        );
 
         (new EncryptSharedSecret($resource, $encryptor))->apply();
 

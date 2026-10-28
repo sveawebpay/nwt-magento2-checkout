@@ -12,6 +12,14 @@ download and copy all files into app/code/Svea/Checkout/ directory.
 ` php bin/magento module:enable --clear-static-content Svea_Checkout`   
 ` php bin/magento setup:upgrade`   
 ` php bin/magento setup:di:compile`
+## Upgrading:
+### Encrypted shared secret
+The Svea shared secret is now stored encrypted. When you run `php bin/magento setup:upgrade`, the shared secret saved in the admin is encrypted automatically, at every scope.
+
+* **Shared secret set in `app/etc/env.php` or `app/etc/config.php`:** set it again after upgrading, otherwise every request to Svea fails authentication:  
+` php bin/magento config:set --lock-env svea_checkout/connection/shared_secret <your shared secret>`  
+Add `--scope=websites --scope-code=<code>` (or `stores`) if it is set for a website or store view.
+* **Downgrading:** an earlier version of the module reads the encrypted value as the shared secret. Enter the shared secret again in the admin after downgrading.
 ## Settings and instructions:
 To find the settings follow these steps: Store->Configuration or on the left side in the panel.  
 Then you can find the settings under: Svea->Checkout.  
