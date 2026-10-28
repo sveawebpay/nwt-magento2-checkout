@@ -79,6 +79,9 @@
                     <item name="shipInfoManagement" xsi:type="object">Magento\Checkout\Model\ShippingInformationManagement\Proxy</item>
                     <item name="shipInfoService" xsi:type="object">Svea\Checkout\Service\SveaShippingInfo\Proxy</item>
                 </item>
+                <item name="controller:order:push" xsi:type="array">
+                    <item name="lockManager" xsi:type="object">Magento\Framework\Lock\LockManagerInterface</item>
+                </item>
                 <item name="controller:order:validateorder" xsi:type="array">
                     <item name="productQty" xsi:type="object">Magento\CatalogInventory\Observer\ProductQty\Proxy</item>
                     <item name="stockValidator" xsi:type="object">Svea\Checkout\Service\StockValidator\Proxy</item>
