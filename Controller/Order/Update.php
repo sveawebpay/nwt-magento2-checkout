@@ -81,7 +81,11 @@ abstract class Update extends \Svea\Checkout\Controller\Checkout
                 }
             } catch (\Magento\Framework\Exception\LocalizedException $e) {
                 //do nothing, we will just show the message
-                $this->messageManager->addErrorMessage($e->getMessage() ? $e->getMessage() : __('Cannot update checkout (%1)', get_class($e)));
+                $this->messageManager->addErrorMessage(
+                    $e->getMessage()
+                        ? $e->getMessage()
+                        : __('The checkout could not be updated. Please try again or contact customer service.')
+                );
             } catch (\Exception $e) {
                 // Not written for shoppers, e.g. from Svea API errors, so only log the details
                 $checkout->getLogger()->error(sprintf('Checkout update failed: (%s) %s', get_class($e), $e->getMessage()));

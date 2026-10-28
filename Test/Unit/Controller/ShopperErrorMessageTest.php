@@ -48,7 +48,34 @@ class ShopperErrorMessageTest extends TestCase
 
     public function testCheckoutUpdateHidesInternalErrorMessage(): void
     {
-        $sveaCheckout = $this->makeSveaCheckout(new \Exception(self::INTERNAL_MESSAGE));
+        $this->runUpdate(new \Exception(self::INTERNAL_MESSAGE));
+
+        $this->assertSame(
+            ['The checkout could not be updated. Please try again or contact customer service.'],
+            $this->shownMessages
+        );
+        $this->assertStringContainsString(self::INTERNAL_MESSAGE, implode("\n", $this->loggedMessages));
+    }
+
+    public function testCheckoutUpdateShowsMessageWrittenForShoppers(): void
+    {
+        $this->runUpdate(new LocalizedException(new Phrase('Some products are out of stock.')));
+
+        $this->assertSame(['Some products are out of stock.'], $this->shownMessages);
+    }
+
+    public function testCheckoutUpdateDoesNotShowClassNameForEmptyMessage(): void
+    {
+        $this->runUpdate(new LocalizedException(new Phrase('')));
+
+        $this->assertSame(
+            ['The checkout could not be updated. Please try again or contact customer service.'],
+            $this->shownMessages
+        );
+    }
+
+    private function runUpdate(\Exception $exception): void
+    {
         $controller = $this->getMockBuilder(SaveComment::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['execute', 'getRequest', '_redirect', 'getSveaCheckout'])
@@ -56,18 +83,12 @@ class ShopperErrorMessageTest extends TestCase
         $request = $this->createStub(Http::class);
         $request->method('isXmlHttpRequest')->willReturn(false);
         $controller->method('getRequest')->willReturn($request);
-        $controller->method('getSveaCheckout')->willReturn($sveaCheckout);
+        $controller->method('getSveaCheckout')->willReturn($this->makeSveaCheckout($exception));
         $this->setProperty($controller, 'sveaCheckoutContext', $this->createStub(CheckoutContext::class));
         $this->setProperty($controller, 'messageManager', $this->makeMessageManager());
 
         $sendResponse = new \ReflectionMethod($controller, '_sendResponse');
         $sendResponse->invoke($controller, ['messages']);
-
-        $this->assertSame(
-            ['The checkout could not be updated. Please try again or contact customer service.'],
-            $this->shownMessages
-        );
-        $this->assertStringContainsString(self::INTERNAL_MESSAGE, implode("\n", $this->loggedMessages));
     }
 
     private function runIndex(\Exception $exception): void
