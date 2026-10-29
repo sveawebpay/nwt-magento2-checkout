@@ -18,10 +18,6 @@
         </arguments>
     </type>
 
-    <type name="Magento\Framework\App\Request\CsrfValidator">
-        <plugin name="svea_csrf_validator_skip" type="Svea\Checkout\Plugin\CsrfValidatorSkip" />
-    </type>
-
     <preference for="Magento\Checkout\Block\Cart\Crosssell" type="Svea\Checkout\Block\Checkout\Cart\Crosssell" />
     <type name="Magento\Checkout\Block\Onepage\Link">
         <plugin name="sveacheckout_url" type="Svea\Checkout\Plugin\Url" sortOrder="10" disabled="false"/>
@@ -83,6 +79,9 @@
                     <item name="shipInfoManagement" xsi:type="object">Magento\Checkout\Model\ShippingInformationManagement\Proxy</item>
                     <item name="shipInfoService" xsi:type="object">Svea\Checkout\Service\SveaShippingInfo\Proxy</item>
                 </item>
+                <item name="controller:order:push" xsi:type="array">
+                    <item name="lockManager" xsi:type="object">Magento\Framework\Lock\LockManagerInterface</item>
+                </item>
                 <item name="controller:order:validateorder" xsi:type="array">
                     <item name="productQty" xsi:type="object">Magento\CatalogInventory\Observer\ProductQty\Proxy</item>
                     <item name="stockValidator" xsi:type="object">Svea\Checkout\Service\StockValidator\Proxy</item>
@@ -117,6 +116,15 @@
     </type>
     <type name="Magento\Quote\Model\Quote\Item\CartItemPersister">
         <plugin name="svea_checkout_cart_item_persister" type="Svea\Checkout\Plugin\Quote\Item\CartItemPersister" />
+    </type>
+
+    <!-- Keeps the Svea shared secret out of app/etc/config.php on app:config:dump -->
+    <type name="Magento\Config\Model\Config\TypePool">
+        <arguments>
+            <argument name="sensitive" xsi:type="array">
+                <item name="svea_checkout/connection/shared_secret" xsi:type="string">1</item>
+            </argument>
+        </arguments>
     </type>
 
     <!-- Optional constructor arguments get their default unless configured, so pass the object manager -->

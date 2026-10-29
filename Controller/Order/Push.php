@@ -2,6 +2,10 @@
 
 namespace Svea\Checkout\Controller\Order;
 
+use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\App\Request\InvalidRequestException;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Lock\LockManagerInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 use Svea\Checkout\Controller\Checkout;
@@ -10,8 +14,12 @@ use Svea\Checkout\Model\Client\ClientException;
 use Svea\Checkout\Model\Client\DTO\GetOrderResponse;
 use Svea\Checkout\Model\PushRepository;
 
-class Push extends Checkout
+class Push extends Checkout implements CsrfAwareActionInterface
 {
+    /**
+     * Seconds to wait for another request that is creating the same order
+     */
+    private const ORDER_LOCK_TIMEOUT = 30;
 
     /**
      * @var $pushRepo PushRepository
@@ -55,19 +63,40 @@ class Push extends Checkout
     }
 
     /**
+     * @param int|string $sveaOrderId
+     * @return int|null
+     */
+    private function getMagentoOrderIdBySveaId($sveaOrderId): ?int
+    {
+        $orderCollection = $this->sveaCheckoutContext->getOrderCollectionFactory()->create();
+        $orderCollection
+            ->addFieldToFilter('svea_order_id', ['eq' => $sveaOrderId])
+            ->load();
+
+        return $orderCollection->count() ? (int)$orderCollection->getFirstItem()->getId() : null;
+    }
+
+    /**
+     * @return LockManagerInterface
+     */
+    private function getLockManager(): LockManagerInterface
+    {
+        $lockManager = $this->sveaCheckoutContext->getServiceContainer('controller:order:push')['lockManager'] ?? null;
+        if (!$lockManager instanceof LockManagerInterface) {
+            throw new \LogicException('The controller:order:push service container in di.xml has no lockManager.');
+        }
+
+        return $lockManager;
+    }
+
+    /**
      * @param $sveaOrderId
      *
      * @return bool
      */
     private function checkMagentoOrderBySveaId($sveaOrderId)
     {
-        $orderCollection = $this->sveaCheckoutContext->getOrderCollectionFactory()->create();
-        $ordersCount = $orderCollection
-            ->addFieldToFilter('svea_order_id', ['eq' => $sveaOrderId])
-            ->load()
-            ->count();
-
-        return $ordersCount > 0;
+        return $this->getMagentoOrderIdBySveaId($sveaOrderId) !== null;
     }
 
     /**
@@ -86,10 +115,41 @@ class Push extends Checkout
             throw $e;
         }
 
+        // Svea's push and the customer's confirmation run in different sessions and can both get here
+        // for the same payment. The lock makes sure only one of them creates the order.
+        $lockManager = $this->getLockManager();
+        $lockName = 'svea_checkout_create_order_' . $sveaOrder->getOrderId();
+        if (!$lockManager->lock($lockName, self::ORDER_LOCK_TIMEOUT)) {
+            // The other request may have created the order while we waited. Treat that as success, so the
+            // confirmation page does not tell the customer it failed (and invite a second payment).
+            $existingOrderId = $this->getMagentoOrderIdBySveaId($sveaOrder->getOrderId());
+            if ($existingOrderId) {
+                return $existingOrderId;
+            }
+
+            throw new \Exception(sprintf('Could not get the order lock for Svea order %s', $sveaOrder->getOrderId()));
+        }
+
+        try {
+            return $this->createOrderOnce($sveaOrder, $sveaHash);
+        } finally {
+            $lockManager->unlock($lockName);
+        }
+    }
+
+    /**
+     * Creates the Magento order unless it already exists. Only call while holding the order lock.
+     *
+     * @param GetOrderResponse $sveaOrder
+     * @param $sveaHash
+     * @return bool|mixed
+     * @throws \Exception
+     */
+    private function createOrderOnce(GetOrderResponse $sveaOrder, $sveaHash)
+    {
         // the push is created request in PushOrder
         try  {
             $push = $this->pushRepo->get($sveaOrder->getOrderId());
-            $orderIdExists = $push->getOrderId() ? true : false;
         }catch (\Exception $e) {
             // ignore
 
@@ -97,12 +157,18 @@ class Push extends Checkout
         }
 
         // we are already done, stop it!
-        if ($orderIdExists) {
+        if ($push->getOrderId()) {
             return $push->getOrderId();
         }
 
+        // the other request may have created the order without saving it on the push
+        $existingOrderId = $this->getMagentoOrderIdBySveaId($sveaOrder->getOrderId());
+        if ($existingOrderId) {
+            return $existingOrderId;
+        }
+
         // try to create order here, when status is final, and we haven't created an order!
-        if ($sveaOrder->getStatus() === "Final" && !$orderIdExists) {
+        if ($sveaOrder->getStatus() === "Final") {
             try {
                 $order = $this->createMagentoOrder($sveaOrder, $sveaHash);
             } catch (\Exception $e) {
@@ -170,7 +236,7 @@ class Push extends Checkout
             $quote = $this->loadQuote($sveaOrder->getMerchantData()->getQuoteId());
 
             // compare the hashes, so no one tries to create an order without our permission
-            if ($quote->getSveaHash() !== $sveaHash) {
+            if (!is_string($sveaHash) || $sveaHash === '' || !hash_equals((string)$quote->getSveaHash(), $sveaHash)) {
                 throw new \Exception("invalid svea hash, order might have been updated");
             }
 
@@ -249,15 +315,23 @@ class Push extends Checkout
     }
 
     /**
-     * Only works for >= 2.3.0
+     * Svea calls this server to server, without a form key. The request is
+     * authenticated by the Svea order lookup and the quote hash instead.
+     *
+     * @param RequestInterface $request
+     * @return InvalidRequestException|null
+     */
     public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
     {
         return null;
     }
 
+    /**
+     * @param RequestInterface $request
+     * @return bool|null
+     */
     public function validateForCsrf(RequestInterface $request): ?bool
     {
         return true;
     }
-    */
 }

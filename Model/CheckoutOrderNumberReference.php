@@ -166,6 +166,47 @@ class CheckoutOrderNumberReference
     }
 
     /**
+     * Replaces a legacy, guessable hash with a random one.
+     *
+     * Only call this before a new Svea order is created: the push, validation and
+     * confirmation URLs of an existing Svea order carry the current hash.
+     *
+     * @return void
+     */
+    public function replaceLegacySveaHash(): void
+    {
+        if ($this->isLegacySveaHash()) {
+            $this->getQuote()->setSveaHash(bin2hex(random_bytes(20)));
+        }
+    }
+
+    /**
+     * True when the quote hash is sha1() of its client order number
+     *
+     * This is the predictable format used before getSveaHash() generated random values.
+     *
+     * @param \Magento\Quote\Model\Quote|null $quote Defaults to the current quote
+     * @return bool
+     */
+    public function isLegacySveaHash($quote = null): bool
+    {
+        $quote = $quote ?: $this->getQuote();
+        $hash = (string)$quote->getSveaHash();
+        $reserved = (string)$quote->getReservedOrderId();
+        $candidates = [(string)$quote->getData('svea_client_order_id'), $reserved];
+        for ($i = 2; $reserved !== '' && $i <= 50; $i++) {
+            $candidates[] = $reserved . '-' . $i;
+        }
+        foreach ($candidates as $candidate) {
+            if ($candidate !== '' && hash_equals(sha1(substr($candidate, 0, 31)), $hash)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @param $clientId
      * @return bool
      */

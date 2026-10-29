@@ -12,8 +12,13 @@ class Success extends \Svea\Checkout\Controller\Checkout
 
 
         if (!$this->sessionIsValid()) {
-            $checkout->getLogger()->error("Success Page: Success Validation invalid.");
-            $checkout->getLogger()->error(json_encode($session->getData()));
+            // Only identifiers: the session also holds customer and order data
+            $checkout->getLogger()->error(sprintf(
+                "Success Page: Success Validation invalid. Last order ID: %s Last success quote ID: %s Svea order ID: %s",
+                $session->getLastOrderId() ?: '-',
+                $session->getLastSuccessQuoteId() ?: '-',
+                $session->getSveaOrderId() ?: '-'
+            ));
             return $this->resultRedirectFactory->create()->setPath('checkout/cart');
         }
 
