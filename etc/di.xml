@@ -55,6 +55,13 @@
 
     <preference for="Svea\Checkout\Api\GetQtyIncrementConfigInterface" type="Svea\Checkout\Service\GetQtyIncrementConfig" />
     <preference for="Svea\Checkout\Api\RecurringInfoRepositoryInterface" type="Svea\Checkout\Model\RecurringInfoRepository" />
+    <!-- Optional constructor arguments get their default unless configured, so pass them explicitly -->
+    <type name="Svea\Checkout\Controller\Recurring\Push">
+        <arguments>
+            <argument name="recurringInfoRepo" xsi:type="object">Svea\Checkout\Api\RecurringInfoRepositoryInterface</argument>
+            <argument name="recurringInfoService" xsi:type="object">Svea\Checkout\Service\SveaRecurringInfo\Proxy</argument>
+        </arguments>
+    </type>
 
     <type name="Svea\Checkout\Block\Payment\Checkout\Info">
         <arguments>

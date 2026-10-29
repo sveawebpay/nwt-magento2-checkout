@@ -28,6 +28,10 @@ class Push implements HttpPostActionInterface, CsrfAwareActionInterface
 
     private SveaRecurringInfo $recurringInfoService;
 
+    /**
+     * DI supplies the repository and service via di.xml. They are optional and fall back to the global object
+     * manager only so that callers written before they were added keep working.
+     */
     public function __construct(
         Http $request,
         TokenClient $tokenClient,
