@@ -118,4 +118,11 @@
     <type name="Magento\Quote\Model\Quote\Item\CartItemPersister">
         <plugin name="svea_checkout_cart_item_persister" type="Svea\Checkout\Plugin\Quote\Item\CartItemPersister" />
     </type>
+
+    <!-- Optional constructor arguments get their default unless configured, so pass the object manager -->
+    <type name="Svea\Checkout\Helper\GiftCard">
+        <arguments>
+            <argument name="objectManager" xsi:type="object">Magento\Framework\ObjectManagerInterface</argument>
+        </arguments>
+    </type>
 </config>

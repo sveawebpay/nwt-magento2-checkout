@@ -26,8 +26,8 @@ class GiftCard
      * dependencies: compilation would fail on Open Source. They are created through the injected object
      * manager, guarded by the module status and interface_exists(), unless passed in.
      *
-     * The object manager is the last, optional argument so subclasses that call parent::__construct() with
-     * the earlier arguments keep working. DI always passes it.
+     * DI explicitly supplies the object manager via di.xml. It is the last, optional argument and falls back
+     * to the global instance only to keep subclasses that call parent::__construct() without it working.
      */
     public function __construct(
         \Magento\Framework\Module\Manager $moduleManager,
