@@ -126,4 +126,11 @@
             </argument>
         </arguments>
     </type>
+
+    <!-- Optional constructor arguments get their default unless configured, so pass the object manager -->
+    <type name="Svea\Checkout\Helper\GiftCard">
+        <arguments>
+            <argument name="objectManager" xsi:type="object">Magento\Framework\ObjectManagerInterface</argument>
+        </arguments>
+    </type>
 </config>

@@ -10,6 +10,7 @@ use Magento\GiftCardAccount\Api\GiftCardAccountRepositoryInterface;
 use Magento\GiftCardAccount\Model\GiftCardFactory;
 use Magento\GiftCardAccount\Api\Data\GiftCardAccountInterfaceFactory;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\ObjectManagerInterface;
 
 class GiftCard
 {
@@ -20,6 +21,14 @@ class GiftCard
     protected $serializer;
     protected $giftCardFactory;
 
+    /**
+     * Magento_GiftCardAccount only exists on Adobe Commerce, so its services cannot be constructor or di.xml
+     * dependencies: compilation would fail on Open Source. They are created through the injected object
+     * manager, guarded by the module status and interface_exists(), unless passed in.
+     *
+     * DI explicitly supplies the object manager via di.xml. It is the last, optional argument and falls back
+     * to the global instance only to keep subclasses that call parent::__construct() without it working.
+     */
     public function __construct(
         \Magento\Framework\Module\Manager $moduleManager,
         \Magento\Framework\Api\SearchCriteriaBuilder $searchCriteriaBuilder,
@@ -27,15 +36,22 @@ class GiftCard
         $giftCardAccountRepository = null,
         $giftCardAccountFactory = null,
         $giftCardFactory = null,
-        $managementService = null
+        $managementService = null,
+        ?ObjectManagerInterface $objectManager = null
     ) {
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->serializer = $serializer;
-        if($moduleManager->isEnabled('Magento_GiftCardAccount')) {
-            $this->giftCardAccountRepository = ObjectManager::getInstance()->get(GiftCardAccountRepositoryInterface::class);
-            $this->giftCardAccountFactory = ObjectManager::getInstance()->get(GiftCardAccountInterfaceFactory::class);
-            $this->giftCardFactory = ObjectManager::getInstance()->get(GiftCardFactory::class);
-            $this->giftCardAccountManagement = ObjectManager::getInstance()->get(GiftCardAccountManagementInterface::class);
+        if ($moduleManager->isEnabled('Magento_GiftCardAccount')
+            && interface_exists(GiftCardAccountManagementInterface::class)
+        ) {
+            $objectManager = $objectManager ?? ObjectManager::getInstance();
+            $this->giftCardAccountRepository = $giftCardAccountRepository
+                ?? $objectManager->get(GiftCardAccountRepositoryInterface::class);
+            $this->giftCardAccountFactory = $giftCardAccountFactory
+                ?? $objectManager->get(GiftCardAccountInterfaceFactory::class);
+            $this->giftCardFactory = $giftCardFactory ?? $objectManager->get(GiftCardFactory::class);
+            $this->giftCardAccountManagement = $managementService
+                ?? $objectManager->get(GiftCardAccountManagementInterface::class);
         } else {
             $this->giftCardAccountRepository = null;
             $this->giftCardAccountFactory = null;
