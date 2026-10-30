@@ -68,7 +68,7 @@ class Changepaymentmethod implements HttpGetActionInterface
      */
     public function execute()
     {
-        $token = $this->request->getParam('token');
+        $token = (string)$this->request->getParam('token');
         $orderId = $this->request->getParam('order_id');
         $resultRedirect = $this->redirectFactory->create();
 
@@ -79,7 +79,6 @@ class Changepaymentmethod implements HttpGetActionInterface
 
         try {
             $order = $this->recurringInfoService->loadOrder((int)$orderId);
-            $this->recurringInfoRepo->getByRecurringToken($token);
         } catch (\Exception $e) {
             $this->messageManager->addErrorMessage(__('Recurring Info not found'));
             return $resultRedirect->setPath('sales/order/history');
@@ -90,9 +89,16 @@ class Changepaymentmethod implements HttpGetActionInterface
             return $resultRedirect->setPath('sales/order/history');
         }
 
+        // Act on the subscription of the order the customer may view, never on one picked by the token alone
+        $recurringInfo = $this->recurringInfoRepo->getByOriginalOrderId((int)$order->getEntityId());
+        if (!hash_equals((string)$recurringInfo->getRecurringToken(), $token)) {
+            $this->messageManager->addErrorMessage(__('Recurring Info not found'));
+            return $resultRedirect->setPath('sales/order/history');
+        }
+
         try {
             $termsUrl = $this->config->getTermsUrl();
-            $snippet = $this->tokenClient->changePaymentMethod($token, $termsUrl);
+            $snippet = $this->tokenClient->changePaymentMethod($recurringInfo->getRecurringToken(), $termsUrl);
             $this->recurringInfoService->setStoredChangePaymentSnippet($this->addNonce($snippet));
         } catch (\Exception $e) {
             $this->messageManager->addErrorMessage(

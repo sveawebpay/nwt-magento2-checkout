@@ -2,11 +2,34 @@
 
 namespace Svea\Checkout\Controller\Order;
 
+use Magento\Framework\App\RequestInterface;
 use Svea\Checkout\Model\Client\ClientException;
 use Svea\Checkout\Model\CheckoutException;
 
 abstract class Update extends \Svea\Checkout\Controller\Checkout
 {
+    /**
+     * Checkout updates are only sent as AJAX requests by the checkout. A page on another
+     * site cannot add the X-Requested-With header, so this also protects GET requests,
+     * which Magento's CSRF validation does not check.
+     *
+     * @var bool
+     */
+    protected $requiresXmlHttpRequest = true;
+
+    /**
+     * @param RequestInterface $request
+     * @return \Magento\Framework\App\ResponseInterface
+     */
+    public function dispatch(RequestInterface $request)
+    {
+        if ($this->requiresXmlHttpRequest && !$request->isXmlHttpRequest()) {
+            return $this->_redirect('*');
+        }
+
+        return parent::dispatch($request);
+    }
+
     /**
      * Generate a response containing updates for the specified blocks.
      * Can also send an order update to Svea
@@ -81,9 +104,18 @@ abstract class Update extends \Svea\Checkout\Controller\Checkout
                 }
             } catch (\Magento\Framework\Exception\LocalizedException $e) {
                 //do nothing, we will just show the message
-                $this->messageManager->addErrorMessage($e->getMessage() ? $e->getMessage() : __('Cannot update checkout (%1)', get_class($e)));
+                $this->messageManager->addErrorMessage(
+                    $e->getMessage()
+                        ? $e->getMessage()
+                        : __('The checkout could not be updated. Please try again or contact customer service.')
+                );
             } catch (\Exception $e) {
-                $this->messageManager->addErrorMessage($e->getMessage() ? $e->getMessage() : __('Cannot initialize Svea Checkout (%1)', get_class($e)));
+                // Not written for shoppers, e.g. from Svea API errors, so only log the details
+                $checkout->getLogger()->error(sprintf('Checkout update failed: (%s) %s', get_class($e), $e->getMessage()));
+                $checkout->getLogger()->critical($e);
+                $this->messageManager->addErrorMessage(
+                    __('The checkout could not be updated. Please try again or contact customer service.')
+                );
             }
 
             if (!empty($response['redirect'])) {
