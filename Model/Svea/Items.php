@@ -942,7 +942,7 @@ class Items
             $currentCount = $carry[$sku] ?? -1;
             $carry[$sku] = ++$currentCount;
 
-            if ($item->getProductType() === 'bundle' && $item->isChildrenCalculated()) {
+            if ($item->getProductType() === 'bundle') {
                 $childItems = $item->getChildren() ?? $item->getChildrenItems() ?? [];
                 foreach ($childItems as $childItem) {
                     /** @var QuoteItem|OrderItem $childItem */
