@@ -30,6 +30,9 @@ class AdminResourceTest extends TestCase
         return $controllers;
     }
 
+    /**
+     * @dataProvider adminControllerProvider
+     */
     #[DataProvider('adminControllerProvider')]
     public function testDeclaresSveaAdminResource(string $class): void
     {

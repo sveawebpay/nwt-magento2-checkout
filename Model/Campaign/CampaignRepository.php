@@ -28,7 +28,13 @@ class CampaignRepository implements CampaignInfoRepositoryInterface
 
     public function get($campaignId): Data\CampaignInfoInterface
     {
-        // TODO: Implement get() method.
+        $collection = $this->campaignCollectionFactory->create();
+        $collection->addFieldToFilter('entity_id', $campaignId);
+        $campaign = $collection->getFirstItem();
+        if (!$campaign->getEntityId()) {
+            throw new \Magento\Framework\Exception\NoSuchEntityException();
+        }
+        return $campaign;
     }
 
     /**

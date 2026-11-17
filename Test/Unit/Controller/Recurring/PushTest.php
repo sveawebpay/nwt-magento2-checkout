@@ -50,6 +50,9 @@ class PushTest extends TestCase
         ];
     }
 
+    /**
+     * @dataProvider malformedTokenProvider
+     */
     #[DataProvider('malformedTokenProvider')]
     public function testRefusesMalformedTokenWithoutLookup(string $token): void
     {

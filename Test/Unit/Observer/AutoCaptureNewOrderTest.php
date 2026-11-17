@@ -79,6 +79,9 @@ class AutoCaptureNewOrderTest extends TestCase
         $this->observer->execute($event);
     }
 
+    /**
+     * @dataProvider unsupportedPaymentTypeProvider
+     */
     #[DataProvider('unsupportedPaymentTypeProvider')]
     public function testExecuteDoesNothingForUnsupportedPaymentType(string $paymentType): void
     {
@@ -102,6 +105,9 @@ class AutoCaptureNewOrderTest extends TestCase
         ];
     }
 
+    /**
+     * @dataProvider supportedPaymentTypeProvider
+     */
     #[DataProvider('supportedPaymentTypeProvider')]
     public function testExecuteCreatesAndCapturesInvoiceForSupportedPaymentTypes(string $paymentType): void
     {

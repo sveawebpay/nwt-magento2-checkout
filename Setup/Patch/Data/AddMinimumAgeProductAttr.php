@@ -72,6 +72,7 @@ class AddMinimumAgeProductAttr implements DataPatchInterface
                 ]
             );
         }
+        return $this;
     }
 
     /**

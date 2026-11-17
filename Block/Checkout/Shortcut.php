@@ -51,7 +51,7 @@ class Shortcut extends \Magento\Framework\View\Element\Template implements Catal
         $this->_checkoutSession = $checkoutSession;
         $this->_mathRandom = $mathRandom;
         $this->helper = $helper;
-        $this->setTemplate('checkout/shortcut.phtml');
+        $data += ['template' => 'checkout/shortcut.phtml'];
 
         parent::__construct($context, $data);
     }

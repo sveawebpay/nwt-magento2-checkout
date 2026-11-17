@@ -35,6 +35,9 @@ class LocaleTest extends TestCase
         }
     }
 
+    /**
+     * @dataProvider localeByCountryCodeProvider
+     */
     #[DataProvider('localeByCountryCodeProvider')]
     public function testGetLocaleByCountryCodeReturnsCorrectLocale(string $country, string $expected): void
     {
@@ -72,6 +75,9 @@ class LocaleTest extends TestCase
         $this->assertSame([], $this->locale->getTestPresetValuesByCountryCode('XX'));
     }
 
+    /**
+     * @dataProvider defaultPostalCodeProvider
+     */
     #[DataProvider('defaultPostalCodeProvider')]
     public function testGetDefaultDataByCountryCodeReturnsPostalCode(string $country, string $expectedPostal): void
     {

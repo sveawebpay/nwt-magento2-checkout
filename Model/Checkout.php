@@ -473,7 +473,8 @@ class Checkout extends Onepage
                 $shippingAddress->setPostcode($postcode);
             }
 
-            $quote->setTotalsCollectedFlag(false)->collectTotals()->save();
+            $quote->setTotalsCollectedFlag(false)->collectTotals();
+            $this->context->getQuoteResource()->save($quote);
         }
     }
 
@@ -592,7 +593,7 @@ class Checkout extends Onepage
             $quote->setSveaInvoiceFee($fee);
             $quote->getBillingAddress()->setSveaInvoiceFee($fee);
             $quote->getShippingAddress()->setSveaInvoiceFee($fee);
-            $quote->save();
+            $this->context->getQuoteResource()->save($quote);
         }
 
         //- do not recollect totals

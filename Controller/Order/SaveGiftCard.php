@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Svea\Checkout\Controller\Order;
 
-use Magento\GiftCardAccount\Api\Exception\TooManyAttemptsException;
 use Magento\Checkout\Controller\Action;
 use Magento\Customer\Api\AccountManagementInterface;
 
@@ -54,6 +53,9 @@ class SaveGiftCard extends \Svea\Checkout\Controller\Order\Update
         $this->escaper = $escaper;
     }
 
+    /**
+     * @return void
+     */
     public function execute()
     {
         if ($this->ajaxRequestAllowed()) {
@@ -79,12 +81,14 @@ class SaveGiftCard extends \Svea\Checkout\Controller\Order\Update
                     $this->escaper->escapeHtml($code)
                 )
             );
-        } catch (TooManyAttemptsException $exception) {
-            $this->messageManager->addErrorMessage($exception->getMessage());
-        } catch (\Magento\Framework\Exception\LocalizedException $exception) {
-            $this->messageManager->addError($exception->getMessage());
         } catch (\Throwable $exception) {
-            $this->messageManager->addExceptionMessage($exception, __('We cannot apply this gift card.'));
+            if (is_a($exception, 'Magento\GiftCardAccount\Api\Exception\TooManyAttemptsException')) {
+                $this->messageManager->addErrorMessage($exception->getMessage());
+            } elseif ($exception instanceof \Magento\Framework\Exception\LocalizedException) {
+                $this->messageManager->addError($exception->getMessage());
+            } else {
+                $this->messageManager->addExceptionMessage($exception, __('We cannot apply this gift card.'));
+            }
         }
     }
 }

@@ -46,6 +46,7 @@ class CallbackHashTest extends TestCase
 
     /**
      * @param mixed $requestHash
+     * @dataProvider refusedHashProvider
      */
     #[DataProvider('refusedHashProvider')]
     public function testPushRefusesHash(?string $quoteHash, $requestHash): void
@@ -68,6 +69,7 @@ class CallbackHashTest extends TestCase
 
     /**
      * @param mixed $requestHash
+     * @dataProvider refusedHashProvider
      */
     #[DataProvider('refusedHashProvider')]
     public function testValidateOrderRefusesHash(?string $quoteHash, $requestHash): void

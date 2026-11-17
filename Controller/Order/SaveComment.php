@@ -20,7 +20,7 @@ class SaveComment extends Update
             $comment = $this->getRequest()->getPost('svea_customer_comment', '');
             $quote = $this->getSveaCheckout()->getQuote();
             $quote->setCustomerNote($comment)->setCustomerNoteNotify(false);
-            $quote->save();
+            $this->sveaCheckoutContext->getQuoteResource()->save($quote);
 
         } catch (\Magento\Framework\Exception\LocalizedException $e) {
             $this->messageManager->addExceptionMessage(

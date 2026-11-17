@@ -303,7 +303,7 @@ class Order
             $paymentOrder->setShippingInformation($info);
         }
 
-        if ($partnerKey && !empty($partnerKey)) {
+        if ($partnerKey) {
             $paymentOrder->setPartnerKey($partnerKey);
         }
 

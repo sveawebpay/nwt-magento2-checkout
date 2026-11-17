@@ -13,6 +13,8 @@ class Editor extends \Magento\Config\Block\System\Config\Form\Field
      */
     protected $_coreRegistry;
 
+    protected WysiwygConfig $_wysiwygConfig;
+
     /**
      * @param Context $context
      * @param WysiwygConfig $wysiwygConfig

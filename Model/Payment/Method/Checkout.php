@@ -336,6 +336,7 @@ class Checkout extends AbstractMethod
         } catch (ClientException $e) {
             throw new LocalizedException(__("Could not Capture order. %1", $e->getMessage()), $e);
         }
+        return $this;
     }
 
 
@@ -351,6 +352,7 @@ class Checkout extends AbstractMethod
         } catch (ClientException $e) {
             throw new LocalizedException(__("Could not Refund Invoice. %1", $e->getMessage()), $e);
         }
+        return $this;
     }
 
     public function cancel(\Magento\Payment\Model\InfoInterface $payment)
@@ -370,6 +372,7 @@ class Checkout extends AbstractMethod
         } catch (ClientException $e) {
             throw new LocalizedException(__("Could not cancel order. %1", $e->getMessage()), $e);
         }
+        return $this;
     }
 
 

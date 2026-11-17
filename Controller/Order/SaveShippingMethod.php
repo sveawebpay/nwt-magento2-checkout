@@ -10,6 +10,9 @@ class SaveShippingMethod extends \Svea\Checkout\Controller\Order\Update
      * Save shipping method action
      */
 
+    /**
+     * @return void
+     */
     public function execute()
     {
         if ($this->ajaxRequestAllowed()) {

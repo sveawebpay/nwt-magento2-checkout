@@ -31,7 +31,7 @@ class Info extends \Magento\Payment\Block\Info
      */
     public function toPdf()
     {
-        $this->setTemplate('Svea_Checkout::payment/checkout/pdf.phtml');
+        $this->_template = 'Svea_Checkout::payment/checkout/pdf.phtml';
         return $this->toHtml();
     }
 

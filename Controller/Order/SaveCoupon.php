@@ -5,6 +5,9 @@ namespace Svea\Checkout\Controller\Order;
 class SaveCoupon extends \Svea\Checkout\Controller\Order\Update
 {
 
+    /**
+     * @return void
+     */
     public function execute()
     {
         if ($this->ajaxRequestAllowed()) {
@@ -40,7 +43,8 @@ class SaveCoupon extends \Svea\Checkout\Controller\Order\Update
 
             $shippingMethodBefore = (string)$quote->getShippingAddress()->getShippingMethod();
             $quote->getShippingAddress()->setCollectShippingRates(true);
-            $quote->setCouponCode($couponCode)->collectTotals()->save();
+            $quote->setCouponCode($couponCode)->collectTotals();
+            $this->sveaCheckoutContext->getQuoteResource()->save($quote);
             $shippingMethodAfter = (string)$quote->getShippingAddress()->getShippingMethod();
 
             if($couponCode) {

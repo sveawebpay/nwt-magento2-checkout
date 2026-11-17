@@ -123,7 +123,7 @@ abstract class Checkout extends Action
                 'messages' =>(string)__('The cart was updated (from another location), reloading the checkout, please wait...')
             ];
             $this->messageManager->addErrorMessage(__('The requested changes were not applied. The cart was updated (from another location), please review the cart.'));
-            $this->getResponse()->setBody(Zend_Json::encode($response));
+            $this->getResponse()->setBody(json_encode($response));
             return true;
         }
 

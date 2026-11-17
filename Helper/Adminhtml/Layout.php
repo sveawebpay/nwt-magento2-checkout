@@ -5,7 +5,6 @@ namespace Svea\Checkout\Helper\Adminhtml;
 use Magento\Framework\Component\ComponentRegistrarInterface;
 use Magento\Framework\Filesystem\Directory\ReadFactory;
 use Magento\Framework\Serialize\Serializer\Json;
-use Magento\Backend\Block\Template\Context;
 
 class Layout
 {
@@ -18,9 +17,7 @@ class Layout
     public function __construct(
         ComponentRegistrarInterface $componentRegistrar,
         ReadFactory $readFactory,
-        Json $serializer,
-        Context $context,
-        array $data = []
+        Json $serializer
     ) {
         $this->componentRegistrar = $componentRegistrar;
         $this->readFactory = $readFactory;

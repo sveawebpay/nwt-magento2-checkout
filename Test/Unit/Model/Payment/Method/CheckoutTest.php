@@ -23,14 +23,14 @@ class CheckoutTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->order = $this->getStubBuilder(Order::class)
+        $this->order = $this->getMockBuilder(Order::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['getConfig', 'getBaseTotalDue', 'getTotalDue'])
-            ->getStub();
-        $this->payment = $this->getStubBuilder(Payment::class)
+            ->getMock();
+        $this->payment = $this->getMockBuilder(Payment::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['getOrder'])
-            ->getStub();
+            ->getMock();
         $this->payment->method('getOrder')->willReturn($this->order);
 
         $this->method = $this->getMockBuilder(Checkout::class)
@@ -53,6 +53,9 @@ class CheckoutTest extends TestCase
         ];
     }
 
+    /**
+     * @dataProvider invalidSveaOrderIdProvider
+     */
     #[DataProvider('invalidSveaOrderIdProvider')]
     public function testInitializeRejectsInvalidSveaOrderId(mixed $sveaOrderId): void
     {
@@ -86,6 +89,9 @@ class CheckoutTest extends TestCase
         ];
     }
 
+    /**
+     * @dataProvider validSveaOrderIdProvider
+     */
     #[DataProvider('validSveaOrderIdProvider')]
     public function testInitializeAuthorizesWhenSveaOrderIdIsPresent(int|string $sveaOrderId): void
     {
@@ -96,7 +102,7 @@ class CheckoutTest extends TestCase
         $this->order->method('getConfig')->willReturn($orderConfig);
         $this->order->method('getBaseTotalDue')->willReturn(100.0);
         $this->order->method('getTotalDue')->willReturn(100.0);
-        $this->method->method('getConfigData')->with('order_status')->willReturn('pending');
+        $this->method->expects($this->once())->method('getConfigData')->with('order_status')->willReturn('pending');
 
         $this->method->expects($this->once())->method('authorize')->with($this->payment, 100.0);
         $stateObject = new DataObject();
