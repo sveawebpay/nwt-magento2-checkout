@@ -50,9 +50,9 @@ class SuccessTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->checkoutSession = $this->getMockBuilder(CheckoutSession::class)
+        $this->checkoutSession = $this->getMockBuilder(Session::class)
             ->disableOriginalConstructor()
-            ->addMethods(['getLastOrderId', 'getLastRealOrderId', 'getSveaOrderId', 'unsSveaOrderId'])
+            ->onlyMethods(['getLastOrderId', 'getLastRealOrderId', 'getSveaOrderId', 'unsSveaOrderId'])
             ->getMock();
         $this->httpContext = $this->createMock(HttpContext::class);
         $this->orderRepository = $this->createMock(OrderRepository::class);
@@ -265,12 +265,13 @@ class SuccessTest extends TestCase
     /**
      * @dataProvider formatQtyProvider
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('formatQtyProvider')]
     public function testFormatQty(mixed $input, string $expected): void
     {
         $this->assertSame($expected, $this->makeViewModel()->formatQty($input));
     }
 
-    public function formatQtyProvider(): array
+    public static function formatQtyProvider(): array
     {
         return [
             'integer'                       => [1, '1'],

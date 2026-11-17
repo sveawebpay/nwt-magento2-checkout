@@ -69,13 +69,15 @@ class EmailOrderSetTemplateVarsBefore implements ObserverInterface
         $address = $this->addressFactory->create();
         $shipInfo = $this->sveaShippingInfo->getFromOrder($order);
         if (null === $shipInfo) {
-            return $this->populateWithShippingAddress($transportObject);
+            $this->populateWithShippingAddress($transportObject);
+            return;
         }
 
         $locationData = $shipInfo->getLocation();
         $locationObj = $this->dataObjectFactory->create()->setData($locationData);
         if (!$locationObj->getName()) {
-            return $this->populateWithShippingAddress($transportObject);
+            $this->populateWithShippingAddress($transportObject);
+            return;
         }
 
         $address = $this->sveaShippingInfo->createOrderAddressFromLocation($locationObj);

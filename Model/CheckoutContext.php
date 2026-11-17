@@ -106,6 +106,10 @@ class CheckoutContext
 
     private ?SessionResource $sessionResource = null;
 
+    private \Magento\Quote\Model\ResourceModel\Quote $quoteResource;
+
+    private \Magento\Quote\Model\ResourceModel\Quote\Payment $paymentResource;
+
     /**
      * @param \Svea\Checkout\Helper\Data $helper
      * @param \Svea\Checkout\Model\Svea\Order $sveaOrderHandler
@@ -145,8 +149,12 @@ class CheckoutContext
         SessionFactory $sessionFactory,
         SessionResourceFactory $sessionResourceFactory,
         ShipmentEstimationInterface $shipmentEstimation,
+        \Magento\Quote\Model\ResourceModel\Quote $quoteResource,
+        \Magento\Quote\Model\ResourceModel\Quote\Payment $paymentResource,
         array $serviceContainers = []
     ) {
+        $this->quoteResource = $quoteResource;
+        $this->paymentResource = $paymentResource;
         $this->helper        = $helper;
         $this->logger = $logger;
         $this->sveaOrderHandler = $sveaOrderHandler;
@@ -166,6 +174,16 @@ class CheckoutContext
         $this->sessionResourceFactory = $sessionResourceFactory;
         $this->shipmentEstimation = $shipmentEstimation;
         $this->serviceContainers = $serviceContainers;
+    }
+
+    public function getQuoteResource(): \Magento\Quote\Model\ResourceModel\Quote
+    {
+        return $this->quoteResource;
+    }
+
+    public function getPaymentResource(): \Magento\Quote\Model\ResourceModel\Quote\Payment
+    {
+        return $this->paymentResource;
     }
 
     /**

@@ -72,20 +72,22 @@ class ReloadShippingMethods extends Action
     {
         $result = $this->_resultJsonFactory->create();
         $resultPage = $this->_resultPageFactory->create();
-        $block = $resultPage->getLayout()
-            ->createBlock(\Svea\Checkout\Block\Checkout::class);
-
-        $block->setTemplate('Svea_Checkout::checkout/shipping/method.phtml');
+        $template = 'Svea_Checkout::checkout/shipping/method.phtml';
 
         try {
             if ($this->hyvaThemeDetector->isHyvaTheme()) {
-                $block->setTemplate('Svea_Checkout::hyva_compatibility/checkout/shipping/method.phtml');
+                $template = 'Svea_Checkout::hyva_compatibility/checkout/shipping/method.phtml';
                 $this->getResponse()->setNoCacheHeaders(); // Disable the cache here, block should not be cached
             }
         } catch (\Exception $e) {
             $this->sveaCheckout->getLogger()->error('Hyvä theme detection failed', ['exception' => $e]);
         }
 
+        $block = $resultPage->getLayout()->createBlock(
+            \Svea\Checkout\Block\Checkout::class,
+            '',
+            ['data' => ['template' => $template]]
+        );
         $output = $block->toHtml();
 
         $quote = $block->getQuote();

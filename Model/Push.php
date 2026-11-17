@@ -25,6 +25,7 @@ class Push extends AbstractModel implements PushInterface
     public function setId($id)
     {
         $this->setData(self::ENTITY_ID, $id);
+        return $this;
     }
 
     public function setSid($sid)

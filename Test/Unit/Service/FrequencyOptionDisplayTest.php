@@ -18,6 +18,9 @@ class FrequencyOptionDisplayTest extends TestCase
         };
     }
 
+    /**
+     * @dataProvider singularFrequencyProvider
+     */
     #[DataProvider('singularFrequencyProvider')]
     public function testSingularFrequencyRendersAsEveryUnit(string $option, string $expectedUnit): void
     {
@@ -36,6 +39,9 @@ class FrequencyOptionDisplayTest extends TestCase
         ];
     }
 
+    /**
+     * @dataProvider pluralFrequencyProvider
+     */
     #[DataProvider('pluralFrequencyProvider')]
     public function testPluralFrequencyRendersNumberAndPluralUnit(
         string $option,

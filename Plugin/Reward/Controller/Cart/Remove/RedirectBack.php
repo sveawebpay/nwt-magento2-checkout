@@ -3,7 +3,7 @@
 namespace Svea\Checkout\Plugin\Reward\Controller\Cart\Remove;
 
 use Magento\Framework\App\Response\RedirectInterface;
-use Magento\Reward\Controller\Cart\Remove;
+use Magento\Framework\App\Action\Action;
 
 class RedirectBack
 {
@@ -23,12 +23,12 @@ class RedirectBack
     }
 
     /**
-     * @param Remove $removeAction
+     * @param Action $removeAction
      * @param $response
      *
      * @return \Magento\Framework\App\ResponseInterface
      */
-    public function afterExecute(Remove $removeAction, $response)
+    public function afterExecute(Action $removeAction, $response)
     {
         $this->redirect->redirect(
             $removeAction->getResponse(),

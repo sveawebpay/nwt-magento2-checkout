@@ -21,6 +21,27 @@ class CampaignRepositoryTest extends TestCase
         $this->repository = new CampaignRepository($this->collectionFactory);
     }
 
+    public function testGetReturnsCampaignByEntityId(): void
+    {
+        $campaign = $this->makeCampaignWithEntityId(42);
+        $collection = $this->createMock(Collection::class);
+        $collection->expects($this->once())->method('addFieldToFilter')->with('entity_id', 42);
+        $collection->method('getFirstItem')->willReturn($campaign);
+        $this->collectionFactory->method('create')->willReturn($collection);
+
+        $this->assertSame($campaign, $this->repository->get(42));
+    }
+
+    public function testGetThrowsWhenCampaignDoesNotExist(): void
+    {
+        $campaign = $this->makeCampaignWithEntityId(null);
+        $collection = $this->makeCollectionReturningFirstItem($campaign);
+        $this->collectionFactory->method('create')->willReturn($collection);
+        $this->expectException(NoSuchEntityException::class);
+
+        $this->repository->get(42);
+    }
+
     public function testGetByCodeReturnsCampaignWhenEntityIdIsSet(): void
     {
         $campaign = $this->makeCampaignWithEntityId(42);

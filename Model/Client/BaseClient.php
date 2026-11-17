@@ -107,20 +107,14 @@ abstract class BaseClient
             $exception = $this->handleException($e);
         }
 
-        if ($exception) {
-            $this->getLogger()->error(
-                "Failed sending request to svea integration: GET " . $this->getLogRedactor()->redactUrls($endpoint)
-            );
-            $this->getLogger()->error($this->getLogRedactor()->redact($this->removeAuthForLogging($options)));
-            $this->getLogger()->error($this->getLogRedactor()->redactUrls($exception->getMessage()));
-            $this->getLogger()->error($exception->getHttpStatusCode());
-            $this->getLogger()->error($this->getLogRedactor()->redact((string)$exception->getResponseBody()));
-            throw $exception;
-        }
-
-
-
-
+        $this->getLogger()->error(
+            "Failed sending request to svea integration: GET " . $this->getLogRedactor()->redactUrls($endpoint)
+        );
+        $this->getLogger()->error($this->getLogRedactor()->redact($this->removeAuthForLogging($options)));
+        $this->getLogger()->error($this->getLogRedactor()->redactUrls($exception->getMessage()));
+        $this->getLogger()->error($exception->getHttpStatusCode());
+        $this->getLogger()->error($this->getLogRedactor()->redact((string)$exception->getResponseBody()));
+        throw $exception;
     }
 
     /**

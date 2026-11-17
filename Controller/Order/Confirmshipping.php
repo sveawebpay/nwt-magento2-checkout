@@ -30,6 +30,9 @@ class Confirmshipping extends Update implements HttpPostActionInterface, UsesSer
      */
     private $shipInfoService;
 
+    /**
+     * @return \Magento\Framework\Controller\Result\Json|void
+     */
     public function execute()
     {
         $this->assignServices();
@@ -57,7 +60,7 @@ class Confirmshipping extends Update implements HttpPostActionInterface, UsesSer
             return $this->returnError();
         }
 
-        return $this->_sendResponse([
+        $this->_sendResponse([
             'cart',
             'coupon',
             'shipping',

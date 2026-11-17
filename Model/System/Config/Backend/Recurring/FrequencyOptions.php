@@ -35,10 +35,11 @@ class FrequencyOptions extends Value
     {
         $value = $this->getValue();
         if (!$value) {
-            return;
+            return $this;
         }
         $value = $this->serializer->unserialize($value);
         unset($value['__empty']);
         $this->setValue($value);
+        return $this;
     }
 }

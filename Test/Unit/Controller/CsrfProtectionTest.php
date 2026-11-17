@@ -46,6 +46,7 @@ class CsrfProtectionTest extends TestCase
 
     /**
      * @param class-string<Update> $class
+     * @dataProvider checkoutUpdateControllerProvider
      */
     #[DataProvider('checkoutUpdateControllerProvider')]
     public function testCheckoutUpdateRefusesRequestWithoutAjaxHeader(string $class): void
@@ -60,6 +61,7 @@ class CsrfProtectionTest extends TestCase
 
     /**
      * @param class-string<Update> $class
+     * @dataProvider checkoutUpdateControllerProvider
      */
     #[DataProvider('checkoutUpdateControllerProvider')]
     public function testCheckoutUpdateKeepsDefaultCsrfValidation(string $class): void

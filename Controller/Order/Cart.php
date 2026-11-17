@@ -9,7 +9,7 @@ class Cart extends Update
      */
     public function execute()
     {
-        return $this->_sendResponse([
+        $this->_sendResponse([
             'cart',
             'coupon',
             'shipping',

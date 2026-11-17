@@ -38,6 +38,9 @@ class HyvaThemeDetectorTest extends TestCase
         return ['Hyvä theme' => [true], 'other theme' => [false]];
     }
 
+    /**
+     * @dataProvider isHyvaProvider
+     */
     #[DataProvider('isHyvaProvider')]
     public function testAsksHyvaWhetherCurrentThemeIsHyva(bool $isHyva): void
     {

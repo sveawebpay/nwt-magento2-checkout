@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Svea\Checkout\Helper;
 
-use Magento\GiftCardAccount\Model\Giftcardaccount;
 use Magento\GiftCardAccount\Api\GiftCardAccountManagementInterface;
-use Magento\GiftCardAccount\Api\GiftCardAccountRepositoryInterface;
 use Magento\GiftCardAccount\Model\GiftCardFactory;
 use Magento\GiftCardAccount\Api\Data\GiftCardAccountInterfaceFactory;
 use Magento\Framework\App\ObjectManager;
@@ -46,7 +44,7 @@ class GiftCard
         ) {
             $objectManager = $objectManager ?? ObjectManager::getInstance();
             $this->giftCardAccountRepository = $giftCardAccountRepository
-                ?? $objectManager->get(GiftCardAccountRepositoryInterface::class);
+                ?? $objectManager->get('Magento\GiftCardAccount\Api\GiftCardAccountRepositoryInterface');
             $this->giftCardAccountFactory = $giftCardAccountFactory
                 ?? $objectManager->get(GiftCardAccountInterfaceFactory::class);
             $this->giftCardFactory = $giftCardFactory ?? $objectManager->get(GiftCardFactory::class);
@@ -134,10 +132,10 @@ class GiftCard
         foreach ($items as $item) {
             /** @var \Magento\GiftCardAccount\Model\GiftCard $giftCard */
             $giftCard = $this->giftCardFactory->create();
-            $giftCard->setId($item[Giftcardaccount::ID]);
-            $giftCard->setCode($item[Giftcardaccount::CODE]);
-            $giftCard->setAmount($item[Giftcardaccount::AMOUNT]);
-            $giftCard->setBaseAmount($item[Giftcardaccount::BASE_AMOUNT]);
+            $giftCard->setId($item['i']);
+            $giftCard->setCode($item['c']);
+            $giftCard->setAmount($item['a']);
+            $giftCard->setBaseAmount($item['ba']);
             $giftCards[$giftCard->getCode()] = $giftCard;
         }
 
